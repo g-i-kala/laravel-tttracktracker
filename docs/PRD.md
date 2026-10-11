@@ -1,4 +1,4 @@
-# PRD — DJ Library Agent
+# PRD — DJ Library Agent (TTTrackTracker)
 
 ## MVP definition
 
@@ -35,9 +35,16 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 ### Duplicates
 - Exact duplicates → modal: Remove duplicates / Keep all / Review manually.
 - Similar duplicates → non-blocking warning.
+- Detection uses a stored `normalized_key`. Cross-batch warnings ("already exported in batch X") come after MVP.
+
+### Organization
+- Optional year/month on a batch, used to filter/organize imports.
+- UI language: English.
 
 ### YouTube
-- API mode when `YOUTUBE_DATA_API_KEY` is set: up to 3 candidates per track, scored 0–100.
+- No-key mode is the primary mode at start; API mode is built in parallel.
+- API mode when `YOUTUBE_DATA_API_KEY` is set: up to 3 candidates per track, scored 0–100 (title-based scoring).
+- If the API quota is exceeded or the API fails, the item falls back to no-key mode (search URL + notice in UI).
 - Score >= 80 → preselect + include in export; 60–79 → preselect only; < 60 → not included.
 - No-key mode: generate `https://www.youtube.com/results?search_query=...`.
 - Custom link accepts `watch?v=`, `youtu.be/`, `shorts/`; normalized to `https://www.youtube.com/watch?v=ID`; non-YouTube URLs rejected.

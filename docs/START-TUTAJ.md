@@ -2,56 +2,107 @@
 
 ## Co to jest
 
-**DJ Library Agent** — lokalna aplikacja Laravel dla workflow DJ-a.
+**TTTrackTracker** (projekt: DJ Library Agent) to lokalna aplikacja Laravel dla workflow DJ-a.
 
-MVP (Milestone 1): wklejasz listę utworów → aplikacja parsuje `Artist - Title` → przeglądasz/edytujesz → szuka YouTube (API lub ręczne linki wyszukiwania) → wybierasz linki → generuje plik TXT „Supersimple” z samymi URL-ami YouTube.
+MVP (Milestone 1) działa tak:
+1. Wklejasz listę utworów, a aplikacja parsuje `Artist - Title`.
+2. Przeglądasz i edytujesz wynik.
+3. Aplikacja generuje linki wyszukiwania YouTube (na start bez klucza API; tryb API dochodzi równolegle).
+4. Wybierasz linki.
+5. Dostajesz plik TXT „Supersimple” z samymi URL-ami YouTube.
 
-Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna).
+Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po angielsku.
 
 ## Aktualny status
 
-- Szkielet Laravel 13 zainstalowany.
-- Laravel Boost zainstalowany (guidelines, skills, MCP).
-- Folder `docs/` utworzony.
-- **Brak** Sail, własnego kontenera PostgreSQL, Vue, migracji i logiki aplikacji.
+- Laravel 13 + Laravel Boost.
+- Sail skonfigurowany (`compose.yaml`): PHP 8.4, PostgreSQL 16, worker kolejki jako serwis `queue`.
+- `.env` ustawiony pod Sail (baza `tttracktracker`, port 5433 na hoście).
+- Przegląd architektury zakończony, decyzje w [DECISIONS.md](DECISIONS.md).
+- **Brak** Vue, migracji aplikacji i logiki.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
 ## Uruchomienie lokalne
 
-Sail nie jest jeszcze zainstalowany. Docelowo:
+Pierwsze uruchomienie:
 
 ```bash
+./vendor/bin/sail build
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan migrate
-./vendor/bin/sail npm run dev
-./vendor/bin/sail artisan queue:work
 ```
+
+Zamiast `./vendor/bin/sail` możesz pisać samo `sail` (alias w `~/.zshrc`, działa z root projektu, patrz [DOCKER.md](DOCKER.md)).
+
+Aplikacja: http://localhost:8000. Baza z hosta: `localhost:5433` (user `sail`, hasło `password`).
 
 Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 ## Najważniejsze komendy
 
-| Cel               | Komenda                                  |
-| ----------------- | ---------------------------------------- |
-| Start kontenerów  | `./vendor/bin/sail up -d`                |
-| Stop kontenerów   | `./vendor/bin/sail down`                 |
-| Migracje          | `./vendor/bin/sail artisan migrate`      |
-| Worker kolejki    | `./vendor/bin/sail artisan queue:work`   |
-| Testy             | `./vendor/bin/sail artisan test`         |
-| Frontend (dev)    | `./vendor/bin/sail npm run dev`          |
+| Cel                  | Komenda                                    |
+| -------------------- | ------------------------------------------ |
+| Start kontenerów     | `./vendor/bin/sail up -d`                  |
+| Stop kontenerów      | `./vendor/bin/sail down`                   |
+| Migracje             | `./vendor/bin/sail artisan migrate`        |
+| Restart workera      | `./vendor/bin/sail artisan queue:restart`  |
+| Logi workera         | `./vendor/bin/sail logs -f queue`          |
+| Testy                | `./vendor/bin/sail artisan test`           |
+| Frontend (dev)       | `./vendor/bin/sail npm run dev`            |
 
 ## Dokumentacja
 
-- [PRD.md](PRD.md) — wymagania produktu
-- [ARCHITECTURE.md](ARCHITECTURE.md) — architektura
-- [TECH-STACK.md](TECH-STACK.md) — stack technologiczny
-- [ROADMAP.md](ROADMAP.md) — plan etapów
-- [DATABASE.md](DATABASE.md) — schemat bazy
-- [API.md](API.md) — trasy i endpointy
-- [UI-FLOW.md](UI-FLOW.md) — przepływ UI
-- [DOCKER.md](DOCKER.md) — środowisko lokalne
-- [DECISIONS.md](DECISIONS.md) — log decyzji
-- [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md) — dziennik prac
-- [TODO.md](TODO.md) — bieżące zadania
-- [TESTING.md](TESTING.md) — testy i QA
+- [PRD.md](PRD.md): wymagania produktu
+- [ARCHITECTURE.md](ARCHITECTURE.md): architektura
+- [TECH-STACK.md](TECH-STACK.md): stack technologiczny
+- [ROADMAP.md](ROADMAP.md): plan etapów
+- [DATABASE.md](DATABASE.md): schemat bazy
+- [API.md](API.md): trasy i endpointy
+- [UI-FLOW.md](UI-FLOW.md): przepływ UI
+- [DOCKER.md](DOCKER.md): środowisko lokalne
+- [DECISIONS.md](DECISIONS.md): log decyzji
+- [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md): dziennik prac
+- [TODO.md](TODO.md): bieżące zadania
+- [TESTING.md](TESTING.md): testy i QA
+
+---
+
+## Notatki z sesji (handoff)
+
+> Do przeczytania na początku nowej sesji, po `/clear`. Aktualizować na końcu każdej sesji.
+
+### Sesja 2026-10-11: setup i przegląd architektury
+
+**Zrobione:**
+- `CLAUDE.md` przeformatowany do poprawnego Markdown. Dodana sekcja **Working Rules**: pracujemy **atomowo**, czyli robimy tylko to, o co poproszono, kolejne kroki proponujemy i czekamy na zgodę.
+- Laravel Boost 2.10.3 zainstalowany (guidelines, skills, MCP). Jego wytyczne są doklejone na końcu `CLAUDE.md` i `AGENTS.md`. Nasza polityka docs ma pierwszeństwo przed regułą Boosta „docs tylko na prośbę”.
+- `docs/` z 13 wymaganymi plikami.
+- Git zainicjowany (commity: `first commit`, `init: init`).
+- Sail: `compose.yaml` (nie `docker-compose.yml`) z PHP 8.4, `postgres:16` i serwisem `queue`. PHP 8.3 odpada, bo Symfony 8 wymaga >= 8.4.1.
+- `.env` / `.env.example`: `APP_NAME=TTTrackTracker`, `APP_PORT=8000`, baza `tttracktracker` (user `sail` / hasło `password`), `FORWARD_DB_PORT=5433` (bo `pg-dev` zajmuje 5432), klucze `YOUTUBE_*` (klucz API na razie pusty).
+- Przegląd architektury w formie Q&A. Wszystkie decyzje są w [DECISIONS.md](DECISIONS.md) („Architecture review”). W skrócie:
+  - na start tryb no-key, API dochodzi równolegle, przy wyczerpaniu quoty item przechodzi na search URL;
+  - scoring tylko po tytule, bez `duration_seconds`;
+  - wybrany link: snapshot `selected_youtube_*` na itemie, bez `is_selected`;
+  - statusy tylko jako etapy pipeline'u, w PHP enums; bez liczników na batchu;
+  - eksport synchroniczny; wyszukiwanie przez `Bus::batch()`; worker jako serwis w compose;
+  - własna tabela `youtube_search_cache`; konfiguracja przez `config('services.youtube.*')`;
+  - kolumna `normalized_key` od razu, duplikaty między batchami po MVP;
+  - `year`/`month` służą do filtrowania; UI po angielsku; frontend to Vue w Blade.
+- Alias `sail` jest w `~/.zshrc` i działa z root projektu.
+
+**W toku (robi użytkownik):**
+- Pierwsze uruchomienie: `sail build`, `sail up -d`, `sail artisan migrate`.
+- Zdobycie klucza YouTube Data API.
+
+**Uwaga, znana niespójność:**
+- Specyfikacja w `CLAUDE.md` (statusy, schemat tabel, lista jobów, struktura `app/`) jest **starsza** niż decyzje z Q&A. **Źródłem prawdy są `docs/`** (DATABASE, ARCHITECTURE, DECISIONS). Naprawi to zadanie „odchudzenie CLAUDE.md”.
+- Zmiany z tej sesji są zacommitowane (`build(sail): ...`, `docs: ...`). `.env` jest w `.gitignore`.
+
+**Następne kroki (do wyboru, po kolei):**
+1. Sprawdzić, czy `sail up` i `migrate` przeszły (`sail ps`, `sail logs queue`).
+2. Ponowić `boost:install` pod Sail, a przy okazji porządki VS Code: usunąć `.cursor/` i `opencode.json`, dodać `.vscode/extensions.json`.
+3. Odchudzić `CLAUDE.md` (specyfikacja przechodzi do `docs/`, zostają zasady i mapa docs).
+4. Dodać Vue 3 do Vite.
+5. Start MVP: enumy, migracje, modele i factories (patrz [TODO.md](TODO.md)).

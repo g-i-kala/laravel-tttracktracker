@@ -4,6 +4,8 @@ This file provides guidance to Claude Code when working in this repository.
 
 ## Project: DJ Library Agent
 
+App name: **TTTrackTracker** (`APP_NAME`). Database: `tttracktracker`.
+
 ### Current MVP
 
 We are building a local-first Laravel application for a DJ workflow.
@@ -83,6 +85,10 @@ Out of scope for MVP:
 - **Execute tasks atomically** unless explicitly instructed otherwise: do exactly the requested task, nothing more.
 - Do not chain into follow-up steps (next setup stage, extra features, refactors) without being asked — propose them instead.
 - Report what was done and suggest the next step; wait for confirmation before continuing.
+- **At the start of every session, read `docs/START-TUTAJ.md`** (status + session handoff notes) before doing anything else.
+- At the end of a session (or when asked to save progress), update the handoff notes in `docs/START-TUTAJ.md`.
+- Use **Conventional Commits** for commit messages: `type(scope): description`, e.g. `feat(import): add parser service`, `docs: update DATABASE.md`, `build(sail): add queue service`. Types: `feat`, `fix`, `docs`, `build`, `chore`, `refactor`, `test`, `style`, `perf`, `ci`.
+- Commit only when asked.
 
 ## Working Directory
 
@@ -368,10 +374,15 @@ Expected `.env` style:
 DB_CONNECTION=pgsql
 DB_HOST=pgsql
 DB_PORT=5432
-DB_DATABASE=dj_library_agent
+DB_DATABASE=tttracktracker
 DB_USERNAME=sail
 DB_PASSWORD=password
+FORWARD_DB_PORT=5433
 ```
+
+`FORWARD_DB_PORT=5433` avoids a host port conflict with the shared `pg-dev` container on 5432. Inside Docker the app still uses `pgsql:5432`.
+
+Sail runs PHP 8.4 (same as host; Symfony 8 requires PHP >= 8.4.1) with PostgreSQL 16. Prefer running commands through `./vendor/bin/sail`.
 
 ### Queue
 
@@ -380,6 +391,10 @@ MVP default:
 ```env
 QUEUE_CONNECTION=database
 ```
+
+- YouTube search uses Laravel job batching (`Bus::batch()`, `job_batches` table) with one `SearchYoutubeForImportItemJob` per item. The UI polls batch progress.
+- The queue worker runs as a dedicated `queue` service in `compose.yaml`, so `sail up -d` starts it. After code changes run `./vendor/bin/sail artisan queue:restart`.
+- Exports are generated synchronously, without a job.
 
 Do not introduce Redis/RabbitMQ unless requested.
 

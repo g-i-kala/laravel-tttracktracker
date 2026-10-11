@@ -1,30 +1,37 @@
 # Docker / Sail
 
-> Status: Sail **not installed yet**.
+Laravel Sail is installed (`compose.yaml` in project root, not `docker-compose.yml`).
 
-## Sail setup (planned)
+## Services
 
-```bash
-composer require laravel/sail --dev
-php artisan sail:install --with=pgsql
-./vendor/bin/sail up -d
-```
+| Service        | Image / runtime          | Purpose                                   | Host port |
+| -------------- | ------------------------ | ----------------------------------------- | --------- |
+| `laravel.test` | `sail-8.4/app` (PHP 8.4) | Web app + Vite dev server                 | `APP_PORT` (8000), `VITE_PORT` (5173) |
+| `queue`        | `sail-8.4/app`           | `php artisan queue:work --tries=3 --timeout=90` | — |
+| `pgsql`        | `postgres:16`            | Project-local PostgreSQL                  | `FORWARD_DB_PORT` (5433) |
 
-After Sail is installed, re-run `php artisan boost:install` so Boost's MCP server uses Sail.
+Notes:
 
-## PostgreSQL service
-
-Project-local `pgsql` container (not the shared `pg-dev`).
+- **PHP 8.4**, not 8.3: `composer.lock` contains Symfony 8 packages that require PHP >= 8.4.1. The host also runs PHP 8.4.
+- `queue` reuses the image built for `laravel.test` and has `restart: unless-stopped`.
+- `laravel.test` and `queue` wait for `pgsql` to be healthy (`pg_isready`).
+- `pgsql` mounts Sail's `create-testing-database.sql`, so a `testing` database is created on first start. PHPUnit uses it (`phpunit.xml` → `DB_DATABASE=testing`).
+- Data volume: `sail-pgsql` → `/var/lib/postgresql/data`.
 
 ## `.env` requirements
 
 ```env
+APP_NAME=TTTrackTracker
+APP_URL=http://localhost:8000
+APP_PORT=8000
+
 DB_CONNECTION=pgsql
 DB_HOST=pgsql
 DB_PORT=5432
-DB_DATABASE=dj_library_agent
+DB_DATABASE=tttracktracker
 DB_USERNAME=sail
 DB_PASSWORD=password
+FORWARD_DB_PORT=5433
 
 QUEUE_CONNECTION=database
 
@@ -33,7 +40,30 @@ YOUTUBE_AUTO_INCLUDE_THRESHOLD=80
 YOUTUBE_CANDIDATES_LIMIT=3
 ```
 
-Current `.env` still points to `DB_HOST=pg-dev` / `DB_DATABASE=tttracktracker` — to be changed during Sail setup.
+- `DB_HOST=pgsql` / `DB_PORT=5432` are used **inside** Docker.
+- From the host (TablePlus, pgAdmin, `psql`), connect to `localhost:5433`.
+- `FORWARD_DB_PORT=5433` because the shared `pg-dev` container already binds host port 5432.
+- `WWWUSER` / `WWWGROUP` are set by the `sail` script. Warnings about them from plain `docker compose` are harmless.
+- The Postgres user and database are created only on the **first** start of an empty volume. Changing `DB_*` later requires recreating the volume (destructive, ask first).
+
+## `sail` alias
+
+Commands below use `./vendor/bin/sail`. With a shell alias you can type just `sail` (run from the project root):
+
+```zsh
+# ~/.zshrc (already present on the main dev machine)
+alias sail='bash vendor/bin/sail'
+```
+
+## First run
+
+```bash
+./vendor/bin/sail build
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate
+```
+
+App: http://localhost:8000
 
 ## Useful commands
 
@@ -42,6 +72,7 @@ Current `.env` still points to `DB_HOST=pg-dev` / `DB_DATABASE=tttracktracker` �
 ./vendor/bin/sail down
 ./vendor/bin/sail ps
 ./vendor/bin/sail logs -f
+./vendor/bin/sail logs -f queue
 ./vendor/bin/sail artisan migrate
 ./vendor/bin/sail psql
 ./vendor/bin/sail composer install
@@ -51,13 +82,23 @@ Current `.env` still points to `DB_HOST=pg-dev` / `DB_DATABASE=tttracktracker` �
 
 ## Queue worker
 
+The worker runs automatically in the `queue` service.
+
 ```bash
-./vendor/bin/sail artisan queue:work
+./vendor/bin/sail artisan queue:restart     # after code changes (worker keeps old code in memory)
 ./vendor/bin/sail artisan queue:failed
 ./vendor/bin/sail artisan queue:retry all
+./vendor/bin/sail logs -f queue
 ```
+
+## After Sail setup
+
+Re-run `php artisan boost:install` so Boost's MCP server runs through Sail (`boost.json` currently has `"sail": false`).
 
 ## Troubleshooting
 
-- Port 5432 conflict with host `pg-dev` container → set `FORWARD_DB_PORT` in `.env` to another port.
-- Destructive commands (`docker volume rm`, `docker system prune`, `migrate:fresh`) require explicit permission.
+- **Port 5432 already in use** → `FORWARD_DB_PORT` must not be 5432 (`pg-dev` uses it).
+- **Port 8000 already in use** → change `APP_PORT` and `APP_URL` together.
+- **Queue jobs not processed** → `./vendor/bin/sail ps` (is `queue` running?), `./vendor/bin/sail logs queue`.
+- **Code changes not visible in jobs** → `./vendor/bin/sail artisan queue:restart`.
+- Destructive commands (`docker volume rm`, `docker system prune`, `migrate:fresh`, `db:wipe`) require explicit permission.

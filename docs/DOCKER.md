@@ -100,5 +100,6 @@ Re-run `php artisan boost:install` so Boost's MCP server runs through Sail (`boo
 - **Port 5432 already in use** → `FORWARD_DB_PORT` must not be 5432 (`pg-dev` uses it).
 - **Port 8000 already in use** → change `APP_PORT` and `APP_URL` together.
 - **Queue jobs not processed** → `./vendor/bin/sail ps` (is `queue` running?), `./vendor/bin/sail logs queue`.
+- **`queue` restarting with `relation "cache" does not exist`** → migrations have not run yet; run `./vendor/bin/sail artisan migrate`, the worker recovers by itself (`restart: unless-stopped`).
 - **Code changes not visible in jobs** → `./vendor/bin/sail artisan queue:restart`.
 - Destructive commands (`docker volume rm`, `docker system prune`, `migrate:fresh`, `db:wipe`) require explicit permission.

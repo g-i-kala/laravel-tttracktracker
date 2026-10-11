@@ -40,3 +40,17 @@
 - Documented the `sail` shell alias in DOCKER.md and START-TUTAJ.md (alias already exists in `~/.zshrc`).
 - Added session handoff notes to START-TUTAJ.md.
 - CLAUDE.md Working Rules: read START-TUTAJ.md at session start, update handoff at session end, Conventional Commits.
+
+## 2026-10-11 (4)
+
+### Changed
+- START-TUTAJ.md: status and handoff updated.
+
+### Notes
+- First `sail up` done: containers running, app online at http://localhost:8000.
+- Work continues next session.
+- Decision: Livewire instead of Vue (DECISIONS.md, C2 superseded). Other docs still mention Vue, to be updated next session.
+- Verified: 3 containers up (laravel.test, pgsql healthy, queue), default migrations ran, queue worker running.
+- `boost:install` re-run with Sail: `boost.json` `sail: true`, `.mcp.json` uses `vendor/bin/sail`, Boost guidelines in `CLAUDE.md` now use Sail commands.
+- Added DOCKER.md troubleshooting entry for worker restarting before first migrate.
+- Removed Boost's Cursor/OpenCode files (`.cursor/`, `opencode.json`); only Claude Code is used.

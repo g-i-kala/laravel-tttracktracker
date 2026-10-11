@@ -18,8 +18,10 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 - Laravel 13 + Laravel Boost.
 - Sail skonfigurowany (`compose.yaml`): PHP 8.4, PostgreSQL 16, worker kolejki jako serwis `queue`.
 - `.env` ustawiony pod Sail (baza `tttracktracker`, port 5433 na hoście).
+- **Kontenery Sail działają, aplikacja jest online** (http://localhost:8000), potwierdzone 2026-10-11.
 - Przegląd architektury zakończony, decyzje w [DECISIONS.md](DECISIONS.md).
-- **Brak** Vue, migracji aplikacji i logiki.
+- Frontend: **Livewire** zamiast Vue (decyzja 2026-10-11). Livewire jeszcze niezainstalowany.
+- **Brak** migracji aplikacji i logiki.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -89,11 +91,16 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
   - eksport synchroniczny; wyszukiwanie przez `Bus::batch()`; worker jako serwis w compose;
   - własna tabela `youtube_search_cache`; konfiguracja przez `config('services.youtube.*')`;
   - kolumna `normalized_key` od razu, duplikaty między batchami po MVP;
-  - `year`/`month` służą do filtrowania; UI po angielsku; frontend to Vue w Blade.
+  - `year`/`month` służą do filtrowania; UI po angielsku; frontend to Vue w Blade (później zmienione na Livewire).
 - Alias `sail` jest w `~/.zshrc` i działa z root projektu.
 
+**Koniec sesji:**
+- Pierwsze uruchomienie zrobione: kontenery działają, aplikacja jest online.
+- Decyzja: **Livewire zamiast Vue** (wpis w [DECISIONS.md](DECISIONS.md), C2 oznaczone jako zastąpione).
+- Pozostałe docs i `CLAUDE.md` jeszcze wspominają Vue, do poprawy w kroku 4.
+- Dalsze prace: następna sesja (2026-10-12).
+
 **W toku (robi użytkownik):**
-- Pierwsze uruchomienie: `sail build`, `sail up -d`, `sail artisan migrate`.
 - Zdobycie klucza YouTube Data API.
 
 **Uwaga, znana niespójność:**
@@ -101,8 +108,8 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - Zmiany z tej sesji są zacommitowane (`build(sail): ...`, `docs: ...`). `.env` jest w `.gitignore`.
 
 **Następne kroki (do wyboru, po kolei):**
-1. Sprawdzić, czy `sail up` i `migrate` przeszły (`sail ps`, `sail logs queue`).
-2. Ponowić `boost:install` pod Sail, a przy okazji porządki VS Code: usunąć `.cursor/` i `opencode.json`, dodać `.vscode/extensions.json`.
+1. ~~Sprawdzić `sail up`, `migrate` i worker~~ **(zrobione)**: 3 kontenery działają, migracje przeszły, worker działa (przed `migrate` restartował się z błędem braku tabeli `cache`, to normalne).
+2. ~~Ponowić `boost:install` pod Sail~~ **(zrobione**: `sail: true`, MCP przez `vendor/bin/sail`, tylko Claude Code). `.cursor/` i `opencode.json` usunięte. Zostało: dodać `.vscode/extensions.json`.
 3. Odchudzić `CLAUDE.md` (specyfikacja przechodzi do `docs/`, zostają zasady i mapa docs).
-4. Dodać Vue 3 do Vite.
+4. Zaktualizować docs i `CLAUDE.md` pod Livewire (ARCHITECTURE, TECH-STACK, UI-FLOW, API, TODO, ROADMAP), potem zainstalować Livewire.
 5. Start MVP: enumy, migracje, modele i factories (patrz [TODO.md](TODO.md)).

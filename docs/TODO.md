@@ -9,11 +9,12 @@
 - [x] Install Sail with `pgsql` service (`compose.yaml`: PHP 8.4, postgres:16, `queue` service)
 - [x] Switch `.env` / `.env.example` to Sail PostgreSQL (`tttracktracker`, port 5433) + `YOUTUBE_*`
 - [x] Architecture review (Q&A) — decisions in `DECISIONS.md`
-- [ ] `sail build` + `sail up -d` + `sail artisan migrate` (first run)
-- [ ] Re-run `boost:install` for Sail
-- [ ] VS Code cleanup: remove `.cursor/`, `opencode.json`; add `.vscode/extensions.json`
+- [x] `sail build` + `sail up -d` + `sail artisan migrate` (first run)
+- [x] Re-run `boost:install` for Sail (`sail: true`, agent: Claude Code only)
+- [x] Remove Boost's Cursor/OpenCode files (`.cursor/`, `opencode.json`)
+- [ ] Add `.vscode/extensions.json`
 - [ ] Slim down `CLAUDE.md` (spec → `docs/`)
-- [ ] Add Vue 3 to Vite
+- [ ] Update docs + `CLAUDE.md` for Livewire, then install Livewire (replaces "Add Vue 3 to Vite")
 - [ ] Decide: remove `database/database.sqlite`?
 - [ ] Get YouTube Data API key
 

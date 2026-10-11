@@ -136,6 +136,7 @@ Decisions from the architecture review of `CLAUDE.md`, made point by point.
 ### C2 — Keep Vue in Blade
 
 **Decision:** No Livewire; Vue 3 with one `createApp` per page and `data-props`.
+**Status:** Superseded by "2026-10-11 — Livewire instead of Vue" (below).
 
 ### C3 — year/month for filtering
 
@@ -157,7 +158,7 @@ Decisions from the architecture review of `CLAUDE.md`, made point by point.
 ### D3 — VS Code only
 
 **Decision:** Remove Boost's Cursor/OpenCode files, add `.vscode/extensions.json`, re-run `boost:install` after Sail.
-**Status:** Pending.
+**Status:** Partly done: `boost:install` re-run with Sail (only Claude Code agent). `.cursor/` and `opencode.json` removed. Adding `.vscode/extensions.json` still pending.
 
 ## 2026-10-11 — Sail runtime: PHP 8.4, PostgreSQL 16
 
@@ -168,3 +169,21 @@ Decisions from the architecture review of `CLAUDE.md`, made point by point.
 ## 2026-10-11 — App name and database name
 
 **Decision:** `APP_NAME=TTTrackTracker`, database `tttracktracker` (instead of `dj_library_agent`).
+
+## 2026-10-11 — Livewire instead of Vue
+
+**Decision:**
+Frontend is Blade + Livewire (with Alpine.js for small client-side interactions). Vue is dropped. Supersedes C2.
+
+**Reason:**
+- The app is server-centric: forms, tables and modals, with logic in PHP services.
+- No JSON API layer to build. Item actions (edit, select candidate, custom link, toggle export) become Livewire component methods with server-side validation.
+- YouTube search progress uses `wire:poll` on `Bus::batch()` state instead of a custom polling endpoint.
+- The app is local and single-user, so the network round-trip per action is negligible.
+- One language, one validation layer, and tests via `Livewire::test()` in PHPUnit.
+- Vue was not installed yet, so switching costs nothing.
+
+**Consequences:**
+- Livewire is added via Composer. Vue/Vitest are not added.
+- The planned JSON endpoints and Vue components are replaced by Livewire components.
+- ARCHITECTURE, TECH-STACK, UI-FLOW, API, TODO, ROADMAP and CLAUDE.md still mention Vue and have to be updated.

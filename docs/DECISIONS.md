@@ -228,3 +228,21 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Consequences:**
 - A future "delete batch" feature deletes candidates → items → export rows (and TXT files) explicitly, in a transaction.
 - Re-searching an item deletes its old candidates first.
+
+## 2026-10-13 — Import parser rules
+
+**Decision:**
+- Split on the first spaced dash (`-`, `–`, `—`); unspaced hyphens never split.
+- Clean lines: skip empty lines, strip leading numbering and timestamps. Bare numbers are stripped only when zero-padded (`01`).
+- `normalized_key`: medium normalization (ASCII, lowercase, no `feat.`, no `(Original Mix)`, `&` → `and`, no punctuation); remixes/extended mixes stay distinct.
+- A line without a separator becomes an item with `artist = null` and `error_message = "Artist not detected"`.
+- The parser is a pure service; persistence happens in the Livewire component.
+
+**Reason:**
+- Artist names contain hyphens (`Jay-Z`); titles contain ` - ` (`Song - Edit`).
+- Tracklists from YouTube/set descriptions are numbered and timestamped. Stripping every bare number would break `50 Cent` / `808 State`.
+- Merging different versions as exact duplicates could delete a track the user wants; similar-duplicate warnings cover looser matches.
+- The user should fix unparseable lines in review, not lose them.
+
+**Consequences:**
+- Editing artist/title in Parse Review must recompute `normalized_key` via `ImportParserService::normalizedKey()`.

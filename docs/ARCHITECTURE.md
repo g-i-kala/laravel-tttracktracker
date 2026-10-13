@@ -55,6 +55,18 @@ Textarea input
        → storage file + ExportFile row
 ```
 
+## Import parsing (implemented)
+
+`App\Services\ImportParserService` is pure (no DB). `parse(string $rawInput)` returns a list of `{line_number, raw_line, artist, title, normalized_key, error_message}`. Persisting items is done by the caller (`Imports\Create`).
+
+1. Split input into lines (`\R`); `line_number` = line in the original input.
+2. Clean: collapse whitespace, strip leading numbering (`1.`, `1)`, `#1`, zero-padded `01`), then a leading timestamp (`00:12`, `1:02:33`, `[00:12]`, optionally followed by `-`/`|`). A bare number without a leading zero stays (`50 Cent`, `808 State`).
+3. Skip lines that are empty after cleaning.
+4. Split on the **first** ` - ` / ` – ` / ` — ` (dash surrounded by whitespace). An unspaced hyphen never splits (`Jay-Z`). The rest stays in the title (`Song - Edit`).
+5. No separator → `artist = null`, `title` = whole line, `error_message = "Artist not detected"`.
+
+`normalizedKey(?artist, title)` (public; recompute after edits in Parse Review) → `"{artist}|{title}"`, each part: ASCII transliteration, lowercase, featured credits removed (`feat.`, `ft.`, `featuring`, bracketed or trailing up to the next bracket), `(Original Mix)` / `[Original Mix]` removed, `&` → `and`, other punctuation → space, whitespace collapsed. Remixes and extended mixes stay distinct; looser matches are the job of similar-duplicate detection.
+
 ## Queue strategy
 
 - `QUEUE_CONNECTION=database`.

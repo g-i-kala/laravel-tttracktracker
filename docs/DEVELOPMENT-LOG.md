@@ -115,3 +115,16 @@
 
 ### Notes
 - Verified with `sail artisan config:show services.youtube`.
+
+## 2026-10-13 (6)
+
+### Added
+- `App\Services\ImportParserService`: `parse()` (line cleanup, first spaced-dash split, missing-artist notice) and `normalizedKey()`.
+- `tests/Unit/ImportParserServiceTest.php` (34 cases with data providers).
+
+### Changed
+- ARCHITECTURE: "Import parsing" section. DECISIONS: "Import parser rules". TESTING, TODO, START-TUTAJ.
+
+### Notes
+- Zero-padded-only rule for bare numbering (keeps `50 Cent`, `808 State`).
+- `sail artisan test`: 41 passed. Pint clean.

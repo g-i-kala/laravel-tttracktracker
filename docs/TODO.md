@@ -28,7 +28,7 @@
 - [ ] App layout (`layouts/app.blade.php`) + `<x-modal>` component
 - [ ] Build dashboard
 - [ ] Build import create page
-- [ ] Implement parser (+ `normalized_key`)
+- [x] Implement parser (+ `normalized_key`)
 - [ ] Parse review page
 - [ ] Duplicate detection
 - [ ] YouTube search URL service (no-key mode — primary at start)

@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'youtube' => [
+        'api_key' => env('YOUTUBE_DATA_API_KEY'),
+        'auto_include_threshold' => (int) env('YOUTUBE_AUTO_INCLUDE_THRESHOLD', 80),
+        'preselect_threshold' => (int) env('YOUTUBE_PRESELECT_THRESHOLD', 60),
+        'candidates_limit' => (int) env('YOUTUBE_CANDIDATES_LIMIT', 3),
+        'cache_ttl_days' => (int) env('YOUTUBE_CACHE_TTL_DAYS', 30),
+    ],
+
 ];

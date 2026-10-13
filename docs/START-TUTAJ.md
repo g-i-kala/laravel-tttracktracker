@@ -113,4 +113,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 3. ~~Odchudzić `CLAUDE.md`~~ **(zrobione 2026-10-13**: 1253 → 370 linii, specyfikacja tylko w `docs/`, słowniczek przeniesiony do PRD.md, `CLAUDE.md` mówi już o Livewire).
 4. ~~Zaktualizować docs i `CLAUDE.md` pod Livewire, potem zainstalować Livewire~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Livewire conventions”).
 5. ~~Start MVP: enumy, migracje, modele i factories~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Schema conventions”).
-6. Dalej wg [TODO.md](TODO.md): `config/services.php` (YouTube), parser + `normalized_key`, potem layout + `<x-modal>` i ekrany.
+6. ~~`config/services.php` (YouTube)~~ **(zrobione 2026-10-13**: 5 kluczy, patrz [ARCHITECTURE.md](ARCHITECTURE.md#youtube-api--fallback-strategy)).
+7. Dalej wg [TODO.md](TODO.md): parser + `normalized_key`, potem layout + `<x-modal>` i ekrany.

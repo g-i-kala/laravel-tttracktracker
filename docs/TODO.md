@@ -24,7 +24,7 @@
 - [x] Status enums (`ImportBatchStatus`, `ImportItemStatus`)
 - [x] Create migrations (incl. `normalized_key`; `job_batches` already in default migration)
 - [x] Create models + factories
-- [ ] `config/services.php` YouTube entry
+- [x] `config/services.php` YouTube entry
 - [ ] App layout (`layouts/app.blade.php`) + `<x-modal>` component
 - [ ] Build dashboard
 - [ ] Build import create page

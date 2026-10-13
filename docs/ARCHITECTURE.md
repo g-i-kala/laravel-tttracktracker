@@ -66,7 +66,15 @@ Textarea input
 
 ## YouTube API / fallback strategy
 
-- Config: `config('services.youtube.api_key' | 'auto_include_threshold' | 'candidates_limit')` from `.env` `YOUTUBE_*`.
+- Config (`config/services.php`, implemented), read via `config('services.youtube.*')`, never `env()` in app code:
+
+  | Key                      | `.env`                            | Default | Meaning                                  |
+  | ------------------------ | --------------------------------- | ------- | ---------------------------------------- |
+  | `api_key`                | `YOUTUBE_DATA_API_KEY`            | empty   | empty → no-key mode                      |
+  | `auto_include_threshold` | `YOUTUBE_AUTO_INCLUDE_THRESHOLD`  | 80      | score >= → preselect + include in export |
+  | `preselect_threshold`    | `YOUTUBE_PRESELECT_THRESHOLD`     | 60      | score >= → preselect only                |
+  | `candidates_limit`       | `YOUTUBE_CANDIDATES_LIMIT`        | 3       | candidates stored per item               |
+  | `cache_ttl_days`         | `YOUTUBE_CACHE_TTL_DAYS`          | 30      | `youtube_search_cache.expires_at` = now + N days |
 - **No-key mode is the primary mode at start.** API mode is built in parallel once a key is obtained.
 - API mode: official YouTube Data API `search.list`, up to 3 candidates.
 - Quota: 10,000 units/day, `search.list` = 100 units (~100 searches/day, ~3 batches of 30). The cache in `youtube_search_cache` is checked before every API call.

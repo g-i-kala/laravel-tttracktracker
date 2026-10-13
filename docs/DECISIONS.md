@@ -127,6 +127,7 @@ Decisions from the architecture review of `CLAUDE.md`, made point by point.
 
 **Decision:** `config('services.youtube.*')`, never `env()` in app code.
 **Reason:** Laravel convention; `env()` breaks with `config:cache`.
+**Consequences (2026-10-13):** Keys `api_key`, `auto_include_threshold` (80), `preselect_threshold` (60), `candidates_limit` (3), `cache_ttl_days` (30). All thresholds live in config, so services have no magic numbers.
 
 ### C1 — normalized_key now, cross-batch duplicates later
 

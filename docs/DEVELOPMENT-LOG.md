@@ -103,3 +103,15 @@
 
 ### Notes
 - Ran `sail artisan migrate` (5 new migrations) and `sail artisan test` (7 passed). Pint clean.
+
+## 2026-10-13 (5)
+
+### Added
+- `config/services.php` `youtube` entry: `api_key`, `auto_include_threshold`, `preselect_threshold`, `candidates_limit`, `cache_ttl_days`.
+- `.env` / `.env.example`: `YOUTUBE_PRESELECT_THRESHOLD=60`, `YOUTUBE_CACHE_TTL_DAYS=30`.
+
+### Changed
+- ARCHITECTURE (config table), DOCKER (`.env`), DECISIONS (B5 consequences), TODO, START-TUTAJ.
+
+### Notes
+- Verified with `sail artisan config:show services.youtube`.

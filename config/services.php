@@ -54,4 +54,15 @@ return [
         'timeout' => (int) env('AI_PARSER_TIMEOUT', 180),
     ],
 
+    /*
+    | AI model prices in USD per 1M tokens, used to estimate the cost of each
+    | call in ai_usage_logs. Models without a price are logged with no cost.
+    | Check the provider's pricing page when adding or changing a model.
+    */
+    'ai_pricing' => [
+        'openai' => [
+            'gpt-4.1-mini' => ['input' => 0.40, 'cached_input' => 0.10, 'output' => 1.60],
+        ],
+    ],
+
 ];

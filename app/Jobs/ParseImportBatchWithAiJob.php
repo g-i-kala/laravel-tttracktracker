@@ -5,9 +5,11 @@ namespace App\Jobs;
 use App\Enums\ImportBatchStatus;
 use App\Models\ImportBatch;
 use App\Services\AiTrackListParserService;
+use App\Services\AiUsageService;
 use App\Services\ImportBatchService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -34,7 +36,12 @@ class ParseImportBatchWithAiJob implements ShouldQueue
             return;
         }
 
-        $importBatches->storeParsedLines($this->batch, $aiParser->parse($this->batch->raw_input));
+        $parsedLines = Context::scope(
+            fn (): array => $aiParser->parse($this->batch->raw_input),
+            [AiUsageService::BATCH_CONTEXT_KEY => $this->batch->id],
+        );
+
+        $importBatches->storeParsedLines($this->batch, $parsedLines);
     }
 
     public function failed(?Throwable $exception): void

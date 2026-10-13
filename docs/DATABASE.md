@@ -99,6 +99,26 @@ Own table, not Laravel Cache, so search history stays visible for quota analysis
 | expires_at             | timestamp          |                           |
 | created_at, updated_at | timestamps         |                           |
 
+### `ai_usage_logs` — `AiUsageLog`
+
+One row per AI agent call (Laravel AI SDK), written by the `RecordAiUsage` listener.
+
+| Column                 | Type                         | Notes                                                    |
+| ---------------------- | ---------------------------- | -------------------------------------------------------- |
+| id                     | bigint PK                    |                                                          |
+| import_batch_id        | FK nullable, `nullOnDelete`  | batch being parsed (from `Context`), null outside a batch; history survives batch deletion |
+| invocation_id          | string                       | SDK invocation UUID                                      |
+| agent                  | string                       | agent class, e.g. `App\Ai\Agents\TrackListParser`       |
+| provider, model        | string                       | requested provider and model (e.g. `openai`, `gpt-4.1-mini`) |
+| input_tokens           | unsigned int, default 0      | includes cached input tokens                             |
+| cached_input_tokens    | unsigned int, default 0      | subset of input read from the prompt cache               |
+| output_tokens          | unsigned int, default 0      |                                                          |
+| cost_usd               | decimal(12,6), nullable      | estimate from `services.ai_pricing`; null = model has no price; 0 for failures |
+| duration_ms            | unsigned int, nullable       |                                                          |
+| status                 | string                       | `AiUsageStatus`                                          |
+| error_message          | text, nullable               | failures only, max 1000 chars                            |
+| created_at, updated_at | timestamps                   |                                                          |
+
 ### Framework tables
 
 - `jobs`, `failed_jobs`, `job_batches`: database queue + `Bus::batch()` (all in the default `0001_01_01_000002_create_jobs_table` migration).
@@ -114,6 +134,7 @@ Own table, not Laravel Cache, so search history stays visible for quota analysis
 | ImportItem       | `importBatch()` belongsTo, `youtubeCandidates()` hasMany YoutubeCandidate |
 | YoutubeCandidate | `importItem()` belongsTo                       |
 | ExportFile       | `importBatch()` belongsTo                      |
+| AiUsageLog       | `importBatch()` belongsTo (nullable)           |
 
 ## Status values
 
@@ -122,6 +143,8 @@ Statuses describe **pipeline stage only**, implemented as PHP backed enums in `a
 `ImportBatchStatus`: `Draft` (`draft`), `Parsing` (`parsing`, AI parsing queued/running), `Parsed`, `Reviewed` (`reviewed`, Save & close on Parse Review), `Searching`, `Searched`, `Exported`, `Failed` (also: AI parsing failed).
 
 `ImportItemStatus`: `Parsed` (`parsed`), `Duplicate`, `SearchPending` (`search_pending`), `Searched`, `Exported`, `Failed`.
+
+`AiUsageStatus`: `Succeeded` (`succeeded`), `Failed` (`failed`).
 
 Defaults: batch `draft`, item `parsed` (DB default + model `$attributes`, so unsaved models see them too).
 
@@ -145,6 +168,7 @@ Derived (not stored):
 | `youtube_candidates`   | `(import_item_id, rank)`                | candidates of an item in order (covers the FK) |
 | `export_files`         | unique `(import_batch_id, type, version)` | one row per version (covers the FK)       |
 | `youtube_search_cache` | unique `(query_hash)`                   | cache lookup                                |
+| `ai_usage_logs`        | `(created_at)`                          | monthly spend sum                           |
 
 ## Factories
 
@@ -155,6 +179,7 @@ Derived (not stored):
 | `YoutubeCandidateFactory`   | —                                                           |
 | `ExportFileFactory`         | —                                                           |
 | `YoutubeSearchCacheFactory` | `expired()`                                                 |
+| `AiUsageLogFactory`         | `failed()`                                                  |
 
 No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look at.
 

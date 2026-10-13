@@ -240,3 +240,20 @@
 - User feedback after the first manual test: no way to return to a reviewed import.
 - 72 tests pass.
 
+## 2026-10-13 (AI usage logging)
+
+### Added
+- Table `ai_usage_logs`, model `AiUsageLog` (+ factory, `failed()` state), enum `AiUsageStatus`.
+- `AiUsageService` (`record()`, `estimateCost()`), listener `RecordAiUsage` on `PromptingAgent` / `AgentPrompted` / `AgentFailed` (singleton in `AppServiceProvider`).
+- `config('services.ai_pricing')`: `gpt-4.1-mini` $0.40 input / $0.10 cached input / $1.60 output per 1M tokens.
+- `AiUsageLoggingTest` (5 tests).
+
+### Changed
+- `ParseImportBatchWithAiJob`: parse runs in `Context::scope()` with `import_batch_id` so logs link to the batch.
+- Docs: DATABASE, ARCHITECTURE, TESTING, TODO.
+
+### Notes
+- Ran `sail artisan migrate` and `queue:restart`. 77 tests pass.
+- No UI yet; data is shown on the Settings → AI screen (next step).
+- Costs are estimates; verify prices on OpenAI's pricing page when changing the model.
+

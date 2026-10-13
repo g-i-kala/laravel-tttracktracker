@@ -23,7 +23,8 @@ Stan na 2026-10-13:
 - **Działa:** Dashboard (placeholder), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle; bez klucza parser linii `Artist - Title`.
 - **Jeszcze nie ma:** duplikatów, wyszukiwania YouTube, eksportu TXT, listy eksportów, ustawień AI.
-- Testy: 72, wszystkie przechodzą.
+- Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt), na razie bez ekranu.
+- Testy: 77, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 

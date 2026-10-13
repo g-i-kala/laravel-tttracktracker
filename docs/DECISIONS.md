@@ -346,3 +346,17 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 - The key is resolved at runtime (DB first, then `.env`). Losing `APP_KEY` makes the stored key unreadable, so the user has to enter it again.
 - Order of work: Save & close + `/imports` → usage logging → settings screen.
 - Implementation details (2026-10-13): the model is also editable in Settings (overrides `AI_PARSER_MODEL`); **Test key** calls the free `GET /v1/models` (no tokens, OpenAI only); the key is applied per call (`withApiKey()`), not at boot, so artisan/migrations never touch the `settings` table; a budget of 0 means AI is always off.
+
+## 2026-10-13 — Track metadata: BPM, key, label
+
+**Decision:**
+- New nullable columns on `import_items`: `bpm` (small int), `musical_key` (as written in the source, e.g. `E Minor`), `camelot_key` (derived, e.g. `9A`), `label`.
+- Filled only by AI parsing and only when the source lists them (no guessing); the line parser leaves them empty. Camelot is computed in PHP from `musical_key` (no AI cost) and recomputed after edits.
+- `TrackListParser` instructions and schema change: stop ignoring BPM/key/label and return them.
+- Not stored: release date, release name, price (user's choice), store badges.
+- Parse Review: a grey second line under the title (`128 BPM · E Minor (9A) · tszr`); click the row to edit these fields.
+- The TXT export does not change.
+
+**Reason:** Store copy-pastes (Beatport) contain DJ-relevant data, and the user wants it kept. It is also useful for sorting/filtering and the later Rekordbox export.
+
+**Consequences:** Revisit the field set when playlist imports (Rekordbox, Traktor) arrive: they carry more data (e.g. decimal BPM, rating, comments), and the answer may be more columns or a jsonb `metadata` column. One migration, a key → Camelot mapper with unit tests, prompt and schema change (slightly more output tokens), and the AI tests' fake responses get the new fields.

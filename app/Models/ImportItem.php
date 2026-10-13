@@ -16,6 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'artist',
     'title',
     'genre',
+    'bpm',
+    'musical_key',
+    'camelot_key',
+    'label',
     'normalized_key',
     'status',
     'selected_youtube_url',
@@ -50,6 +54,7 @@ class ImportItem extends Model
         return [
             'status' => ImportItemStatus::class,
             'line_number' => 'integer',
+            'bpm' => 'integer',
             'youtube_score' => 'integer',
             'include_in_export' => 'boolean',
         ];

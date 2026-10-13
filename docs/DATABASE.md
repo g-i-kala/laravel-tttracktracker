@@ -39,6 +39,10 @@ No stored counters (`items_count`, `exportable_count`, `missing_links_count` rem
 | artist                    | string, nullable            | null when the line has no `Artist - Title` separator |
 | title                     | string                      | remix/version stays in title                       |
 | genre                     | string, nullable            |                                                    |
+| bpm                       | unsigned smallint, nullable | from AI parsing when the source lists it           |
+| musical_key               | string(50), nullable        | key as written in the source, e.g. `E Minor`       |
+| camelot_key               | string(3), nullable         | derived from `musical_key` by `MusicalKeyService`, e.g. `9A` |
+| label                     | string, nullable            | record label from the source                       |
 | normalized_key            | string                      | lowercase, collapsed spaces, without `feat.`/`Original Mix` etc.; duplicate detection |
 | status                    | string, default `parsed`    | `ImportItemStatus`                                 |
 | selected_youtube_url      | string, nullable            | normalized watch URL — **single source of truth** for the chosen link |
@@ -185,7 +189,7 @@ Derived (not stored):
 | Factory                     | States                                                      |
 | --------------------------- | ----------------------------------------------------------- |
 | `ImportBatchFactory`        | `parsed()`, `reviewed()`                                    |
-| `ImportItemFactory`         | `withSelectedYoutubeLink()` (score 90, included), `withSearchUrlOnly()` (no-key mode) |
+| `ImportItemFactory`         | `withMetadata()` (Deep House, 128, E Minor / 9A, tszr), `withSelectedYoutubeLink()` (score 90, included), `withSearchUrlOnly()` (no-key mode) |
 | `YoutubeCandidateFactory`   | —                                                           |
 | `ExportFileFactory`         | —                                                           |
 | `YoutubeSearchCacheFactory` | `expired()`                                                 |

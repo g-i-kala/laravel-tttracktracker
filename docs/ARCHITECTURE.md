@@ -71,6 +71,8 @@ Textarea input
 
 `normalizedKey(?artist, title)` (public; recompute after edits in Parse Review) → `"{artist}|{title}"`, each part: ASCII transliteration, lowercase, featured credits removed (`feat.`, `ft.`, `featuring`, bracketed or trailing up to the next bracket), `(Original Mix)` / `[Original Mix]` removed, `&` → `and`, other punctuation → space, whitespace collapsed. Remixes and extended mixes stay distinct; looser matches are the job of similar-duplicate detection.
 
+`App\Services\MusicalKeyService::toCamelot(?key)` (pure): store key (`E Minor`, `F♯ Major`, `Bbm`, `C# min`, note only = major) or Camelot (`09a`) → Camelot code (`9A`), null when unrecognized. Enharmonic spellings map to the same code.
+
 ## AI parsing (implemented)
 
 When the configured AI provider has an API key, New Import parses **any** pasted format with AI instead of the line parser.

@@ -37,6 +37,20 @@ class ImportItemFactory extends Factory
     }
 
     /**
+     * Indicate that the item has store metadata (as parsed by AI from a Beatport paste).
+     */
+    public function withMetadata(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'genre' => 'Deep House',
+            'bpm' => 128,
+            'musical_key' => 'E Minor',
+            'camelot_key' => '9A',
+            'label' => 'tszr',
+        ]);
+    }
+
+    /**
      * Indicate that the item has a selected YouTube link and is included in the export.
      */
     public function withSelectedYoutubeLink(): static

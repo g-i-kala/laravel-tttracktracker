@@ -26,6 +26,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - `tests/Feature/Settings/AiSettingsTest.php`: usage stats + recent calls, key encrypted/masked/overrides `.env`, remove falls back to `.env`, parse uses saved key + model and restores config, key test (`Http::fakeSequence`), model/budget validation, budget reached → line parser, 80% warning, retry blocked.
 - `tests/Feature/Ai/AiUsageLoggingTest.php`: success logs tokens/cached tokens/cost/batch/duration, failure logged with no cost, call outside a batch, model without price (cost null), cost formula. Token counts come from a fake `StructuredTextResponse` with `TextUsage`.
 - `tests/Feature/Ai/AiTrackListParsingTest.php`: enabled only with a key, AI tracks → parsed lines, New Import queues the job (AI mode), input length limit, job stores items (genre fallback) / skips non-parsing batch / `failed()` marks batch failed, Review polling + retry + simple parser. Agent faked with `preventStrayPrompts()`.
+- `tests/Unit/MusicalKeyServiceTest.php`: key → Camelot for major/minor, ♯/♭ and ASCII, short forms (`Am`, `Bbm`, `min`, `maj`), note only = major, Camelot input normalized, invalid input → null (data provider).
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
 
 ## Important test cases

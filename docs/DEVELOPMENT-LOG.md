@@ -273,3 +273,16 @@
 ### Notes
 - Ran `sail artisan migrate`, `queue:restart`, `npm run build`. 86 tests pass.
 
+## 2026-10-13 (Track metadata, step 1)
+
+### Added
+- Migration: `import_items.bpm`, `musical_key`, `camelot_key`, `label` (nullable).
+- `MusicalKeyService::toCamelot()` + `MusicalKeyServiceTest` (27 cases).
+- `ImportItemFactory::withMetadata()`.
+
+### Changed
+- `ImportItem` fillable/casts. Docs: DATABASE, ARCHITECTURE, TESTING, TODO, DECISIONS (metadata ADR, revisit with Rekordbox/Traktor imports).
+
+### Notes
+- Ran `sail artisan migrate`. 113 tests pass. Not filled yet: the AI agent change is step 2.
+

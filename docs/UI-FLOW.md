@@ -18,6 +18,14 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Recent imports, recent exports.
 - Items needing attention.
 
+## Imports (`/imports`) — `Imports\Index`
+
+> Status: implemented (2026-10-13).
+
+- Table of all batches, newest first, 25 per page: name (link), created, track count, status badge (`To review` amber, `Failed` red, others accent), **Continue**.
+- **Continue** opens Parse Review for now; later it will open the screen matching the status (YouTube Results after searching).
+- Empty state "No imports yet" + **New YouTube Export** button.
+
 ## New Import (`/imports/create`) — `Imports\Create`
 
 > Status: implemented (2026-10-13).
@@ -43,6 +51,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - **Remove** per row with a browser confirm ("Remove this track?").
 - Exact duplicates → **Duplicate modal**: Remove duplicates / Keep all / Review manually.
 - Similar duplicates → inline warning, non-blocking.
+- **Save & close** button (hidden while parsing / failed): validates all fields, marks the batch `reviewed` (a later status is kept), flash "Saved \"name\".", redirects to the imports list.
 - **Search YouTube** button → `searchYoutube()` → redirect to YouTube Results. *Now: disabled, "Coming soon".*
 
 ## YouTube Results (`/imports/{batch}`) — `Imports\Show`

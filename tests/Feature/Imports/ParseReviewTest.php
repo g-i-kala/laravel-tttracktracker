@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Imports;
 
+use App\Enums\ImportBatchStatus;
 use App\Livewire\Imports\Review;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
@@ -106,5 +107,44 @@ class ParseReviewTest extends TestCase
             ->assertNotFound();
 
         $this->assertModelExists($foreignItem);
+    }
+
+    public function test_save_and_close_marks_the_batch_reviewed_and_redirects_to_the_imports_list(): void
+    {
+        $item = ImportItem::factory()->for(ImportBatch::factory()->parsed())->create();
+        $batch = $item->importBatch;
+
+        Livewire::test(Review::class, ['batch' => $batch])
+            ->call('saveAndClose')
+            ->assertHasNoErrors()
+            ->assertRedirectToRoute('imports.index');
+
+        $this->assertSame(ImportBatchStatus::Reviewed, $batch->refresh()->status);
+    }
+
+    public function test_save_and_close_is_blocked_by_an_invalid_field(): void
+    {
+        $item = ImportItem::factory()->for(ImportBatch::factory()->parsed())->create(['title' => 'Teach Me']);
+        $batch = $item->importBatch;
+
+        Livewire::test(Review::class, ['batch' => $batch])
+            ->set("items.{$item->id}.title", '')
+            ->call('saveAndClose')
+            ->assertHasErrors("items.{$item->id}.title")
+            ->assertNoRedirect();
+
+        $this->assertSame(ImportBatchStatus::Parsed, $batch->refresh()->status);
+        $this->assertSame('Teach Me', $item->refresh()->title);
+    }
+
+    public function test_save_and_close_keeps_a_later_status(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+
+        Livewire::test(Review::class, ['batch' => $batch])
+            ->call('saveAndClose')
+            ->assertRedirectToRoute('imports.index');
+
+        $this->assertSame(ImportBatchStatus::Searched, $batch->refresh()->status);
     }
 }

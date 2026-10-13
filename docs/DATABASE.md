@@ -119,7 +119,7 @@ Own table, not Laravel Cache, so search history stays visible for quota analysis
 
 Statuses describe **pipeline stage only**, implemented as PHP backed enums in `app/Enums/` (cases in TitleCase, values in snake_case).
 
-`ImportBatchStatus`: `Draft` (`draft`), `Parsing` (`parsing`, AI parsing queued/running), `Parsed`, `Searching`, `Searched`, `Exported`, `Failed` (also: AI parsing failed).
+`ImportBatchStatus`: `Draft` (`draft`), `Parsing` (`parsing`, AI parsing queued/running), `Parsed`, `Reviewed` (`reviewed`, Save & close on Parse Review), `Searching`, `Searched`, `Exported`, `Failed` (also: AI parsing failed).
 
 `ImportItemStatus`: `Parsed` (`parsed`), `Duplicate`, `SearchPending` (`search_pending`), `Searched`, `Exported`, `Failed`.
 
@@ -150,7 +150,7 @@ Derived (not stored):
 
 | Factory                     | States                                                      |
 | --------------------------- | ----------------------------------------------------------- |
-| `ImportBatchFactory`        | `parsed()`                                                  |
+| `ImportBatchFactory`        | `parsed()`, `reviewed()`                                    |
 | `ImportItemFactory`         | `withSelectedYoutubeLink()` (score 90, included), `withSearchUrlOnly()` (no-key mode) |
 | `YoutubeCandidateFactory`   | —                                                           |
 | `ExportFileFactory`         | —                                                           |

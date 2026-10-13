@@ -21,7 +21,7 @@ class DashboardTest extends TestCase
     {
         $this->get('/')
             ->assertSee('href="'.route('dashboard').'"', false)
-            ->assertSee('title="Coming soon">Imports</span>', false)
+            ->assertSee('href="'.route('imports.index').'"', false)
             ->assertSee('title="Coming soon">Exports</span>', false);
     }
 

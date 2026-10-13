@@ -15,7 +15,8 @@ use Livewire\Component;
 
 /**
  * Parse Review: edit artist/title/genre of each parsed track (autosaved on blur)
- * and remove junk lines before searching YouTube. While AI parsing runs in the
+ * and remove junk lines before searching YouTube. Save & close marks the batch
+ * as reviewed and returns to the imports list. While AI parsing runs in the
  * background, the page polls until the items are ready.
  */
 #[Title('Parse Review')]
@@ -114,6 +115,21 @@ class Review extends Component
 
         $this->savedItemId = $itemId;
         unset($this->rows);
+    }
+
+    /**
+     * Validate all fields, mark the batch as reviewed and go to the imports list.
+     * Edits are already saved on blur; this only closes the review step.
+     */
+    public function saveAndClose(ImportBatchService $importBatches): void
+    {
+        $this->validate();
+
+        $importBatches->markReviewed($this->batch);
+
+        session()->flash('status', "Saved \"{$this->batch->name}\".");
+
+        $this->redirectRoute('imports.index', navigate: true);
     }
 
     public function removeItem(int $itemId): void

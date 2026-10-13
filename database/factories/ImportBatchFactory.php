@@ -40,4 +40,14 @@ class ImportBatchFactory extends Factory
             'status' => ImportBatchStatus::Parsed,
         ]);
     }
+
+    /**
+     * Indicate that the parsed items have been reviewed (Save & close).
+     */
+    public function reviewed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ImportBatchStatus::Reviewed,
+        ]);
+    }
 }

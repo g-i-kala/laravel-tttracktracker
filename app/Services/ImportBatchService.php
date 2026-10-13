@@ -86,6 +86,16 @@ class ImportBatchService
     }
 
     /**
+     * Mark a parsed batch as reviewed. Batches further in the pipeline keep their status.
+     */
+    public function markReviewed(ImportBatch $batch): void
+    {
+        if ($batch->status === ImportBatchStatus::Parsed) {
+            $batch->update(['status' => ImportBatchStatus::Reviewed]);
+        }
+    }
+
+    /**
      * @param  array{name: string, year: ?int, month: ?int, default_genre: ?string, raw_input: string}  $attributes
      */
     private function createBatch(array $attributes, ImportBatchStatus $status): ImportBatch

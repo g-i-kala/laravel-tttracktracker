@@ -222,3 +222,21 @@
 ### Notes
 - Leaked OpenAI key not rotated: user capped it at $4. Risk accepted.
 - End of session, user runs `/clear`.
+
+## 2026-10-13 (Save & close, imports list)
+
+### Added
+- `ImportBatchStatus::Reviewed` (`reviewed`) + `label()` for UI badges; factory state `reviewed()`.
+- `ImportBatchService::markReviewed()` (only `parsed` → `reviewed`).
+- Parse Review: **Save & close** (`saveAndClose()`): validates all fields, flash, redirect to `/imports`.
+- Imports list `Imports\Index` (`/imports`, `imports.index`): newest first, track count, status, Continue, pagination, empty state. Sidebar "Imports" is now active.
+- Tests: `ImportsIndexTest`, three Save & close cases in `ParseReviewTest`.
+
+### Changed
+- `DashboardTest`: Imports is no longer "Coming soon".
+- Docs: DATABASE, API, UI-FLOW, ARCHITECTURE, TODO.
+
+### Notes
+- User feedback after the first manual test: no way to return to a reviewed import.
+- 72 tests pass.
+

@@ -22,14 +22,26 @@
             </p>
         </div>
 
-        <button
-            type="button"
-            disabled
-            title="Coming soon"
-            class="cursor-not-allowed rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white opacity-50"
-        >
-            Search YouTube
-        </button>
+        <div class="flex gap-2">
+            @unless (in_array($batch->status, [\App\Enums\ImportBatchStatus::Parsing, \App\Enums\ImportBatchStatus::Failed], true))
+                <button
+                    type="button"
+                    wire:click="saveAndClose"
+                    class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                    Save &amp; close
+                </button>
+            @endunless
+
+            <button
+                type="button"
+                disabled
+                title="Coming soon"
+                class="cursor-not-allowed rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white opacity-50"
+            >
+                Search YouTube
+            </button>
+        </div>
     </div>
 
     @if ($batch->status === \App\Enums\ImportBatchStatus::Parsing)

@@ -35,7 +35,7 @@
 - [ ] (optional) Scrub the key from Claude Code transcripts in `~/.claude/projects/...`
 - [ ] Try a full real Beatport paste in the UI (user)
 - [x] Parse review page (edit + autosave + remove; duplicates and Search YouTube pending)
-- [ ] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
+- [x] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
 - [ ] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
 - [ ] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
 - [ ] Duplicate detection

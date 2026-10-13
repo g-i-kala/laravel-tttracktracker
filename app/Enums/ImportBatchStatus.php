@@ -11,8 +11,23 @@ enum ImportBatchStatus: string
     case Draft = 'draft';
     case Parsing = 'parsing';
     case Parsed = 'parsed';
+    case Reviewed = 'reviewed';
     case Searching = 'searching';
     case Searched = 'searched';
     case Exported = 'exported';
     case Failed = 'failed';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Draft => 'Draft',
+            self::Parsing => 'Parsing',
+            self::Parsed => 'To review',
+            self::Reviewed => 'Reviewed',
+            self::Searching => 'Searching',
+            self::Searched => 'Searched',
+            self::Exported => 'Exported',
+            self::Failed => 'Failed',
+        };
+    }
 }

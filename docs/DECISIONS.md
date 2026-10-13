@@ -264,3 +264,22 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Consequences:**
 - Use `accent-*` (never a fixed color like `red-*`) for primary actions, links and active states; `zinc` for neutrals; always add `dark:` variants.
 - A Settings screen with an accent picker is listed under "After MVP".
+
+## 2026-10-13 — New Import screen
+
+**Decision:**
+- App timezone `Europe/Warsaw` via `APP_TIMEZONE` (was hard-coded `UTC`).
+- Year and month are optional and empty by default.
+- Track list limit: 1–200 detected tracks.
+- After Parse, temporarily redirect to the Dashboard with a flash message; switch to Parse Review when it exists.
+- Batch + item creation lives in `ImportBatchService::createFromRawInput()` (transaction); the component only validates.
+
+**Reason:**
+- The auto-generated name and UI dates must match the user's clock.
+- The spec makes year/month optional.
+- 200 covers big lists; the YouTube API quota (~100 searches/day) is the real limit and falls back to no-key mode anyway.
+- Keeps this step atomic.
+
+**Consequences:**
+- `Imports\Create::save()` has a `TODO(parse-review)` for the redirect.
+- Year/month are string properties in the component (empty form fields are empty strings) and cast to int on save.

@@ -19,6 +19,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 
 - `tests/Feature/ImportModelsTest.php`: factories, relationships, enum casts + defaults, restrict-on-delete FK, singular `youtube_search_cache` table.
 - `tests/Feature/DashboardTest.php`: `/` renders inside the layout (title, `data-accent`), nav shows "Coming soon" for missing routes, accent from config, modal bound via `wire:model`.
+- `tests/Feature/Imports/CreateImportTest.php`: auto name, batch + items created (line numbers, default genre, missing-artist notice, status), optional fields empty, 0 / >200 tracks rejected, name/year/month validation, live detected counter.
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
 
 ## Important test cases
@@ -37,7 +38,9 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - [ ] Theme follows macOS light/dark; `APP_ACCENT=indigo` changes buttons/active link color.
 - [ ] "How it works" modal: opens, closes with Esc, backdrop click, × and "Got it".
 
-- [ ] Create import with auto-generated name; edit name.
+- [ ] Create import with auto-generated name (Warsaw time); edit name.
+- [ ] Live counter updates while typing; lines without artist are flagged.
+- [ ] Empty list / >200 tracks shows an error; Parse shows "Parsing…" and redirects with a flash message.
 - [ ] Paste 10–30 tracks; parse.
 - [ ] Parse review shown; edit artist/title/genre.
 - [ ] Exact duplicate modal appears; each option works.

@@ -27,7 +27,7 @@
 - [x] `config/services.php` YouTube entry
 - [x] App layout (`layouts/app.blade.php`) + `<x-modal>` component (+ placeholder Dashboard)
 - [ ] Build dashboard
-- [ ] Build import create page
+- [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)
 - [ ] Parse review page
 - [ ] Duplicate detection

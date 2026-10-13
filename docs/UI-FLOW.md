@@ -20,10 +20,13 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## New Import (`/imports/create`) — `Imports\Create`
 
-- Name (auto-generated, e.g. `YouTube Export 2026-10-11 18:30`, editable).
-- Optional year, month, default genre.
-- Track list textarea.
-- **Parse** button → `save()` → redirect to Parse Review.
+> Status: implemented (2026-10-13).
+
+- Name (auto-generated in `Europe/Warsaw` time, e.g. `YouTube Export 2026-10-13 18:30`, editable, required, max 255).
+- Optional year (2000–2100), month (select January–December), default genre (free text). Empty by default.
+- Track list textarea (monospace). Live counter below it: "12 tracks detected · 2 without artist (fix them in review)" (debounced 400 ms, same parser as on save).
+- Validation: at least 1 and at most 200 detected tracks.
+- **Parse** button (shows "Parsing…" while saving) → `save()` → items get the default genre → **for now** redirect to Dashboard with flash "Imported N tracks into "…"." Redirect switches to Parse Review once that screen exists.
 
 ## Parse Review (`/imports/{batch}/review`) — `Imports\Review`
 

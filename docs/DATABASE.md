@@ -5,6 +5,7 @@
 Engine: PostgreSQL 16 (project-local Sail `pgsql` container), database `tttracktracker`. Tests use the `testing` database.
 
 Conventions:
+- Timestamps (`timestamp` without time zone) are stored in the app timezone (`APP_TIMEZONE=Europe/Warsaw`). Do not change the timezone once real data exists without converting it.
 - Statuses are `string` columns cast to PHP backed enums (`app/Enums/`). Adding a status needs no migration.
 - Foreign keys use **`restrictOnDelete()`**: a batch with items/exports (or an item with candidates) cannot be deleted until its children are removed. A future "delete batch" feature must delete children (and TXT files on disk) explicitly.
 - Models use `#[Fillable]` attributes and `casts()` (Laravel 13 style). FK columns are not fillable; create children through relationships (`$batch->items()->create()`).

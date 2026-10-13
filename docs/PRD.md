@@ -37,7 +37,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 ## Functional requirements
 
 ### Import & parsing
-- Paste 10–30 tracks in a textarea, one per line.
+- Paste tracks in a textarea, one per line (typical 10–30; validated: 1–200 detected tracks).
 - Parse `Artist - Title`. Remix/version stays inside title (no separate field).
 - Optional genre per item; batch default genre.
 

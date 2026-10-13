@@ -24,7 +24,8 @@ app/
                  Imports/Show (YouTube results + export), Exports/Index
   Http/Controllers/
                  ExportController (file download only)
-  Services/      ImportParserService, DuplicateDetectionService, YoutubeSearchService,
+  Services/      ImportParserService, ImportBatchService (create batch + items),
+                 DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService
   Jobs/          SearchYoutubeForImportItemJob   (dispatched via Bus::batch())

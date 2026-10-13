@@ -1,6 +1,6 @@
 # API / Routes
 
-> Status: `/` (Dashboard placeholder) implemented; other routes planned.
+> Status: `/` (Dashboard placeholder) and `/imports/create` implemented; other routes planned.
 
 The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTURE.md#frontend)). There is no JSON API: user actions are Livewire component methods, called over Livewire's own endpoint (session + CSRF handled by Livewire).
 
@@ -24,7 +24,7 @@ These replace the POST/PATCH routes from the original plan.
 
 | Component         | Action (planned)                       | Replaces                                       | What it does                                                        |
 | ----------------- | -------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------- |
-| `Imports\Create`  | `save()`                               | `POST /imports`, `POST /imports/{batch}/parse` | Validate form, create batch with `raw_input`, parse lines into items, redirect to review |
+| `Imports\Create`  | `save()` **(implemented)**             | `POST /imports`, `POST /imports/{batch}/parse` | Validate form, `ImportBatchService::createFromRawInput()` (batch + items in a transaction, status `parsed`), flash + redirect (Dashboard for now, review later) |
 | `Imports\Review`  | `removeDuplicates()` / `keepAll()`     | —                                              | Exact-duplicate modal choices                                       |
 | `Imports\Review`  | `searchYoutube()`                      | `PATCH /items/{item}`, `POST /imports/{batch}/youtube/search` | Save artist/title/genre edits, start search (no-key: sync URLs; API: `Bus::batch()`), redirect to results |
 | `Imports\Show`    | `selectCandidate($itemId, $candidateId)` | `POST /items/{item}/youtube/select`          | Copy candidate to `selected_youtube_*`                              |

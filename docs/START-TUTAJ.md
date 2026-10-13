@@ -118,4 +118,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 6. ~~`config/services.php` (YouTube)~~ **(zrobione 2026-10-13**: 5 kluczy, patrz [ARCHITECTURE.md](ARCHITECTURE.md#youtube-api--fallback-strategy)).
 7. ~~Parser + `normalized_key`~~ **(zrobione 2026-10-13**: `ImportParserService`, reguły w [ARCHITECTURE.md](ARCHITECTURE.md#import-parsing-implemented)).
 8. ~~Layout + `<x-modal>`~~ **(zrobione 2026-10-13**: sidebar, motyw wg systemu, akcent z `APP_ACCENT`, placeholder Dashboard).
-9. Dalej wg [TODO.md](TODO.md): ekran New Import (`Imports\Create`), potem Parse Review.
+9. ~~Ekran New Import~~ **(zrobione 2026-10-13**: `/imports/create`, po zapisie na razie redirect na Dashboard).
+10. Dalej: **Parse Review** (`/imports/{batch}/review`: edycja artist/title/genre, przeliczanie `normalized_key`, potem duplikaty), następnie przełączyć redirect z New Import na review.

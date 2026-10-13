@@ -154,3 +154,18 @@
 ### Changed
 - Local `.env`: `APP_ACCENT=navy` (default in `config/app.php` / `.env.example` stays `red`).
 - `config/app.php` comment, DOCKER, ARCHITECTURE, DECISIONS.
+
+## 2026-10-13 (9)
+
+### Added
+- New Import screen: `App\Livewire\Imports\Create` at `/imports/create` (route `imports.create`): name (auto, editable), optional year/month/default genre, track list with live detected counter, validation 1–200 tracks.
+- `App\Services\ImportBatchService::createFromRawInput()`: batch + items in a transaction, status `parsed`, default genre on items.
+- `tests/Feature/Imports/CreateImportTest.php` (7 tests).
+
+### Changed
+- `config/app.php` timezone reads `APP_TIMEZONE`; `.env` / `.env.example`: `APP_TIMEZONE=Europe/Warsaw`.
+- Sidebar/Dashboard "+ New YouTube Export" is now an active link.
+- Docs: API, UI-FLOW, ARCHITECTURE, DATABASE (timezone note), PRD (limit), DOCKER, TECH-STACK, DECISIONS ("New Import screen"), TODO, TESTING, START-TUTAJ.
+
+### Notes
+- `sail artisan test`: 51 passed. Pint clean. Assets rebuilt.

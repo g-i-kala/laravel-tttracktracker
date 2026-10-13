@@ -21,8 +21,9 @@ return [
     |--------------------------------------------------------------------------
     |
     | Accent palette for buttons, links and the active navigation item.
-    | Available: red, indigo, emerald, amber, sky, violet. Unknown values
-    | fall back to red (see resources/css/app.css).
+    | Available: red, indigo, emerald, amber, sky, violet, navy (navy in
+    | light mode, light blue in dark mode). Unknown values fall back to red
+    | (see resources/css/app.css).
     |
     */
 

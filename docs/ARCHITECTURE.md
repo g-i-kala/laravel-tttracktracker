@@ -119,6 +119,6 @@ Title-based only (no duration lookup):
 - User actions (edit, select candidate, custom link, toggle export, export) are component methods with server-side validation. No JSON API.
 - **Modals**: our own `<x-modal>` Blade component, shown/hidden by Alpine and bound to a component property. No modal packages.
 - **Layout** (`layouts::app`, implemented): left sidebar (Dashboard, Imports, Exports, "+ New YouTube Export"), collapsible on mobile; `wire:navigate` links with `data-current` active state; flash area for `session('status')`. Page title from the component's `#[Title]`.
-- **Theme**: light/dark follows the OS (`prefers-color-scheme`, Tailwind `dark:`). Neutral `zinc` + an accent palette: `config('app.accent')` (`APP_ACCENT`) → `data-accent` on `<html>` → CSS variables → `accent-*` Tailwind colors (`resources/css/app.css`). Unknown values fall back to red.
+- **Theme**: light/dark follows the OS (`prefers-color-scheme`, Tailwind `dark:`). Neutral `zinc` + an accent palette: `config('app.accent')` (`APP_ACCENT`) → `data-accent` on `<html>` → CSS variables → `accent-*` Tailwind colors (`resources/css/app.css`). Unknown values fall back to red. `navy` is adaptive: dark navy (shifted `blue` scale) in light mode, `sky` in dark mode.
 - The only classic controller is `ExportController@download`, which streams the TXT file.
 - See [UI-FLOW.md](UI-FLOW.md) and [API.md](API.md).

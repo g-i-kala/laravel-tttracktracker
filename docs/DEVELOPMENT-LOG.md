@@ -145,3 +145,12 @@
 
 ### Notes
 - `sail artisan test`: 44 passed. Pint clean. `GET /` → 200.
+
+## 2026-10-13 (8)
+
+### Added
+- Adaptive `navy` accent palette: shifted `blue` scale (navy) in light mode, `sky` in dark mode (`prefers-color-scheme`).
+
+### Changed
+- Local `.env`: `APP_ACCENT=navy` (default in `config/app.php` / `.env.example` stays `red`).
+- `config/app.php` comment, DOCKER, ARCHITECTURE, DECISIONS.

@@ -252,7 +252,8 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Decision:**
 - Left sidebar navigation (collapsible on mobile).
 - Light/dark theme follows the OS; no toggle for now.
-- Accent color configurable via `APP_ACCENT` in `.env` (red default; indigo, emerald, amber, sky, violet). No Settings screen in MVP.
+- Accent color configurable via `APP_ACCENT` in `.env` (red default; indigo, emerald, amber, sky, violet, navy). No Settings screen in MVP.
+- `navy` (added 2026-10-13, the user's choice locally) is adaptive: dark navy in light mode, light blue (`sky`) in dark mode.
 - `/` is a placeholder `Dashboard` Livewire component; the default `welcome.blade.php` and the default `ExampleTest` feature test were removed.
 
 **Reason:**

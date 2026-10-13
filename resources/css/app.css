@@ -112,6 +112,40 @@
     --accent-950: var(--color-violet-950);
 }
 
+/*
+ * Navy: adaptive palette. Light mode uses dark navy (shifted blue scale),
+ * dark mode switches to light blue (sky) for contrast on dark backgrounds.
+ */
+[data-accent='navy'] {
+    --accent-50: var(--color-blue-50);
+    --accent-100: var(--color-blue-100);
+    --accent-200: var(--color-blue-200);
+    --accent-300: var(--color-blue-300);
+    --accent-400: var(--color-blue-700);
+    --accent-500: var(--color-blue-800);
+    --accent-600: var(--color-blue-900);
+    --accent-700: var(--color-blue-950);
+    --accent-800: var(--color-blue-950);
+    --accent-900: var(--color-blue-950);
+    --accent-950: var(--color-blue-950);
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-accent='navy'] {
+        --accent-50: var(--color-sky-50);
+        --accent-100: var(--color-sky-100);
+        --accent-200: var(--color-sky-200);
+        --accent-300: var(--color-sky-300);
+        --accent-400: var(--color-sky-400);
+        --accent-500: var(--color-sky-500);
+        --accent-600: var(--color-sky-600);
+        --accent-700: var(--color-sky-700);
+        --accent-800: var(--color-sky-800);
+        --accent-900: var(--color-sky-900);
+        --accent-950: var(--color-sky-950);
+    }
+}
+
 [x-cloak] {
     display: none !important;
 }

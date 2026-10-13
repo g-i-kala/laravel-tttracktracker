@@ -22,7 +22,7 @@ Notes:
 
 ```env
 APP_NAME=TTTrackTracker
-APP_ACCENT=red          # UI accent: red, indigo, emerald, amber, sky, violet
+APP_ACCENT=red          # UI accent: red, indigo, emerald, amber, sky, violet, navy (navy light / light blue dark)
 APP_URL=http://localhost:8000
 APP_PORT=8000
 

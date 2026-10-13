@@ -94,10 +94,9 @@ class Create extends Component
             'raw_input' => $validated['rawInput'],
         ]);
 
-        // TODO(parse-review): redirect to imports.review once the Parse Review screen exists.
-        session()->flash('status', "Imported {$batch->items()->count()} tracks into \"{$batch->name}\".");
+        session()->flash('status', "Imported {$batch->items()->count()} tracks. Review them before searching YouTube.");
 
-        $this->redirectRoute('dashboard', navigate: true);
+        $this->redirectRoute('imports.review', ['batch' => $batch], navigate: true);
     }
 
     /**

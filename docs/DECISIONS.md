@@ -283,3 +283,20 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Consequences:**
 - `Imports\Create::save()` has a `TODO(parse-review)` for the redirect.
 - Year/month are string properties in the component (empty form fields are empty strings) and cast to int on save.
+
+## 2026-10-13 — Parse Review editing
+
+**Decision:**
+- Autosave each field on blur (`wire:model.blur` + `updatedItems()` hook); no Save button.
+- Rows can be removed with a confirm dialog.
+- Search YouTube button is shown disabled ("Coming soon") until search exists.
+- Batch header on review is read-only.
+- Editing logic lives in `ImportItemService::updateTrackDetails()` (squish, blank → null, recompute `normalized_key`, set/clear the missing-artist notice).
+
+**Reason:**
+- Nothing is lost when the tab is closed; Search YouTube does not need to save edits first.
+- Junk lines are common in pasted tracklists.
+
+**Consequences:**
+- The component keeps editable values in `$items` keyed by item id; every action re-checks that the item belongs to the batch (`$batch->items()->findOrFail()`).
+- `searchYoutube()` will not need to save edits.

@@ -20,6 +20,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - `tests/Feature/ImportModelsTest.php`: factories, relationships, enum casts + defaults, restrict-on-delete FK, singular `youtube_search_cache` table.
 - `tests/Feature/DashboardTest.php`: `/` renders inside the layout (title, `data-accent`), nav shows "Coming soon" for missing routes, accent from config, modal bound via `wire:model`.
 - `tests/Feature/Imports/CreateImportTest.php`: auto name, batch + items created (line numbers, default genre, missing-artist notice, status), optional fields empty, 0 / >200 tracks rejected, name/year/month validation, live detected counter.
+- `tests/Feature/Imports/ParseReviewTest.php`: line order, autosave + key recompute, missing-artist notice set/cleared, blank genre → null, title required, remove item, items of another batch rejected (404).
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
 
 ## Important test cases
@@ -42,7 +43,9 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - [ ] Live counter updates while typing; lines without artist are flagged.
 - [ ] Empty list / >200 tracks shows an error; Parse shows "Parsing…" and redirects with a flash message.
 - [ ] Paste 10–30 tracks; parse.
-- [ ] Parse review shown; edit artist/title/genre.
+- [ ] Parse review shown after Parse; edit artist/title/genre, "Saved" appears on blur; reload keeps the edit.
+- [ ] Fill in a missing artist → amber notice disappears; empty title → error.
+- [ ] Remove a row → confirm dialog → row gone.
 - [ ] Exact duplicate modal appears; each option works.
 - [ ] Similar duplicate warning appears, does not block.
 - [ ] No-key mode: search URL opens in new tab.

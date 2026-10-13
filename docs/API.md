@@ -1,6 +1,6 @@
 # API / Routes
 
-> Status: `/` (Dashboard placeholder) and `/imports/create` implemented; other routes planned.
+> Status: `/` (Dashboard placeholder), `/imports/create` and `/imports/{batch}/review` implemented; other routes planned.
 
 The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTURE.md#frontend)). There is no JSON API: user actions are Livewire component methods, called over Livewire's own endpoint (session + CSRF handled by Livewire).
 
@@ -24,9 +24,11 @@ These replace the POST/PATCH routes from the original plan.
 
 | Component         | Action (planned)                       | Replaces                                       | What it does                                                        |
 | ----------------- | -------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------- |
-| `Imports\Create`  | `save()` **(implemented)**             | `POST /imports`, `POST /imports/{batch}/parse` | Validate form, `ImportBatchService::createFromRawInput()` (batch + items in a transaction, status `parsed`), flash + redirect (Dashboard for now, review later) |
+| `Imports\Create`  | `save()` **(implemented)**             | `POST /imports`, `POST /imports/{batch}/parse` | Validate form, `ImportBatchService::createFromRawInput()` (batch + items in a transaction, status `parsed`), flash + redirect to review |
+| `Imports\Review`  | `updatedItems()` hook **(implemented)** | `PATCH /items/{item}`                         | Autosave one field on blur (`wire:model.blur="items.{id}.{field}"`), `ImportItemService::updateTrackDetails()` |
+| `Imports\Review`  | `removeItem($itemId)` **(implemented)** | —                                             | Delete one item (with `wire:confirm`)                               |
 | `Imports\Review`  | `removeDuplicates()` / `keepAll()`     | —                                              | Exact-duplicate modal choices                                       |
-| `Imports\Review`  | `searchYoutube()`                      | `PATCH /items/{item}`, `POST /imports/{batch}/youtube/search` | Save artist/title/genre edits, start search (no-key: sync URLs; API: `Bus::batch()`), redirect to results |
+| `Imports\Review`  | `searchYoutube()`                      | `POST /imports/{batch}/youtube/search` | Start search (no-key: sync URLs; API: `Bus::batch()`), redirect to results |
 | `Imports\Show`    | `selectCandidate($itemId, $candidateId)` | `POST /items/{item}/youtube/select`          | Copy candidate to `selected_youtube_*`                              |
 | `Imports\Show`    | `saveCustomLink($itemId)`              | `POST /items/{item}/youtube/custom`            | Validate + normalize the YouTube URL, store as selected             |
 | `Imports\Show`    | `toggleExport($itemId)`                | `POST /items/{item}/toggle-export`             | Flip `include_in_export`                                            |

@@ -25,6 +25,7 @@ app/
   Http/Controllers/
                  ExportController (file download only)
   Services/      ImportParserService, ImportBatchService (create batch + items),
+                 ImportItemService (edit track details during review),
                  DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService

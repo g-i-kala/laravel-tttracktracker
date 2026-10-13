@@ -29,7 +29,7 @@
 - [ ] Build dashboard
 - [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)
-- [ ] Parse review page
+- [x] Parse review page (edit + autosave + remove; duplicates and Search YouTube pending)
 - [ ] Duplicate detection
 - [ ] YouTube search URL service (no-key mode — primary at start)
 - [ ] YouTube URL normalizer

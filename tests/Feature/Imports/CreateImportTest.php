@@ -36,7 +36,7 @@ class CreateImportTest extends TestCase
             ->set('rawInput', "Adam Beyer - Teach Me (Original Mix)\n\nTeach Me")
             ->call('save')
             ->assertHasNoErrors()
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('imports.review', ImportBatch::sole()));
 
         $batch = ImportBatch::sole();
 
@@ -56,7 +56,7 @@ class CreateImportTest extends TestCase
         $this->assertSame([null, 'Artist not detected'], $items->pluck('error_message')->all());
         $this->assertTrue($items->every(fn ($item) => $item->status === ImportItemStatus::Parsed));
 
-        $this->assertSame('Imported 2 tracks into "Techno October".', session('status'));
+        $this->assertSame('Imported 2 tracks. Review them before searching YouTube.', session('status'));
     }
 
     public function test_optional_fields_can_be_left_empty(): void

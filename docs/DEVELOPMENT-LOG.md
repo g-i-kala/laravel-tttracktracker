@@ -169,3 +169,17 @@
 
 ### Notes
 - `sail artisan test`: 51 passed. Pint clean. Assets rebuilt.
+
+## 2026-10-13 (10)
+
+### Added
+- Parse Review: `App\Livewire\Imports\Review` at `/imports/{batch}/review` (route `imports.review`): read-only batch header, editable table with autosave on blur, "Saved" indicator, remove row with confirm, disabled Search YouTube.
+- `App\Services\ImportItemService::updateTrackDetails()`.
+- `tests/Feature/Imports/ParseReviewTest.php` (7 tests).
+
+### Changed
+- New Import now redirects to Parse Review (flash "Imported N tracks. Review them before searching YouTube.").
+- Docs: API, UI-FLOW, ARCHITECTURE, DECISIONS ("Parse Review editing"), TODO, TESTING, START-TUTAJ.
+
+### Notes
+- `sail artisan test`: 58 passed. Pint clean. Assets rebuilt.

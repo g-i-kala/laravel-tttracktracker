@@ -26,15 +26,21 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Optional year (2000–2100), month (select January–December), default genre (free text). Empty by default.
 - Track list textarea (monospace). Live counter below it: "12 tracks detected · 2 without artist (fix them in review)" (debounced 400 ms, same parser as on save).
 - Validation: at least 1 and at most 200 detected tracks.
-- **Parse** button (shows "Parsing…" while saving) → `save()` → items get the default genre → **for now** redirect to Dashboard with flash "Imported N tracks into "…"." Redirect switches to Parse Review once that screen exists.
+- **Parse** button (shows "Parsing…" while saving) → `save()` → items get the default genre → redirect to Parse Review with flash "Imported N tracks. Review them before searching YouTube."
 
 ## Parse Review (`/imports/{batch}/review`) — `Imports\Review`
 
-- Always shown after parse.
-- Editable table: artist, title, genre (`wire:model` on each row).
+> Status: editing + removing implemented (2026-10-13). Duplicates and Search YouTube pending.
+
+- Always shown after parse (New Import redirects here).
+- Header (read-only): batch name, track count, "N without artist", month/year, default genre.
+- Editable table in line order: #, artist, title (raw line shown below in grey), genre.
+- **Autosave on blur**: each field saves when it loses focus; "Saved" flashes next to the row; validation errors inline (title required, max 255).
+- Saving recomputes `normalized_key`; filling in an artist clears "Artist not detected", clearing it sets the notice again. Rows without artist have an amber border.
+- **Remove** per row with a browser confirm ("Remove this track?").
 - Exact duplicates → **Duplicate modal**: Remove duplicates / Keep all / Review manually.
 - Similar duplicates → inline warning, non-blocking.
-- **Search YouTube** button → `searchYoutube()` → redirect to YouTube Results.
+- **Search YouTube** button → `searchYoutube()` → redirect to YouTube Results. *Now: disabled, "Coming soon".*
 
 ## YouTube Results (`/imports/{batch}`) — `Imports\Show`
 

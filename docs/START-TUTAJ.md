@@ -119,4 +119,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 7. ~~Parser + `normalized_key`~~ **(zrobione 2026-10-13**: `ImportParserService`, reguły w [ARCHITECTURE.md](ARCHITECTURE.md#import-parsing-implemented)).
 8. ~~Layout + `<x-modal>`~~ **(zrobione 2026-10-13**: sidebar, motyw wg systemu, akcent z `APP_ACCENT`, placeholder Dashboard).
 9. ~~Ekran New Import~~ **(zrobione 2026-10-13**: `/imports/create`, po zapisie na razie redirect na Dashboard).
-10. Dalej: **Parse Review** (`/imports/{batch}/review`: edycja artist/title/genre, przeliczanie `normalized_key`, potem duplikaty), następnie przełączyć redirect z New Import na review.
+10. ~~Parse Review~~ **(zrobione 2026-10-13**: edycja z autosave, usuwanie wierszy, New Import przekierowuje na review).
+11. Dalej: **duplikaty** (`DuplicateDetectionService`, modal exact duplicates, ostrzeżenie similar).

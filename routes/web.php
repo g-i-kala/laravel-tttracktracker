@@ -6,3 +6,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', Dashboard::class)->name('dashboard');
 Route::livewire('/imports/create', Imports\Create::class)->name('imports.create');
+Route::livewire('/imports/{batch}/review', Imports\Review::class)->name('imports.review');

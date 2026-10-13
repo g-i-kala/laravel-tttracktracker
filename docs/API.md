@@ -1,6 +1,6 @@
 # API / Routes
 
-> Status: planned. Only the default Laravel welcome route exists.
+> Status: `/` (Dashboard placeholder) implemented; other routes planned.
 
 The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTURE.md#frontend)). There is no JSON API: user actions are Livewire component methods, called over Livewire's own endpoint (session + CSRF handled by Livewire).
 

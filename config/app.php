@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | UI Accent Color
+    |--------------------------------------------------------------------------
+    |
+    | Accent palette for buttons, links and the active navigation item.
+    | Available: red, indigo, emerald, amber, sky, violet. Unknown values
+    | fall back to red (see resources/css/app.css).
+    |
+    */
+
+    'accent' => env('APP_ACCENT', 'red'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

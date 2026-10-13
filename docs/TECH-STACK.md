@@ -20,6 +20,7 @@ App name: **TTTrackTracker** (project: DJ Library Agent).
 | CSS            | Tailwind CSS 4 (`@tailwindcss/vite`)                |
 | Frontend       | Livewire 4.4 (+ Alpine.js bundled); full-page, class-based components, one per screen (`config/livewire.php`: `make_command.type = class`, layout `layouts::app`) |
 | Editor         | VS Code                                             |
+| UI theme       | OS light/dark; accent palette from `APP_ACCENT` (`config('app.accent')`) |
 
 ## Conventions
 

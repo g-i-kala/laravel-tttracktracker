@@ -25,7 +25,7 @@
 - [x] Create migrations (incl. `normalized_key`; `job_batches` already in default migration)
 - [x] Create models + factories
 - [x] `config/services.php` YouTube entry
-- [ ] App layout (`layouts/app.blade.php`) + `<x-modal>` component
+- [x] App layout (`layouts/app.blade.php`) + `<x-modal>` component (+ placeholder Dashboard)
 - [ ] Build dashboard
 - [ ] Build import create page
 - [x] Implement parser (+ `normalized_key`)
@@ -41,4 +41,6 @@
 
 ## After MVP
 
+- [ ] Settings screen (accent color picker; now `APP_ACCENT`)
+- [ ] Light/dark toggle (now follows the OS)
 - [ ] Cross-batch duplicate warning ("already exported in batch X")

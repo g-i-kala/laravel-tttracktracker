@@ -18,6 +18,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 ## Existing tests
 
 - `tests/Feature/ImportModelsTest.php`: factories, relationships, enum casts + defaults, restrict-on-delete FK, singular `youtube_search_cache` table.
+- `tests/Feature/DashboardTest.php`: `/` renders inside the layout (title, `data-accent`), nav shows "Coming soon" for missing routes, accent from config, modal bound via `wire:model`.
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
 
 ## Important test cases
@@ -31,6 +32,10 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - YouTube scoring: penalties (live set, podcast, lyrics, sped up, slowed, cover, reaction, tutorial), thresholds 80/60.
 
 ## Manual QA checklist
+
+- [ ] Layout: sidebar on desktop, Menu toggle on mobile width; active link highlighted.
+- [ ] Theme follows macOS light/dark; `APP_ACCENT=indigo` changes buttons/active link color.
+- [ ] "How it works" modal: opens, closes with Esc, backdrop click, × and "Got it".
 
 - [ ] Create import with auto-generated name; edit name.
 - [ ] Paste 10–30 tracks; parse.

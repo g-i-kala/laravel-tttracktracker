@@ -32,7 +32,8 @@ app/
 resources/views/
   layouts/app.blade.php          Livewire page layout (`layouts::app`)
   livewire/...                   Views of the Livewire components
-  components/modal.blade.php     Reusable `<x-modal>` (Blade + Alpine)
+  components/modal.blade.php     Reusable `<x-modal>` (Blade + Alpine, x-modelable)
+  components/nav-link.blade.php  Sidebar link; disabled "Coming soon" until its route exists
 ```
 
 Rules: small components, business logic in services (components only validate input, call services and set UI state), statuses as enums, derived states as model accessors/scopes.
@@ -117,5 +118,7 @@ Title-based only (no duration lookup):
 - **One component per screen.** Table rows are plain Blade partials. Extract a row component only if there is a real need (e.g. performance).
 - User actions (edit, select candidate, custom link, toggle export, export) are component methods with server-side validation. No JSON API.
 - **Modals**: our own `<x-modal>` Blade component, shown/hidden by Alpine and bound to a component property. No modal packages.
+- **Layout** (`layouts::app`, implemented): left sidebar (Dashboard, Imports, Exports, "+ New YouTube Export"), collapsible on mobile; `wire:navigate` links with `data-current` active state; flash area for `session('status')`. Page title from the component's `#[Title]`.
+- **Theme**: light/dark follows the OS (`prefers-color-scheme`, Tailwind `dark:`). Neutral `zinc` + an accent palette: `config('app.accent')` (`APP_ACCENT`) → `data-accent` on `<html>` → CSS variables → `accent-*` Tailwind colors (`resources/css/app.css`). Unknown values fall back to red.
 - The only classic controller is `ExportController@download`, which streams the TXT file.
 - See [UI-FLOW.md](UI-FLOW.md) and [API.md](API.md).

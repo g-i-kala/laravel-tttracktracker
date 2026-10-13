@@ -4,7 +4,15 @@
 
 Each screen below is one class-based Livewire component (`app/Livewire/...`). Rows are Blade partials. Modals use our `<x-modal>` Blade component (Alpine).
 
+## Layout (implemented)
+
+- Left sidebar: app name, Dashboard / Imports / Exports, **+ New YouTube Export** button. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
+- Theme follows the OS (light/dark). Accent color from `APP_ACCENT`.
+- Flash message area above the page content.
+
 ## Dashboard (`/`) — `Dashboard`
+
+> Status: placeholder (empty state + "How it works" modal). Recent imports/exports come in "Build dashboard".
 
 - New YouTube Export button.
 - Recent imports, recent exports.
@@ -47,10 +55,20 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Modals summary
 
-All modals use `<x-modal>` (`resources/views/components/modal.blade.php`), opened by a boolean property on the page component.
+All modals use `<x-modal>` (`resources/views/components/modal.blade.php`), bound to a boolean property on the page component:
+
+```blade
+<x-modal wire:model="showDuplicateModal" title="Duplicates found">
+    ...
+    <x-slot:footer>...buttons...</x-slot:footer>
+</x-modal>
+```
+
+Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP by setting the property. Closes on Escape, backdrop click and the × button; focus is trapped and page scroll locked while open.
 
 | Modal                | Screen          | Trigger                          |
 | -------------------- | --------------- | -------------------------------- |
+| How it works         | Dashboard       | "How it works" button          |
 | Duplicate modal      | Parse Review    | Exact duplicates after parse     |
 | Custom link modal    | YouTube Results | Add custom link                  |
 | Missing links modal  | YouTube Results | Export with missing links        |

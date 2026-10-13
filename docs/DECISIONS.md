@@ -246,3 +246,20 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 
 **Consequences:**
 - Editing artist/title in Parse Review must recompute `normalized_key` via `ImportParserService::normalizedKey()`.
+
+## 2026-10-13 — App layout and theme
+
+**Decision:**
+- Left sidebar navigation (collapsible on mobile).
+- Light/dark theme follows the OS; no toggle for now.
+- Accent color configurable via `APP_ACCENT` in `.env` (red default; indigo, emerald, amber, sky, violet). No Settings screen in MVP.
+- `/` is a placeholder `Dashboard` Livewire component; the default `welcome.blade.php` and the default `ExampleTest` feature test were removed.
+
+**Reason:**
+- Sidebar leaves room for future sections (Beatport, local inventory, Rekordbox).
+- Following the OS needs no extra state.
+- A config value is cheap; using `accent-*` classes everywhere makes a later UI picker easy.
+
+**Consequences:**
+- Use `accent-*` (never a fixed color like `red-*`) for primary actions, links and active states; `zinc` for neutrals; always add `dark:` variants.
+- A Settings screen with an accent picker is listed under "After MVP".

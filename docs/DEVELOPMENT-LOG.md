@@ -128,3 +128,20 @@
 ### Notes
 - Zero-padded-only rule for bare numbering (keeps `50 Cent`, `808 State`).
 - `sail artisan test`: 41 passed. Pint clean.
+
+## 2026-10-13 (7)
+
+### Added
+- `resources/views/layouts/app.blade.php`: sidebar layout, mobile Menu toggle, flash area, `#[Title]` page titles, `data-accent` from `config('app.accent')`.
+- `<x-modal>` (Blade + Alpine `x-modelable`, Esc/backdrop/× close, focus trap) and `<x-nav-link>` (disabled "Coming soon" until the route exists).
+- Accent palettes in `resources/css/app.css` (`accent-*` colors via CSS variables): red (default), indigo, emerald, amber, sky, violet. `APP_ACCENT` in `.env`/`.env.example`, `config/app.php` `accent`.
+- Placeholder `App\Livewire\Dashboard` at `/` (route `dashboard`) with a "How it works" modal.
+- `tests/Feature/DashboardTest.php` (4 tests).
+
+### Changed
+- Removed `welcome.blade.php` and the default `tests/Feature/ExampleTest.php`.
+- Ran `sail npm install` + `sail npm run build` (first time).
+- Docs: UI-FLOW, ARCHITECTURE, API, TECH-STACK, DOCKER, DECISIONS ("App layout and theme"), TODO, TESTING, START-TUTAJ.
+
+### Notes
+- `sail artisan test`: 44 passed. Pint clean. `GET /` → 200.

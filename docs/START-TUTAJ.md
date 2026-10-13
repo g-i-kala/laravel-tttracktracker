@@ -33,6 +33,8 @@ Pierwsze uruchomienie:
 ./vendor/bin/sail build
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan migrate
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build
 ```
 
 Zamiast `./vendor/bin/sail` możesz pisać samo `sail` (alias w `~/.zshrc`, działa z root projektu, patrz [DOCKER.md](DOCKER.md)).
@@ -115,4 +117,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 5. ~~Start MVP: enumy, migracje, modele i factories~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Schema conventions”).
 6. ~~`config/services.php` (YouTube)~~ **(zrobione 2026-10-13**: 5 kluczy, patrz [ARCHITECTURE.md](ARCHITECTURE.md#youtube-api--fallback-strategy)).
 7. ~~Parser + `normalized_key`~~ **(zrobione 2026-10-13**: `ImportParserService`, reguły w [ARCHITECTURE.md](ARCHITECTURE.md#import-parsing-implemented)).
-8. Dalej wg [TODO.md](TODO.md): layout + `<x-modal>`, potem ekran New Import (`Imports\Create`) i Parse Review.
+8. ~~Layout + `<x-modal>`~~ **(zrobione 2026-10-13**: sidebar, motyw wg systemu, akcent z `APP_ACCENT`, placeholder Dashboard).
+9. Dalej wg [TODO.md](TODO.md): ekran New Import (`Imports\Create`), potem Parse Review.

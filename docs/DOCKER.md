@@ -22,6 +22,7 @@ Notes:
 
 ```env
 APP_NAME=TTTrackTracker
+APP_ACCENT=red          # UI accent: red, indigo, emerald, amber, sky, violet
 APP_URL=http://localhost:8000
 APP_PORT=8000
 
@@ -63,6 +64,8 @@ alias sail='bash vendor/bin/sail'
 ./vendor/bin/sail build
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan migrate
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build   # or `npm run dev` while working on the UI
 ```
 
 App: http://localhost:8000
@@ -103,5 +106,7 @@ Re-run `php artisan boost:install` so Boost's MCP server runs through Sail (`boo
 - **Port 8000 already in use** → change `APP_PORT` and `APP_URL` together.
 - **Queue jobs not processed** → `./vendor/bin/sail ps` (is `queue` running?), `./vendor/bin/sail logs queue`.
 - **`queue` restarting with `relation "cache" does not exist`** → migrations have not run yet; run `./vendor/bin/sail artisan migrate`, the worker recovers by itself (`restart: unless-stopped`).
+- **`Unable to locate file in Vite manifest`** or unstyled page → `./vendor/bin/sail npm run build` (or keep `./vendor/bin/sail npm run dev` running).
+- **Accent color change not visible** → after editing `APP_ACCENT`, run `./vendor/bin/sail artisan config:clear` if config is cached.
 - **Code changes not visible in jobs** → `./vendor/bin/sail artisan queue:restart`.
 - Destructive commands (`docker volume rm`, `docker system prune`, `migrate:fresh`, `db:wipe`) require explicit permission.

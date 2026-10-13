@@ -2,7 +2,7 @@
 
 ## Milestone 1 — YouTube Supersimple TXT Exporter (MVP)
 
-- [ ] Environment: Sail, project-local PostgreSQL, Vue in Vite
+- [ ] Environment: Sail, project-local PostgreSQL, Livewire
 - [ ] Migrations + models (5 tables)
 - [ ] Dashboard
 - [ ] New import page + auto-generated name

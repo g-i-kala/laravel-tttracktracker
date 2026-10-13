@@ -19,16 +19,23 @@
 app/
   Enums/         ImportBatchStatus, ImportItemStatus
   Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache
+  Livewire/      Full-page components (class-based), one per screen:
+                 Dashboard, Imports/Index, Imports/Create, Imports/Review,
+                 Imports/Show (YouTube results + export), Exports/Index
   Http/Controllers/
-                 DashboardController, ImportBatchController, ImportItemController,
-                 YoutubeSearchController, ExportController
+                 ExportController (file download only)
   Services/      ImportParserService, DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService
   Jobs/          SearchYoutubeForImportItemJob   (dispatched via Bus::batch())
+
+resources/views/
+  layouts/app.blade.php          Livewire page layout (`layouts::app`)
+  livewire/...                   Views of the Livewire components
+  components/modal.blade.php     Reusable `<x-modal>` (Blade + Alpine)
 ```
 
-Rules: small controllers, business logic in services, statuses as enums, derived states as model accessors/scopes.
+Rules: small components, business logic in services (components only validate input, call services and set UI state), statuses as enums, derived states as model accessors/scopes.
 
 ## Data flow
 
@@ -37,21 +44,21 @@ Textarea input
   → ImportBatch (raw_input)
   → ImportParserService → ImportItem[] (artist, title, genre, normalized_key)
   → DuplicateDetectionService → status duplicate / possible-duplicate warning
-  → YoutubeSearchController
+  → Imports\Review::searchYoutube()
        No-key mode (default at start): YoutubeSearchUrlService → youtube_search_url (sync, no queue)
        API mode: Bus::batch([SearchYoutubeForImportItemJob, ...])
          → YoutubeSearchService (cache first) → YoutubeScoringService → YoutubeCandidate[]
          → best candidate copied to import_items.selected_youtube_*
          → on quotaExceeded / API error: fallback to youtube_search_url + notice
   → user selection / custom link (YoutubeUrlNormalizer) → import_items.selected_youtube_*
-  → ExportController (sync) → SupersimpleTxtExportService + ExportFilenameService
+  → Imports\Show::export() (sync) → SupersimpleTxtExportService + ExportFilenameService
        → storage file + ExportFile row
 ```
 
 ## Queue strategy
 
 - `QUEUE_CONNECTION=database`.
-- YouTube API search: `Bus::batch()` with one `SearchYoutubeForImportItemJob` per item (`job_batches` table). The Vue UI polls batch progress (e.g. 12/30).
+- YouTube API search: `Bus::batch()` with one `SearchYoutubeForImportItemJob` per item (`job_batches` table). The `Imports\Show` component polls batch progress with `wire:poll` while the batch is running (e.g. 12/30).
 - No-key mode needs no queue: generating URLs is synchronous.
 - Exports are synchronous (no job). Writing ~30 lines is instant and the modal flow needs an immediate result.
 - Worker runs as the `queue` service in `compose.yaml`. Run `queue:restart` after code changes.
@@ -84,7 +91,11 @@ Title-based only (no duration lookup):
 
 ## Frontend
 
-- Blade pages with Vue 3 components (no Inertia, no SPA). UI language: English.
-- One `createApp` per page root, initial data passed as JSON via `data-props`.
-- Vue calls JSON endpoints in `routes/web.php` (session + CSRF, no Sanctum).
-- See [UI-FLOW.md](UI-FLOW.md).
+- Blade + **Livewire 4** (with Alpine.js, bundled with Livewire). No Inertia, no SPA, no Vue. UI language: English.
+- **Full-page components**: each screen is a class-based Livewire component routed with `Route::livewire()` and rendered inside `layouts::app`.
+- **Class-based format**: `app/Livewire/*.php` + `resources/views/livewire/*.blade.php` (`config/livewire.php` → `make_command.type = class`).
+- **One component per screen.** Table rows are plain Blade partials. Extract a row component only if there is a real need (e.g. performance).
+- User actions (edit, select candidate, custom link, toggle export, export) are component methods with server-side validation. No JSON API.
+- **Modals**: our own `<x-modal>` Blade component, shown/hidden by Alpine and bound to a component property. No modal packages.
+- The only classic controller is `ExportController@download`, which streams the TXT file.
+- See [UI-FLOW.md](UI-FLOW.md) and [API.md](API.md).

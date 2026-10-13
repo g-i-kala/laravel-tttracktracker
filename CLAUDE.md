@@ -95,7 +95,7 @@ After every meaningful task, append to `docs/DEVELOPMENT-LOG.md`:
 Full details: `docs/TECH-STACK.md`, `docs/DOCKER.md`.
 
 - Laravel 13, PHP 8.4, Laravel Sail (`compose.yaml`), PostgreSQL 16 in a project-local `pgsql` container (`FORWARD_DB_PORT=5433`, because shared `pg-dev` uses 5432).
-- Frontend: **Blade pages + Livewire** components, Vite, Tailwind CSS 4. No Inertia, no full SPA, no Vue.
+- Frontend: **Blade pages + Livewire 4** components, Vite, Tailwind CSS 4. No Inertia, no full SPA, no Vue. Livewire conventions: full-page components (`Route::livewire()`), class-based (`app/Livewire/`), one component per screen, own `<x-modal>` (Blade + Alpine), no UI/modal packages. See `docs/DECISIONS.md` "Livewire conventions".
 - Queue: `database` connection, worker runs as the `queue` service in `compose.yaml`. After code changes: `./vendor/bin/sail artisan queue:restart`. Do not introduce Redis/RabbitMQ unless requested.
 - Auth: none (single-user local app). Do not add Breeze, Jetstream, Sanctum or login unless explicitly requested.
 - YouTube: works without an API key (search URLs + custom links); API mode when `YOUTUBE_DATA_API_KEY` is set. Read config via `config('services.youtube.*')`, never `env()` in app code.

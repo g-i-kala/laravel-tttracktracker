@@ -186,4 +186,24 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Consequences:**
 - Livewire is added via Composer. Vue/Vitest are not added.
 - The planned JSON endpoints and Vue components are replaced by Livewire components.
-- ARCHITECTURE, TECH-STACK, UI-FLOW, API, TODO, ROADMAP and CLAUDE.md still mention Vue and have to be updated.
+- ARCHITECTURE, TECH-STACK, UI-FLOW, API, TODO, ROADMAP and CLAUDE.md updated for Livewire on 2026-10-13.
+
+## 2026-10-13 — Livewire conventions
+
+**Decision:**
+1. **Full-page components**: every screen is a Livewire component routed with `Route::livewire()`. No page controllers. The only controller is `ExportController@download`.
+2. **Class-based format**: `app/Livewire/` + `resources/views/livewire/` (not the v4 single-file default). `config/livewire.php` sets `make_command.type = class`.
+3. **Modals**: our own `<x-modal>` Blade component with Alpine. No Flux, no wire-elements/modal.
+4. **One component per screen**: rows are Blade partials. Row components only when there is a real need.
+
+**Reason:**
+- Full-page components are the standard Livewire approach; they remove page controllers and POST/PATCH routes.
+- Class-based is easiest to read for someone new to Livewire and has the most examples online (v2/v3 standard).
+- Four simple modals do not justify a new dependency.
+- Livewire docs advise against over-nesting components; 30 rows re-render instantly in a local app.
+
+**Consequences:**
+- API.md lists page routes plus a table of component actions instead of POST/PATCH routes and JSON endpoints.
+- Planned controllers (Dashboard, ImportBatch, ImportItem, YoutubeSearch) are replaced by Livewire components.
+- Feature tests use `Livewire::test()`.
+- Flux can be added later if we want a nicer UI faster.

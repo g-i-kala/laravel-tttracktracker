@@ -64,3 +64,17 @@
 
 ### Added
 - Glossary section in PRD.md (moved from `CLAUDE.md` "Product Concepts").
+
+## 2026-10-13 (2)
+
+### Changed
+- Docs updated for Livewire (Vue removed): ARCHITECTURE (structure, data flow, queue polling, frontend section), API (page routes + component actions table, no JSON API), UI-FLOW (screens as components, modals), TECH-STACK, ROADMAP, TESTING (`Livewire::test()`, Sail commands), DECISIONS.
+- TECH-STACK: Boost section corrected (Sail, Claude Code only).
+
+### Added
+- `livewire/livewire` ^4.4 (Composer).
+- `config/livewire.php` published; `make_command.type` set to `class`.
+- DECISIONS: "Livewire conventions" (full-page, class-based, own `<x-modal>`, one component per screen).
+
+### Notes
+- Test suite (2 default tests) passes.

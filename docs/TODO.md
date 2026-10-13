@@ -14,7 +14,8 @@
 - [x] Remove Boost's Cursor/OpenCode files (`.cursor/`, `opencode.json`)
 - [ ] Add `.vscode/extensions.json`
 - [x] Slim down `CLAUDE.md` (spec → `docs/`)
-- [ ] Update docs + `CLAUDE.md` for Livewire, then install Livewire (replaces "Add Vue 3 to Vite")
+- [x] Update docs + `CLAUDE.md` for Livewire, then install Livewire (replaces "Add Vue 3 to Vite")
+- [ ] Re-run `boost:install` so Boost adds Livewire guidelines/skills
 - [ ] Decide: remove `database/database.sqlite`?
 - [ ] Get YouTube Data API key
 
@@ -24,6 +25,7 @@
 - [ ] Create migrations (incl. `job_batches`, `normalized_key`)
 - [ ] Create models + factories
 - [ ] `config/services.php` YouTube entry
+- [ ] App layout (`layouts/app.blade.php`) + `<x-modal>` component
 - [ ] Build dashboard
 - [ ] Build import create page
 - [ ] Implement parser (+ `normalized_key`)

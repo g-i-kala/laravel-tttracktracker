@@ -3,17 +3,16 @@
 ## How to run tests
 
 ```bash
-./vendor/bin/sail artisan test        # after Sail is installed
-php artisan test                      # host PHP, for now
-php artisan test --filter=ParserTest
+./vendor/bin/sail artisan test
+./vendor/bin/sail artisan test --filter=ParserTest
 ```
 
-Stack: PHPUnit 12, Mockery, Faker. Code style: `vendor/bin/pint`.
+Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 
 ## Test strategy
 
 - **Unit** — pure services (parser, normalizer, search URL, scoring, filename versioning).
-- **Feature** — HTTP flow (create import, parse, select link, export, download).
+- **Feature** — Livewire components via `Livewire::test()` (create import, review/edit, select link, custom link, toggle, export modals) + HTTP test for the download route.
 - YouTube API mocked via `Http::fake()`; no real API calls in tests.
 
 ## Important test cases

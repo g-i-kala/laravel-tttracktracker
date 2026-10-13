@@ -18,13 +18,8 @@ App name: **TTTrackTracker** (project: DJ Library Agent).
 | Other dev      | Laravel Pail, Laravel Pao, Tinker                   |
 | Frontend build | Vite 8, laravel-vite-plugin 3                       |
 | CSS            | Tailwind CSS 4 (`@tailwindcss/vite`)                |
+| Frontend       | Livewire 4.4 (+ Alpine.js bundled); full-page, class-based components, one per screen (`config/livewire.php`: `make_command.type = class`, layout `layouts::app`) |
 | Editor         | VS Code                                             |
-
-## Planned (not installed yet)
-
-| Area     | Choice                                        |
-| -------- | --------------------------------------------- |
-| Frontend | Blade pages + Vue 3 components (one `createApp` per page) |
 
 ## Conventions
 
@@ -34,12 +29,12 @@ App name: **TTTrackTracker** (project: DJ Library Agent).
 
 ## Not used (by decision)
 
-- Inertia / full SPA, Livewire.
+- Inertia / full SPA, Vue.
+- Modal / UI component packages (Flux, wire-elements/modal): own `<x-modal>` instead. Flux may be reconsidered later for nicer UI.
 - Breeze / Jetstream / Sanctum / any auth.
 - Redis / RabbitMQ (RabbitMQ maybe later).
 
 ## Laravel Boost
 
-- Installed with guidelines, skills and MCP server (`php artisan boost:mcp`).
-- Currently configured for Claude Code, Cursor, OpenCode. Cursor/OpenCode files are to be removed (VS Code only).
-- `boost.json` has `"sail": false`; re-run `php artisan boost:install` now that Sail is installed.
+- Installed with guidelines, skills and MCP server.
+- Configured for Sail (`boost.json` `"sail": true`, MCP via `vendor/bin/sail`) and Claude Code only.

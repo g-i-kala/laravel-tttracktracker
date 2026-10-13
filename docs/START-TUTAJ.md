@@ -20,7 +20,7 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 - `.env` ustawiony pod Sail (baza `tttracktracker`, port 5433 na hoście).
 - **Kontenery Sail działają, aplikacja jest online** (http://localhost:8000), potwierdzone 2026-10-11.
 - Przegląd architektury zakończony, decyzje w [DECISIONS.md](DECISIONS.md).
-- Frontend: **Livewire** zamiast Vue (decyzja 2026-10-11). Livewire jeszcze niezainstalowany.
+- Frontend: **Livewire 4.4** zainstalowany (2026-10-13): komponenty full-page, class-based, jeden na ekran, własny `<x-modal>`.
 - **Brak** migracji aplikacji i logiki.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
@@ -97,7 +97,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 **Koniec sesji:**
 - Pierwsze uruchomienie zrobione: kontenery działają, aplikacja jest online.
 - Decyzja: **Livewire zamiast Vue** (wpis w [DECISIONS.md](DECISIONS.md), C2 oznaczone jako zastąpione).
-- Pozostałe docs i `CLAUDE.md` jeszcze wspominają Vue, do poprawy w kroku 4.
+- ~~Pozostałe docs i `CLAUDE.md` jeszcze wspominają Vue~~ (poprawione 2026-10-13).
 - Dalsze prace: następna sesja (2026-10-12).
 
 **W toku (robi użytkownik):**
@@ -111,5 +111,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 1. ~~Sprawdzić `sail up`, `migrate` i worker~~ **(zrobione)**: 3 kontenery działają, migracje przeszły, worker działa (przed `migrate` restartował się z błędem braku tabeli `cache`, to normalne).
 2. ~~Ponowić `boost:install` pod Sail~~ **(zrobione**: `sail: true`, MCP przez `vendor/bin/sail`, tylko Claude Code). `.cursor/` i `opencode.json` usunięte. Zostało: dodać `.vscode/extensions.json`.
 3. ~~Odchudzić `CLAUDE.md`~~ **(zrobione 2026-10-13**: 1253 → 370 linii, specyfikacja tylko w `docs/`, słowniczek przeniesiony do PRD.md, `CLAUDE.md` mówi już o Livewire).
-4. Zaktualizować docs i `CLAUDE.md` pod Livewire (ARCHITECTURE, TECH-STACK, UI-FLOW, API, TODO, ROADMAP), potem zainstalować Livewire.
+4. ~~Zaktualizować docs i `CLAUDE.md` pod Livewire, potem zainstalować Livewire~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Livewire conventions”).
 5. Start MVP: enumy, migracje, modele i factories (patrz [TODO.md](TODO.md)).

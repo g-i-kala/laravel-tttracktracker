@@ -110,6 +110,6 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 **Następne kroki (do wyboru, po kolei):**
 1. ~~Sprawdzić `sail up`, `migrate` i worker~~ **(zrobione)**: 3 kontenery działają, migracje przeszły, worker działa (przed `migrate` restartował się z błędem braku tabeli `cache`, to normalne).
 2. ~~Ponowić `boost:install` pod Sail~~ **(zrobione**: `sail: true`, MCP przez `vendor/bin/sail`, tylko Claude Code). `.cursor/` i `opencode.json` usunięte. Zostało: dodać `.vscode/extensions.json`.
-3. Odchudzić `CLAUDE.md` (specyfikacja przechodzi do `docs/`, zostają zasady i mapa docs).
+3. ~~Odchudzić `CLAUDE.md`~~ **(zrobione 2026-10-13**: 1253 → 370 linii, specyfikacja tylko w `docs/`, słowniczek przeniesiony do PRD.md, `CLAUDE.md` mówi już o Livewire).
 4. Zaktualizować docs i `CLAUDE.md` pod Livewire (ARCHITECTURE, TECH-STACK, UI-FLOW, API, TODO, ROADMAP), potem zainstalować Livewire.
 5. Start MVP: enumy, migracje, modele i factories (patrz [TODO.md](TODO.md)).

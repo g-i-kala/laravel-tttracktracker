@@ -13,7 +13,7 @@
 - [x] Re-run `boost:install` for Sail (`sail: true`, agent: Claude Code only)
 - [x] Remove Boost's Cursor/OpenCode files (`.cursor/`, `opencode.json`)
 - [ ] Add `.vscode/extensions.json`
-- [ ] Slim down `CLAUDE.md` (spec → `docs/`)
+- [x] Slim down `CLAUDE.md` (spec → `docs/`)
 - [ ] Update docs + `CLAUDE.md` for Livewire, then install Livewire (replaces "Add Vue 3 to Vite")
 - [ ] Decide: remove `database/database.sqlite`?
 - [ ] Get YouTube Data API key

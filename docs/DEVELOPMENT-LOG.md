@@ -54,3 +54,13 @@
 - `boost:install` re-run with Sail: `boost.json` `sail: true`, `.mcp.json` uses `vendor/bin/sail`, Boost guidelines in `CLAUDE.md` now use Sail commands.
 - Added DOCKER.md troubleshooting entry for worker restarting before first migrate.
 - Removed Boost's Cursor/OpenCode files (`.cursor/`, `opencode.json`); only Claude Code is used.
+
+## 2026-10-13
+
+### Changed
+- Slimmed down `CLAUDE.md` (1253 → 370 lines): kept project summary, Working Rules, documentation policy (docs map table, update rules, dev-log format), tech stack summary, Code Style, Safety, Commands, Communication Style, Do Not Implement Yet and the Boost block. Removed the spec sections (data model, statuses, user flow, export rules, URL validation, scoring, `app/` structure, routes, acceptance criteria, testing strategy), which already live in `docs/` in their newer, post-review form.
+- `CLAUDE.md` now states that `docs/` is the source of truth and lists Livewire as the frontend.
+- Working Rules: added "we work as a team: ask questions when unclear or when there are several decisions".
+
+### Added
+- Glossary section in PRD.md (moved from `CLAUDE.md` "Product Concepts").

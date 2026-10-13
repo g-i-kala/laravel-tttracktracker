@@ -15,6 +15,15 @@ Manual track import
 → generate Supersimple TXT export
 ```
 
+## Glossary
+
+| Term              | Meaning                                                                 |
+| ----------------- | ----------------------------------------------------------------------- |
+| Import Batch      | A group of imported tracks, e.g. `YouTube Export 2026-10-11 18:30`.     |
+| Import Item       | One track/line inside a batch. Raw line `Adam Beyer - Teach Me (Original Mix)` → artist `Adam Beyer`, title `Teach Me (Original Mix)`. No separate version field in MVP. |
+| YouTube Candidate | A possible YouTube result for an item. API mode stores up to 3.         |
+| Export File       | A generated TXT file. Supersimple export contains only selected URLs.   |
+
 ## User flow
 
 1. **Dashboard** — New YouTube Export button, recent imports, recent exports, items needing attention.

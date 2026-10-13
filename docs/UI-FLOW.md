@@ -26,6 +26,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Optional year (2000–2100), month (select January–December), default genre (free text). Empty by default.
 - Track list textarea (monospace). Live counter below it: "12 tracks detected · 2 without artist (fix them in review)" (debounced 400 ms, same parser as on save).
 - Validation: at least 1 and at most 200 detected tracks.
+- **AI mode** (AI key set): subtitle "Paste your track list in any format"; instead of the counter: "AI parsing on · paste any format…"; validation only max 100,000 characters; Parse queues AI parsing and redirects to Parse Review immediately.
 - **Parse** button (shows "Parsing…" while saving) → `save()` → items get the default genre → redirect to Parse Review with flash "Imported N tracks. Review them before searching YouTube."
 
 ## Parse Review (`/imports/{batch}/review`) — `Imports\Review`
@@ -33,6 +34,8 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 > Status: editing + removing implemented (2026-10-13). Duplicates and Search YouTube pending.
 
 - Always shown after parse (New Import redirects here).
+- While AI parsing runs: spinner panel "Parsing your track list with AI…" (polls every 2 s), then the table appears.
+- If AI parsing failed: red panel with **Try again with AI** and **Use simple parser**.
 - Header (read-only): batch name, track count, "N without artist", month/year, default genre.
 - Editable table in line order: #, artist, title (raw line shown below in grey), genre.
 - **Autosave on blur**: each field saves when it loses focus; "Saved" flashes next to the row; validation errors inline (title required, max 255).

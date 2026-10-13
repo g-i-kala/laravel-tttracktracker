@@ -24,12 +24,13 @@ app/
                  Imports/Show (YouTube results + export), Exports/Index
   Http/Controllers/
                  ExportController (file download only)
-  Services/      ImportParserService, ImportBatchService (create batch + items),
+  Services/      ImportParserService, AiTrackListParserService, ImportBatchService (create batch + items),
                  ImportItemService (edit track details during review),
                  DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService
-  Jobs/          SearchYoutubeForImportItemJob   (dispatched via Bus::batch())
+  Ai/Agents/     TrackListParser (Laravel AI SDK agent, structured output)
+  Jobs/          ParseImportBatchWithAiJob (implemented), SearchYoutubeForImportItemJob (dispatched via Bus::batch())
 
 resources/views/
   layouts/app.blade.php          Livewire page layout (`layouts::app`)
@@ -70,11 +71,24 @@ Textarea input
 
 `normalizedKey(?artist, title)` (public; recompute after edits in Parse Review) → `"{artist}|{title}"`, each part: ASCII transliteration, lowercase, featured credits removed (`feat.`, `ft.`, `featuring`, bracketed or trailing up to the next bracket), `(Original Mix)` / `[Original Mix]` removed, `&` → `and`, other punctuation → space, whitespace collapsed. Remixes and extended mixes stay distinct; looser matches are the job of similar-duplicate detection.
 
+## AI parsing (implemented)
+
+When the configured AI provider has an API key, New Import parses **any** pasted format with AI instead of the line parser.
+
+- Agent `App\Ai\Agents\TrackListParser` (Laravel AI SDK, `HasStructuredOutput`): returns `tracks[]` of `{artist|null, title, genre|null, source}`. Instructions cover plain lines, store copy-pastes (Beatport: title + mix, artists, label, genre, BPM/key, date, price per track), timestamps/numbering, store badges ("Exclusive"), release names vs track titles. Version goes into the title in parentheses.
+- `AiTrackListParserService`: `isEnabled()` (key present for `config('services.track_list_ai.provider')`), `parse()` maps tracks to the same shape as the line parser (`line_number` = position, `raw_line` = `source`, `normalized_key`, missing-artist notice) plus `genre`.
+- Config `config('services.track_list_ai.*')`: `provider` (`AI_PARSER_PROVIDER`, default `openai`), `model` (`AI_PARSER_MODEL`, empty = provider default, for OpenAI in laravel/ai 1.2: `gpt-6.1-sol`), `timeout` (`AI_PARSER_TIMEOUT`, 180 s). Provider keys live in `config/ai.php` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …).
+- Flow: `Imports\Create::save()` → `ImportBatchService::createForAiParsing()` (batch `parsing`, no items) → `ParseImportBatchWithAiJob` (queue, `tries = 1`, `timeout = 240`) → `storeParsedLines()` (items, item genre = AI genre ?? batch default genre, batch `parsed`). On failure `failed()` logs and sets the batch `failed`.
+- Parse Review polls (`wire:poll.2s="checkParsing"`) while `parsing`; on `failed` offers **Try again with AI** (`retryAiParsing`) and **Use simple parser** (`useLineParser`).
+- Without a key: the line parser runs synchronously as before (live counter, 1–200 tracks).
+- `DB_QUEUE_RETRY_AFTER=300` must stay above the job timeout (240 s), otherwise a long AI call could run twice.
+
 ## Queue strategy
 
 - `QUEUE_CONNECTION=database`.
 - YouTube API search: `Bus::batch()` with one `SearchYoutubeForImportItemJob` per item (`job_batches` table). The `Imports\Show` component polls batch progress with `wire:poll` while the batch is running (e.g. 12/30).
 - No-key mode needs no queue: generating URLs is synchronous.
+- AI parsing: one `ParseImportBatchWithAiJob` per batch (not retried automatically; the user retries from Parse Review). Requires `DB_QUEUE_RETRY_AFTER` (300) > job timeout (240).
 - Exports are synchronous (no job). Writing ~30 lines is instant and the modal flow needs an immediate result.
 - Worker runs as the `queue` service in `compose.yaml`. Run `queue:restart` after code changes.
 - No Redis/RabbitMQ in MVP.

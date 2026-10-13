@@ -7,7 +7,13 @@
 <div class="flex max-w-3xl flex-col gap-6">
     <div>
         <h1 class="text-2xl font-semibold">New YouTube Export</h1>
-        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Paste your track list, one track per line, as <code>Artist - Title</code>.</p>
+        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+            @if ($this->aiEnabled)
+                Paste your track list in any format.
+            @else
+                Paste your track list, one track per line, as <code>Artist - Title</code>.
+            @endif
+        </p>
     </div>
 
     <form wire:submit="save" class="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
@@ -47,18 +53,25 @@
             <textarea
                 id="rawInput"
                 rows="14"
-                wire:model.live.debounce.400ms="rawInput"
+                @if ($this->aiEnabled) wire:model="rawInput" @else wire:model.live.debounce.400ms="rawInput" @endif
                 placeholder="Adam Beyer - Teach Me (Original Mix)&#10;Bicep - Glue&#10;Charlotte de Witte - Sgadi Li Mi"
                 class="{{ $inputClasses }} font-mono"
             ></textarea>
             @error('rawInput') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror
 
-            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400" data-testid="detected-tracks">
-                {{ $this->detected['tracks'] }} {{ Str::plural('track', $this->detected['tracks']) }} detected
-                @if ($this->detected['withoutArtist'] > 0)
-                    · <span class="text-amber-600 dark:text-amber-400">{{ $this->detected['withoutArtist'] }} without artist (fix them in review)</span>
-                @endif
-            </p>
+            @if ($this->aiEnabled)
+                <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400" data-testid="ai-mode">
+                    <span class="font-medium text-accent-600 dark:text-accent-400">AI parsing on</span>
+                    · paste any format (plain lines, Beatport, tracklists); tracks are detected after you click Parse.
+                </p>
+            @else
+                <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400" data-testid="detected-tracks">
+                    {{ $this->detected['tracks'] }} {{ Str::plural('track', $this->detected['tracks']) }} detected
+                    @if ($this->detected['withoutArtist'] > 0)
+                        · <span class="text-amber-600 dark:text-amber-400">{{ $this->detected['withoutArtist'] }} without artist (fix them in review)</span>
+                    @endif
+                </p>
+            @endif
         </div>
 
         <div class="flex justify-end">

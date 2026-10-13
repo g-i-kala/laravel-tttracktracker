@@ -98,6 +98,7 @@ Full details: `docs/TECH-STACK.md`, `docs/DOCKER.md`.
 - Frontend: **Blade pages + Livewire 4** components, Vite, Tailwind CSS 4. No Inertia, no full SPA, no Vue. Livewire conventions: full-page components (`Route::livewire()`), class-based (`app/Livewire/`), one component per screen, own `<x-modal>` (Blade + Alpine), no UI/modal packages. See `docs/DECISIONS.md` "Livewire conventions".
 - Queue: `database` connection, worker runs as the `queue` service in `compose.yaml`. After code changes: `./vendor/bin/sail artisan queue:restart`. Do not introduce Redis/RabbitMQ unless requested.
 - Auth: none (single-user local app). Do not add Breeze, Jetstream, Sanctum or login unless explicitly requested.
+- AI track list parsing: Laravel AI SDK (`laravel/ai`), provider OpenAI by default; on when the provider key (`OPENAI_API_KEY`) is set, otherwise the line parser. Runs as a queued job. Tests must fake agents (`TrackListParser::fake()`), never call a real provider.
 - YouTube: works without an API key (search URLs + custom links); API mode when `YOUTUBE_DATA_API_KEY` is set. Read config via `config('services.youtube.*')`, never `env()` in app code.
 
 ## Code Style Rules
@@ -201,7 +202,6 @@ Do not implement these unless explicitly requested:
 - User auth.
 - RabbitMQ.
 - Full SPA/Inertia migration.
-- AI parsing.
 - Audio fingerprinting.
 
 ===

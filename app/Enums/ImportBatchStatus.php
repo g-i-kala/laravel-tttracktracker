@@ -9,6 +9,7 @@ namespace App\Enums;
 enum ImportBatchStatus: string
 {
     case Draft = 'draft';
+    case Parsing = 'parsing';
     case Parsed = 'parsed';
     case Searching = 'searching';
     case Searched = 'searched';

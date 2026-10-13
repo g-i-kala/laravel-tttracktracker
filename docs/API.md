@@ -24,9 +24,11 @@ These replace the POST/PATCH routes from the original plan.
 
 | Component         | Action (planned)                       | Replaces                                       | What it does                                                        |
 | ----------------- | -------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------- |
-| `Imports\Create`  | `save()` **(implemented)**             | `POST /imports`, `POST /imports/{batch}/parse` | Validate form, `ImportBatchService::createFromRawInput()` (batch + items in a transaction, status `parsed`), flash + redirect to review |
+| `Imports\Create`  | `save()` **(implemented)**             | `POST /imports`, `POST /imports/{batch}/parse` | Validate form; AI on: `createForAiParsing()` (batch `parsing` + queued job); AI off: `createFromRawInput()` (batch + items, `parsed`, flash); redirect to review |
 | `Imports\Review`  | `updatedItems()` hook **(implemented)** | `PATCH /items/{item}`                         | Autosave one field on blur (`wire:model.blur="items.{id}.{field}"`), `ImportItemService::updateTrackDetails()` |
 | `Imports\Review`  | `removeItem($itemId)` **(implemented)** | —                                             | Delete one item (with `wire:confirm`)                               |
+| `Imports\Review`  | `checkParsing()` **(implemented)**     | —                                              | Polled every 2 s while the batch is `parsing`; loads items when done |
+| `Imports\Review`  | `retryAiParsing()` / `useLineParser()` **(implemented)** | —                            | After AI failure: queue AI again, or parse `raw_input` line by line |
 | `Imports\Review`  | `removeDuplicates()` / `keepAll()`     | —                                              | Exact-duplicate modal choices                                       |
 | `Imports\Review`  | `searchYoutube()`                      | `POST /imports/{batch}/youtube/search` | Start search (no-key: sync URLs; API: `Bus::batch()`), redirect to results |
 | `Imports\Show`    | `selectCandidate($itemId, $candidateId)` | `POST /items/{item}/youtube/select`          | Copy candidate to `selected_youtube_*`                              |

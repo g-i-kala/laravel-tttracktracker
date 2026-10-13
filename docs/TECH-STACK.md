@@ -15,6 +15,7 @@ App name: **TTTrackTracker** (project: DJ Library Agent).
 | Testing        | PHPUnit 12.5, Mockery, Faker, Collision; `testing` DB on PostgreSQL |
 | Code style     | Laravel Pint 1.32                                   |
 | AI tooling     | Laravel Boost 2.10.3 (dev)                          |
+| AI in app      | Laravel AI SDK `laravel/ai` ^1.2 (`config/ai.php`); provider OpenAI by default, configurable via `AI_PARSER_PROVIDER` / `AI_PARSER_MODEL` |
 | Other dev      | Laravel Pail, Laravel Pao, Tinker                   |
 | Frontend build | Vite 8, laravel-vite-plugin 3                       |
 | CSS            | Tailwind CSS 4 (`@tailwindcss/vite`)                |

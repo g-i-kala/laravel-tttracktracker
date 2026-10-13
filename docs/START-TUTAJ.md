@@ -120,4 +120,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 8. ~~Layout + `<x-modal>`~~ **(zrobione 2026-10-13**: sidebar, motyw wg systemu, akcent z `APP_ACCENT`, placeholder Dashboard).
 9. ~~Ekran New Import~~ **(zrobione 2026-10-13**: `/imports/create`, po zapisie na razie redirect na Dashboard).
 10. ~~Parse Review~~ **(zrobione 2026-10-13**: edycja z autosave, usuwanie wierszy, New Import przekierowuje na review).
-11. Dalej: **duplikaty** (`DuplicateDetectionService`, modal exact duplicates, ostrzeżenie similar).
+11. ~~Parsowanie AI~~ **(zrobione 2026-10-13**: Laravel AI SDK, OpenAI, job w kolejce; bez klucza zwykły parser). **Do zrobienia przez użytkownika:** wpisać `OPENAI_API_KEY` w `.env`, `sail artisan queue:restart`, przetestować wklejkę z Beatportu.
+12. Dalej: **duplikaty** (`DuplicateDetectionService`, modal exact duplicates, ostrzeżenie similar).

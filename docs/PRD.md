@@ -39,6 +39,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 ### Import & parsing
 - Paste tracks in a textarea, one per line (typical 10–30; validated: 1–200 detected tracks).
 - Parse `Artist - Title`. Remix/version stays inside title (no separate field).
+- **AI parsing** (when an AI API key is set): any pasted format — plain lines, store copy-pastes (e.g. Beatport, one track over several lines), tracklists with timestamps. Extracts artist, title (with version in parentheses) and genre. Runs in the background; Parse Review shows progress and offers retry / simple parser on failure.
 - Optional genre per item; batch default genre.
 
 ### Duplicates
@@ -94,7 +95,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 
 ## Out of scope (MVP)
 
-Audio downloading, Spotify sync, SoundCloud sync, Beatport integration, Rekordbox XML, local file scanning, BPM/key detection, fingerprinting, user accounts/auth, AI parsing, RabbitMQ, SPA/Inertia.
+Audio downloading, Spotify sync, SoundCloud sync, Beatport integration, Rekordbox XML, local file scanning, BPM/key detection, fingerprinting, user accounts/auth, RabbitMQ, SPA/Inertia.
 
 ## Roadmap
 

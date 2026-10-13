@@ -24,6 +24,12 @@ Notes:
 APP_NAME=TTTrackTracker
 APP_ACCENT=red          # UI accent: red, indigo, emerald, amber, sky, violet, navy (navy light / light blue dark)
 APP_TIMEZONE=Europe/Warsaw
+
+OPENAI_API_KEY=           # set → AI parsing on (any pasted format); empty → line parser
+AI_PARSER_PROVIDER=openai # any provider from config/ai.php (anthropic needs ANTHROPIC_API_KEY)
+AI_PARSER_MODEL=          # empty = provider default
+AI_PARSER_TIMEOUT=180
+DB_QUEUE_RETRY_AFTER=300  # must exceed the AI job timeout (240 s)
 APP_URL=http://localhost:8000
 APP_PORT=8000
 
@@ -109,5 +115,6 @@ Re-run `php artisan boost:install` so Boost's MCP server runs through Sail (`boo
 - **`queue` restarting with `relation "cache" does not exist`** → migrations have not run yet; run `./vendor/bin/sail artisan migrate`, the worker recovers by itself (`restart: unless-stopped`).
 - **`Unable to locate file in Vite manifest`** or unstyled page → `./vendor/bin/sail npm run build` (or keep `./vendor/bin/sail npm run dev` running).
 - **Accent color change not visible** → after editing `APP_ACCENT`, run `./vendor/bin/sail artisan config:clear` if config is cached.
+- **AI parsing stuck on "Parsing…"** → is the `queue` service running? `./vendor/bin/sail logs -f queue`; after code or `.env` changes `./vendor/bin/sail artisan queue:restart`. Errors are logged (`storage/logs/laravel.log`, "AI track list parsing failed").
 - **Code changes not visible in jobs** → `./vendor/bin/sail artisan queue:restart`.
 - Destructive commands (`docker volume rm`, `docker system prune`, `migrate:fresh`, `db:wipe`) require explicit permission.

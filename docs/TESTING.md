@@ -11,6 +11,8 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 
 ## Test strategy
 
+- **AI**: never call a real provider in tests. `phpunit.xml` sets `OPENAI_API_KEY` empty; AI tests set `config(['ai.providers.openai.key' => 'test-key'])` and use `TrackListParser::fake([...])->preventStrayPrompts()`.
+
 - **Unit** — pure services (parser, normalizer, search URL, scoring, filename versioning).
 - **Feature** — Livewire components via `Livewire::test()` (create import, review/edit, select link, custom link, toggle, export modals) + HTTP test for the download route.
 - YouTube API mocked via `Http::fake()`; no real API calls in tests.
@@ -21,6 +23,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - `tests/Feature/DashboardTest.php`: `/` renders inside the layout (title, `data-accent`), nav shows "Coming soon" for missing routes, accent from config, modal bound via `wire:model`.
 - `tests/Feature/Imports/CreateImportTest.php`: auto name, batch + items created (line numbers, default genre, missing-artist notice, status), optional fields empty, 0 / >200 tracks rejected, name/year/month validation, live detected counter.
 - `tests/Feature/Imports/ParseReviewTest.php`: line order, autosave + key recompute, missing-artist notice set/cleared, blank genre → null, title required, remove item, items of another batch rejected (404).
+- `tests/Feature/Ai/AiTrackListParsingTest.php`: enabled only with a key, AI tracks → parsed lines, New Import queues the job (AI mode), input length limit, job stores items (genre fallback) / skips non-parsing batch / `failed()` marks batch failed, Review polling + retry + simple parser. Agent faked with `preventStrayPrompts()`.
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
 
 ## Important test cases
@@ -39,6 +42,8 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - [ ] Theme follows macOS light/dark; `APP_ACCENT=indigo` changes buttons/active link color.
 - [ ] "How it works" modal: opens, closes with Esc, backdrop click, × and "Got it".
 
+- [ ] With `OPENAI_API_KEY`: paste a Beatport list → "Parsing with AI…" → table with artist / title (Original Mix) / genre.
+- [ ] AI failure (e.g. wrong key) → red panel; "Use simple parser" and "Try again with AI" work.
 - [ ] Create import with auto-generated name (Warsaw time); edit name.
 - [ ] Live counter updates while typing; lines without artist are flagged.
 - [ ] Empty list / >200 tracks shows an error; Parse shows "Parsing…" and redirects with a flash message.

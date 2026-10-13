@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Imports;
 
+use App\Enums\ImportBatchStatus;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
+use App\Services\ImportBatchService;
 use App\Services\ImportItemService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,7 +15,8 @@ use Livewire\Component;
 
 /**
  * Parse Review: edit artist/title/genre of each parsed track (autosaved on blur)
- * and remove junk lines before searching YouTube.
+ * and remove junk lines before searching YouTube. While AI parsing runs in the
+ * background, the page polls until the items are ready.
  */
 #[Title('Parse Review')]
 class Review extends Component
@@ -33,6 +36,38 @@ class Review extends Component
     {
         $this->batch = $batch;
 
+        $this->loadItems();
+    }
+
+    /**
+     * Polled while AI parsing runs; loads the items once the batch is parsed.
+     */
+    public function checkParsing(): void
+    {
+        $this->batch->refresh();
+
+        if ($this->batch->status !== ImportBatchStatus::Parsing) {
+            unset($this->rows);
+            $this->loadItems();
+        }
+    }
+
+    public function retryAiParsing(ImportBatchService $importBatches): void
+    {
+        $importBatches->retryAiParsing($this->batch);
+    }
+
+    public function useLineParser(ImportBatchService $importBatches): void
+    {
+        $importBatches->parseWithLineParser($this->batch);
+
+        $this->batch->refresh();
+        unset($this->rows);
+        $this->loadItems();
+    }
+
+    private function loadItems(): void
+    {
         $this->items = $this->rows->mapWithKeys(fn (ImportItem $item): array => [$item->id => [
             'artist' => (string) $item->artist,
             'title' => $item->title,

@@ -300,3 +300,24 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Consequences:**
 - The component keeps editable values in `$items` keyed by item id; every action re-checks that the item belongs to the batch (`$batch->items()->findOrFail()`).
 - `searchYoutube()` will not need to save edits.
+
+## 2026-10-13 — AI parsing of pasted track lists
+
+**Decision:**
+- Parse pasted track lists with AI when an AI provider key is set; otherwise keep the line parser. No hand-written Beatport parser (user's choice: "AI only").
+- Laravel AI SDK (`laravel/ai`) with a structured-output agent `TrackListParser`.
+- Provider **OpenAI** by default (user has an OpenAI key), provider default model (`gpt-6.1-sol` in laravel/ai 1.2). Provider and model are configurable in `.env` (`AI_PARSER_PROVIDER`, `AI_PARSER_MODEL`), so Claude can be used later without code changes.
+- Run in the background (`ParseImportBatchWithAiJob`, no automatic retries); Parse Review polls and offers retry / simple parser on failure.
+- Extract only artist, title (version in parentheses) and genre; BPM/key/label are not stored (no columns yet).
+- This supersedes "AI parsing" in the "Do not implement yet" list (removed from CLAUDE.md and PRD out-of-scope).
+
+**Reason:**
+- Real input is store copy-pastes (Beatport spreads one track over ~8 lines) and other formats the line parser cannot handle.
+- Long lists can take minutes; a queued job avoids hanging requests.
+- Retries cost money, so they are manual.
+
+**Consequences:**
+- New batch status `parsing`; `failed` also covers AI failures.
+- `phpunit.xml` forces an empty `OPENAI_API_KEY`; tests enable AI via config and fake the agent (`preventStrayPrompts()`).
+- `DB_QUEUE_RETRY_AFTER=300` (> job timeout 240 s).
+- Without a key the app still works exactly as before.

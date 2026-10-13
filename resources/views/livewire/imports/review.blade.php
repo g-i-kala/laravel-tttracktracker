@@ -32,6 +32,20 @@
         </button>
     </div>
 
+    @if ($batch->status === \App\Enums\ImportBatchStatus::Parsing)
+        <div wire:poll.2s="checkParsing" class="flex items-center gap-3 rounded-lg border border-accent-200 bg-accent-50 px-4 py-6 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">
+            <svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+            <span>Parsing your track list with AI… This can take up to a few minutes for long lists.</span>
+        </div>
+    @elseif ($batch->status === \App\Enums\ImportBatchStatus::Failed)
+        <div class="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between dark:border-red-900 dark:bg-red-950 dark:text-red-200">
+            <span>AI parsing failed. Try again, or parse the list line by line (<code>Artist - Title</code>).</span>
+            <div class="flex gap-2">
+                <button type="button" wire:click="retryAiParsing" class="rounded-md bg-accent-600 px-3 py-1.5 font-semibold text-white hover:bg-accent-500">Try again with AI</button>
+                <button type="button" wire:click="useLineParser" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-white dark:border-zinc-700 dark:hover:bg-zinc-900">Use simple parser</button>
+            </div>
+        </div>
+    @else
     <p class="text-sm text-zinc-600 dark:text-zinc-400">Changes are saved automatically when you leave a field.</p>
 
     <div class="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
@@ -87,4 +101,5 @@
             </tbody>
         </table>
     </div>
+    @endif
 </div>

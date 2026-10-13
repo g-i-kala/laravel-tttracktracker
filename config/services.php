@@ -43,4 +43,15 @@ return [
         'cache_ttl_days' => (int) env('YOUTUBE_CACHE_TTL_DAYS', 30),
     ],
 
+    /*
+    | AI track list parsing (Laravel AI SDK). Enabled when the provider in
+    | config/ai.php has an API key (e.g. OPENAI_API_KEY). An empty model
+    | uses the provider's default text model.
+    */
+    'track_list_ai' => [
+        'provider' => env('AI_PARSER_PROVIDER', 'openai'),
+        'model' => env('AI_PARSER_MODEL') ?: null,
+        'timeout' => (int) env('AI_PARSER_TIMEOUT', 180),
+    ],
+
 ];

@@ -6,7 +6,8 @@
 - [ ] Migrations + models (5 tables)
 - [ ] Dashboard
 - [ ] New import page + auto-generated name
-- [ ] Import parser (`Artist - Title`)
+- [x] Import parser (`Artist - Title`)
+- [x] AI parsing of any pasted format (Laravel AI SDK, OpenAI by default)
 - [ ] Parse review (edit artist/title/genre)
 - [ ] Duplicate detection (exact modal, similar warning)
 - [ ] YouTube search URL generator (no-key mode)
@@ -35,4 +36,3 @@ Not started. Rekordbox XML export.
 - RabbitMQ queue.
 - Spotify / SoundCloud sync.
 - BPM/key detection, fingerprinting.
-- AI-assisted parsing.

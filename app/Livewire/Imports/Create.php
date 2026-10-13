@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Imports;
 
+use App\Services\AiTrackListParserService;
 use App\Services\ImportBatchService;
 use App\Services\ImportParserService;
 use Closure;
@@ -17,6 +18,11 @@ use Livewire\Component;
 class Create extends Component
 {
     public const int MAX_TRACKS = 200;
+
+    /**
+     * Maximum pasted text length in AI mode (store copy-pastes use many lines per track).
+     */
+    public const int MAX_AI_INPUT_LENGTH = 100_000;
 
     public string $name = '';
 
@@ -43,7 +49,7 @@ class Create extends Component
             'year' => ['nullable', 'integer', 'between:2000,2100'],
             'month' => ['nullable', 'integer', 'between:1,12'],
             'defaultGenre' => ['nullable', 'string', 'max:255'],
-            'rawInput' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
+            'rawInput' => $this->aiEnabled ? ['required', 'string', 'max:'.self::MAX_AI_INPUT_LENGTH] : ['required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
                 $count = count(app(ImportParserService::class)->parse($value));
 
                 if ($count === 0) {
@@ -67,7 +73,16 @@ class Create extends Component
     }
 
     /**
-     * Live preview of how many tracks the parser detects.
+     * Whether the track list is parsed with AI (an API key is configured).
+     */
+    #[Computed]
+    public function aiEnabled(): bool
+    {
+        return app(AiTrackListParserService::class)->isEnabled();
+    }
+
+    /**
+     * Live preview of how many tracks the line parser detects (plain mode only).
      *
      * @return array{tracks: int, withoutArtist: int}
      */
@@ -86,15 +101,20 @@ class Create extends Component
     {
         $validated = $this->validate();
 
-        $batch = $importBatches->createFromRawInput([
+        $attributes = [
             'name' => $validated['name'],
             'year' => filled($validated['year']) ? (int) $validated['year'] : null,
             'month' => filled($validated['month']) ? (int) $validated['month'] : null,
             'default_genre' => filled($validated['defaultGenre']) ? $validated['defaultGenre'] : null,
             'raw_input' => $validated['rawInput'],
-        ]);
+        ];
 
-        session()->flash('status', "Imported {$batch->items()->count()} tracks. Review them before searching YouTube.");
+        if ($this->aiEnabled) {
+            $batch = $importBatches->createForAiParsing($attributes);
+        } else {
+            $batch = $importBatches->createFromRawInput($attributes);
+            session()->flash('status', "Imported {$batch->items()->count()} tracks. Review them before searching YouTube.");
+        }
 
         $this->redirectRoute('imports.review', ['batch' => $batch], navigate: true);
     }

@@ -183,3 +183,24 @@
 
 ### Notes
 - `sail artisan test`: 58 passed. Pint clean. Assets rebuilt.
+
+## 2026-10-13 (11)
+
+### Added
+- `laravel/ai` ^1.2 + `config/ai.php` (published config only, no conversation migrations).
+- `App\Ai\Agents\TrackListParser` (structured output: tracks with artist/title/genre/source).
+- `App\Services\AiTrackListParserService` (`isEnabled()`, `parse()`), `App\Jobs\ParseImportBatchWithAiJob`.
+- `ImportBatchService`: `createForAiParsing()`, `retryAiParsing()`, `parseWithLineParser()`, `storeParsedLines()`.
+- `ImportBatchStatus::Parsing`.
+- New Import AI mode; Parse Review parsing/failed states (`checkParsing`, `retryAiParsing`, `useLineParser`).
+- `config/services.php` `track_list_ai`; `.env` / `.env.example`: `OPENAI_API_KEY`, `AI_PARSER_PROVIDER`, `AI_PARSER_MODEL`, `AI_PARSER_TIMEOUT`, `DB_QUEUE_RETRY_AFTER=300`.
+- `tests/Feature/Ai/AiTrackListParsingTest.php` (9 tests); `phpunit.xml` forces empty `OPENAI_API_KEY`.
+
+### Changed
+- CLAUDE.md: AI parsing removed from "Do not implement yet"; AI summary in Tech Stack.
+- Docs: ARCHITECTURE (AI parsing section), API, UI-FLOW, DATABASE, PRD, ROADMAP, TECH-STACK, DOCKER, DECISIONS, TODO, TESTING, START-TUTAJ.
+
+### Notes
+- Trigger: a Beatport copy-paste was split into one junk item per line by the line parser.
+- `sail artisan test`: 67 passed. Pint clean. `queue:restart` done. Assets rebuilt.
+- Not yet tried against the real OpenAI API (no key in `.env` yet).

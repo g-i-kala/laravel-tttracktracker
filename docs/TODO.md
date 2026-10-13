@@ -29,6 +29,8 @@
 - [ ] Build dashboard
 - [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)
+- [x] AI parsing of any pasted format (Laravel AI SDK, queued, retry / simple-parser fallback)
+- [ ] Set `OPENAI_API_KEY` in `.env` and try a real Beatport paste (user)
 - [x] Parse review page (edit + autosave + remove; duplicates and Search YouTube pending)
 - [ ] Duplicate detection
 - [ ] YouTube search URL service (no-key mode — primary at start)

@@ -34,8 +34,8 @@ No stored counters (`items_count`, `exportable_count`, `missing_links_count` rem
 | ------------------------- | --------------------------- | -------------------------------------------------- |
 | id                        | bigint PK                   |                                                    |
 | import_batch_id           | FK → import_batches, restrict |                                                  |
-| line_number               | unsigned int                | source line                                        |
-| raw_line                  | text                        | source line                                        |
+| line_number               | unsigned int                | source line; for AI parsing the track's position (1..n) |
+| raw_line                  | text                        | source line; for AI parsing the track's source text joined with ` \| ` |
 | artist                    | string, nullable            | null when the line has no `Artist - Title` separator |
 | title                     | string                      | remix/version stays in title                       |
 | genre                     | string, nullable            |                                                    |
@@ -119,7 +119,7 @@ Own table, not Laravel Cache, so search history stays visible for quota analysis
 
 Statuses describe **pipeline stage only**, implemented as PHP backed enums in `app/Enums/` (cases in TitleCase, values in snake_case).
 
-`ImportBatchStatus`: `Draft` (`draft`), `Parsed`, `Searching`, `Searched`, `Exported`, `Failed`.
+`ImportBatchStatus`: `Draft` (`draft`), `Parsing` (`parsing`, AI parsing queued/running), `Parsed`, `Searching`, `Searched`, `Exported`, `Failed` (also: AI parsing failed).
 
 `ImportItemStatus`: `Parsed` (`parsed`), `Duplicate`, `SearchPending` (`search_pending`), `Searched`, `Exported`, `Failed`.
 

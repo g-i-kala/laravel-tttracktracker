@@ -20,7 +20,7 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 - `.env` ustawiony pod Sail (baza `tttracktracker`, port 5433 na hoście).
 - **Kontenery Sail działają, aplikacja jest online** (http://localhost:8000), potwierdzone 2026-10-11.
 - Przegląd architektury zakończony, decyzje w [DECISIONS.md](DECISIONS.md).
-- Frontend: **Livewire 4.4** zainstalowany (2026-10-13): komponenty full-page, class-based, jeden na ekran, własny `<x-modal>`.
+- Frontend: **Livewire 4.4** zainstalowany (2026-10-13): komponenty full-page, class-based, jeden na ekran, własny `<x-modal>`. Boost ma wytyczne i skill `livewire-development`.
 - **Brak** migracji aplikacji i logiki.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).

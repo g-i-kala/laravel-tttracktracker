@@ -78,3 +78,12 @@
 
 ### Notes
 - Test suite (2 default tests) passes.
+
+## 2026-10-13 (3)
+
+### Changed
+- Ran `sail artisan boost:update --no-interaction`: Boost detected Livewire, added `livewire/core` rules to the Boost block in `CLAUDE.md` and the `livewire-development` skill; `infer-conventions` skill refreshed. Our part of `CLAUDE.md` untouched.
+- TECH-STACK: Boost skills list + `boost:update` note.
+
+### Notes
+- Used `boost:update` instead of a full `boost:install` (keeps existing config, only adds what's new).

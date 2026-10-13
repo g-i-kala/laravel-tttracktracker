@@ -38,3 +38,6 @@ App name: **TTTrackTracker** (project: DJ Library Agent).
 
 - Installed with guidelines, skills and MCP server.
 - Configured for Sail (`boost.json` `"sail": true`, MCP via `vendor/bin/sail`) and Claude Code only.
+- Skills (`.claude/skills/`): infer-conventions, deploying-to-cloud, laravel-best-practices, testing-best-practices, livewire-development, tailwindcss-development.
+- After installing a new ecosystem package, run `./vendor/bin/sail artisan boost:update` to pull its guidelines/skills.
+- The `livewire-development` skill shows single-file components as the v4 default; **our convention is class-based** (DECISIONS.md "Livewire conventions", `config/livewire.php`).

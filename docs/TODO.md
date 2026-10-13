@@ -15,7 +15,7 @@
 - [ ] Add `.vscode/extensions.json`
 - [x] Slim down `CLAUDE.md` (spec → `docs/`)
 - [x] Update docs + `CLAUDE.md` for Livewire, then install Livewire (replaces "Add Vue 3 to Vite")
-- [ ] Re-run `boost:install` so Boost adds Livewire guidelines/skills
+- [x] Run `boost:update` so Boost adds Livewire guidelines/skills
 - [ ] Decide: remove `database/database.sqlite`?
 - [ ] Get YouTube Data API key
 

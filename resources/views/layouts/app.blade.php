@@ -35,6 +35,10 @@
                 </nav>
 
                 <x-nav-link route="imports.create" variant="button">+ New YouTube Export</x-nav-link>
+
+                <nav class="flex flex-col gap-1 md:mt-auto">
+                    <x-nav-link route="settings.ai">AI Settings</x-nav-link>
+                </nav>
             </aside>
 
             {{-- Page content --}}

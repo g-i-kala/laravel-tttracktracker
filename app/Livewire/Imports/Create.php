@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Imports;
 
+use App\Services\AiSettingsService;
 use App\Services\AiTrackListParserService;
 use App\Services\ImportBatchService;
 use App\Services\ImportParserService;
@@ -79,6 +80,21 @@ class Create extends Component
     public function aiEnabled(): bool
     {
         return app(AiTrackListParserService::class)->isEnabled();
+    }
+
+    /**
+     * AI would be used (a key is set), but this month's AI budget is spent.
+     */
+    #[Computed]
+    public function aiBudgetReached(): bool
+    {
+        return filled(app(AiSettingsService::class)->apiKey()) && app(AiSettingsService::class)->isBudgetReached();
+    }
+
+    #[Computed]
+    public function aiBudgetNearlyReached(): bool
+    {
+        return filled(app(AiSettingsService::class)->apiKey()) && app(AiSettingsService::class)->isBudgetNearlyReached();
     }
 
     /**

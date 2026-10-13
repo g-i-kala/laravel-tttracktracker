@@ -345,3 +345,4 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 - New tables `ai_usage_logs`, `settings`; new enum case `ImportBatchStatus::Reviewed`.
 - The key is resolved at runtime (DB first, then `.env`). Losing `APP_KEY` makes the stored key unreadable, so the user has to enter it again.
 - Order of work: Save & close + `/imports` → usage logging → settings screen.
+- Implementation details (2026-10-13): the model is also editable in Settings (overrides `AI_PARSER_MODEL`); **Test key** calls the free `GET /v1/models` (no tokens, OpenAI only); the key is applied per call (`withApiKey()`), not at boot, so artisan/migrations never touch the `settings` table; a budget of 0 means AI is always off.

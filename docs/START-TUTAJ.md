@@ -22,9 +22,9 @@ Stan na 2026-10-13:
 - Model danych gotowy: 5 tabel, enumy statusów, modele, factories.
 - **Działa:** Dashboard (placeholder), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle; bez klucza parser linii `Artist - Title`.
-- **Jeszcze nie ma:** duplikatów, wyszukiwania YouTube, eksportu TXT, listy eksportów, ustawień AI.
-- Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt), na razie bez ekranu.
-- Testy: 77, wszystkie przechodzą.
+- **Jeszcze nie ma:** duplikatów, wyszukiwania YouTube, eksportu TXT, listy eksportów.
+- Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
+- Testy: 86, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -106,8 +106,11 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 9. **Parsowanie AI** (Laravel AI SDK): agent `TrackListParser`, job `ParseImportBatchWithAiJob`, status `parsing`, polling na review, przyciski retry i „simple parser”. Powód: wklejka z Beatportu (jeden track zajmuje ~8 linii) rozpadała się na śmieciowe itemy.
 10. Model AI `gpt-4.1-mini`. Test na prawdziwym API: 2 tracki z Beatportu poprawnie w 3,4 s.
 
-**Niezacommitowane (do commita na początku następnej sesji):**
-- `.env.example` z `AI_PARSER_MODEL=gpt-4.1-mini` plus docs (DECISIONS, ARCHITECTURE, DOCKER, TODO, DEVELOPMENT-LOG, START-TUTAJ). Proponowany commit: `chore(ai): use gpt-4.1-mini for track list parsing`.
+**Po teście ręcznym (ta sama sesja, commity):**
+11. `chore(ai)`: gpt-4.1-mini + plan w DECISIONS.
+12. `feat(import)`: Save & close na Parse Review (status `reviewed`) + lista importów `/imports`.
+13. `feat(ai)`: logowanie zużycia AI (`ai_usage_logs`, listener na zdarzenia SDK, ceny w `config/services.php`).
+14. Settings → AI (`/settings/ai`): statystyki, klucz w bazie (szyfrowany), model, miesięczny budżet. *(do commita, jeśli jeszcze nie ma)*
 
 **Incydent: klucz OpenAI w logu sesji**
 - 2026-10-13 pełny `OPENAI_API_KEY` wyświetlił się w wyniku polecenia, bo maskowanie `sed` nie działa na macOS (BSD sed). Nie ma go w gicie ani w plikach projektu.
@@ -121,7 +124,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - Klucz YouTube Data API (na razie nie jest potrzebny, tryb bez klucza jest pierwszy).
 
 **Następne kroki (po kolei):**
-1. Commit niezacommitowanych zmian (wyżej).
+1. Ręczny test: AI Settings (zapis klucza, Test key, budżet), import z AI → wiersz w Recent calls. Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI.
 2. **Duplikaty**: `DuplicateDetectionService`, modal dla dokładnych duplikatów (Remove duplicates / Keep all / Review manually), ostrzeżenie dla podobnych. Najpierw pytania o to, co liczy się jako „podobny”.
 3. Wyszukiwanie YouTube w trybie bez klucza (search URL), ekran YouTube Results (`Imports\Show`), custom link z normalizacją.
 4. Eksport Supersimple TXT, wersjonowanie, historia, download.

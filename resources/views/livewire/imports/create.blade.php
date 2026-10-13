@@ -16,6 +16,18 @@
         </p>
     </div>
 
+    @if ($this->aiBudgetReached)
+        <div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            The monthly AI budget is reached, so the simple line parser is used.
+            <a href="{{ route('settings.ai') }}" wire:navigate class="font-medium underline">Change the limit</a>
+        </div>
+    @elseif ($this->aiBudgetNearlyReached)
+        <div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            Over 80% of the monthly AI budget is used.
+            <a href="{{ route('settings.ai') }}" wire:navigate class="font-medium underline">See usage</a>
+        </div>
+    @endif
+
     <form wire:submit="save" class="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <div>
             <label for="name" class="{{ $labelClasses }}">Name</label>

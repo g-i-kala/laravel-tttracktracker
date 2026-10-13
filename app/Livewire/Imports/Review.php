@@ -5,6 +5,7 @@ namespace App\Livewire\Imports;
 use App\Enums\ImportBatchStatus;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
+use App\Services\AiTrackListParserService;
 use App\Services\ImportBatchService;
 use App\Services\ImportItemService;
 use Illuminate\Contracts\View\View;
@@ -53,8 +54,14 @@ class Review extends Component
         }
     }
 
-    public function retryAiParsing(ImportBatchService $importBatches): void
+    public function retryAiParsing(ImportBatchService $importBatches, AiTrackListParserService $aiParser): void
     {
+        if (! $aiParser->isEnabled()) {
+            $this->addError('retry', 'AI parsing is off: no API key or the monthly AI budget is reached. Use the simple parser or check Settings → AI.');
+
+            return;
+        }
+
         $importBatches->retryAiParsing($this->batch);
     }
 

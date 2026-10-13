@@ -6,7 +6,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Layout (implemented)
 
-- Left sidebar: app name, Dashboard / Imports / Exports, **+ New YouTube Export** button. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
+- Left sidebar: app name, Dashboard / Imports / Exports, **+ New YouTube Export** button, **AI Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
 - Theme follows the OS (light/dark). Accent color from `APP_ACCENT`.
 - Flash message area above the page content.
 
@@ -94,3 +94,14 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | Custom link modal    | YouTube Results | Add custom link                  |
 | Missing links modal  | YouTube Results | Export with missing links        |
 | Export version modal | YouTube Results | Export already exists for batch  |
+
+## Settings → AI (`/settings/ai`) — `Settings\Ai`
+
+> Status: implemented (2026-10-13).
+
+- **This month** card: spent (USD, 4 decimals) vs budget, calls (+ failed count), tokens in/out; progress bar (accent < 80%, amber ≥ 80%, red at 100% with "new imports use the simple line parser").
+- **API key** card: provider; key source (saved here / `.env` / none) with masked key (`sk-…abcd`); password field + **Save key**; **Test key** (OpenAI only, free); **Remove saved key** (confirm; `.env` key is used again). The full key is never rendered.
+- **Model and budget** form: model (text with suggestions from priced models; warning when the model has no price), monthly budget USD (empty = no limit). Save → flash.
+- **Recent calls**: last 20 (date, import link, model, tokens in/out, cost, time, OK/Failed with error as tooltip).
+- New Import shows an amber banner at ≥ 80% and when the budget is reached (with link here). Review's **Try again with AI** shows an error when AI is off.
+

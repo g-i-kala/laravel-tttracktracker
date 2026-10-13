@@ -119,6 +119,16 @@ One row per AI agent call (Laravel AI SDK), written by the `RecordAiUsage` liste
 | error_message          | text, nullable               | failures only, max 1000 chars                            |
 | created_at, updated_at | timestamps                   |                                                          |
 
+### `settings` — `Setting`
+
+Key/value app settings (`SettingsService`). Secrets are encrypted with `Crypt::encryptString()` (APP_KEY); if APP_KEY changes, the secret reads as missing and must be entered again.
+
+| Column                 | Type               | Notes                                  |
+| ---------------------- | ------------------ | -------------------------------------- |
+| key                    | string PK          | e.g. `ai.api_key` (encrypted), `ai.model`, `ai.monthly_budget_usd` |
+| value                  | text, nullable     |                                        |
+| created_at, updated_at | timestamps         |                                        |
+
 ### Framework tables
 
 - `jobs`, `failed_jobs`, `job_batches`: database queue + `Bus::batch()` (all in the default `0001_01_01_000002_create_jobs_table` migration).

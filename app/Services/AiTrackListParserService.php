@@ -7,15 +7,16 @@ use Illuminate\Support\Str;
 
 /**
  * Parses a pasted track list with an AI model (Laravel AI SDK). Enabled when
- * the configured provider has an API key; otherwise the line parser is used.
+ * an API key is set (Settings → AI or .env) and the monthly budget is not
+ * reached; otherwise the line parser is used.
  */
 class AiTrackListParserService
 {
-    public function __construct(private ImportParserService $lineParser) {}
+    public function __construct(private ImportParserService $lineParser, private AiSettingsService $aiSettings) {}
 
     public function isEnabled(): bool
     {
-        return filled(config('ai.providers.'.config('services.track_list_ai.provider').'.key'));
+        return filled($this->aiSettings->apiKey()) && ! $this->aiSettings->isBudgetReached();
     }
 
     /**
@@ -23,12 +24,12 @@ class AiTrackListParserService
      */
     public function parse(string $rawInput): array
     {
-        $response = TrackListParser::make()->prompt(
+        $response = $this->aiSettings->withApiKey(fn () => TrackListParser::make()->prompt(
             $rawInput,
-            provider: config('services.track_list_ai.provider'),
-            model: config('services.track_list_ai.model'),
+            provider: $this->aiSettings->provider(),
+            model: $this->aiSettings->model(),
             timeout: config('services.track_list_ai.timeout'),
-        );
+        ));
 
         $tracks = collect($response['tracks'] ?? [])
             ->map(fn (array $track): array => [

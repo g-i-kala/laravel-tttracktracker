@@ -43,6 +43,14 @@ class AiUsageService
     }
 
     /**
+     * Estimated cost in USD of all calls since the start of the current month (app timezone).
+     */
+    public function spentThisMonth(): float
+    {
+        return (float) AiUsageLog::where('created_at', '>=', now()->startOfMonth())->sum('cost_usd');
+    }
+
+    /**
      * Estimated cost in USD, or null when the model has no price in config.
      * Cached input tokens are part of the input tokens and use the cheaper cached price when set.
      */

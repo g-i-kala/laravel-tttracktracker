@@ -51,7 +51,10 @@
         </div>
     @elseif ($batch->status === \App\Enums\ImportBatchStatus::Failed)
         <div class="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-            <span>AI parsing failed. Try again, or parse the list line by line (<code>Artist - Title</code>).</span>
+            <div>
+                <span>AI parsing failed. Try again, or parse the list line by line (<code>Artist - Title</code>).</span>
+                @error('retry') <p class="mt-1 font-medium">{{ $message }} <a href="{{ route('settings.ai') }}" wire:navigate class="underline">Open settings</a></p> @enderror
+            </div>
             <div class="flex gap-2">
                 <button type="button" wire:click="retryAiParsing" class="rounded-md bg-accent-600 px-3 py-1.5 font-semibold text-white hover:bg-accent-500">Try again with AI</button>
                 <button type="button" wire:click="useLineParser" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-white dark:border-zinc-700 dark:hover:bg-zinc-900">Use simple parser</button>

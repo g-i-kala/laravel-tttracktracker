@@ -41,6 +41,12 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - Parse `Artist - Title`. Remix/version stays inside title (no separate field).
 - **AI parsing** (when an AI API key is set): any pasted format — plain lines, store copy-pastes (e.g. Beatport, one track over several lines), tracklists with timestamps. Extracts artist, title (with version in parentheses) and genre. Runs in the background; Parse Review shows progress and offers retry / simple parser on failure.
 - Optional genre per item; batch default genre.
+- **Save & close** on Parse Review; imports list to continue any import later.
+
+### AI settings and usage
+- Settings → AI: this month's estimated spend, calls, tokens, recent calls (date, import, model, tokens, cost, time, status).
+- API key entered in the UI, stored encrypted, shown masked; overrides `.env`; **Test key** (free provider check).
+- Model (default `gpt-4.1-mini`) and optional monthly budget in USD: warning at 80%, at 100% new imports use the line parser until next month.
 
 ### Duplicates
 - Exact duplicates → modal: Remove duplicates / Keep all / Review manually.

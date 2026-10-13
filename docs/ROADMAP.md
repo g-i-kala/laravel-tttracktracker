@@ -8,6 +8,8 @@
 - [ ] New import page + auto-generated name
 - [x] Import parser (`Artist - Title`)
 - [x] AI parsing of any pasted format (Laravel AI SDK, OpenAI by default)
+- [x] Save & close + imports list
+- [x] AI usage logging + Settings → AI (key, model, monthly budget)
 - [ ] Parse review (edit artist/title/genre)
 - [ ] Duplicate detection (exact modal, similar warning)
 - [ ] YouTube search URL generator (no-key mode)

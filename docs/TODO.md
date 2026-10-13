@@ -37,7 +37,7 @@
 - [x] Parse review page (edit + autosave + remove; duplicates and Search YouTube pending)
 - [x] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
 - [x] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
-- [ ] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
+- [x] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
 - [ ] Duplicate detection
 - [ ] YouTube search URL service (no-key mode — primary at start)
 - [ ] YouTube URL normalizer

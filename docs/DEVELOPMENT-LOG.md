@@ -257,3 +257,19 @@
 - No UI yet; data is shown on the Settings → AI screen (next step).
 - Costs are estimates; verify prices on OpenAI's pricing page when changing the model.
 
+## 2026-10-13 (Settings → AI)
+
+### Added
+- Table `settings` (key/value), model `Setting`, `SettingsService` (encrypted secrets).
+- `AiSettingsService`: key (Settings ?? `.env`), source, masked key, `withApiKey()`, `testApiKey()`, model, monthly budget, budget usage / reached / 80% warning. `AiUsageService::spentThisMonth()`.
+- Screen `Settings\Ai` (`/settings/ai`, `settings.ai`): month stats + progress bar, API key (save / test / remove), model + budget form, recent 20 calls. Sidebar link "AI Settings".
+- New Import: budget banners. Review: retry with AI refused when AI is off.
+- `AiSettingsTest` (9 tests).
+
+### Changed
+- `AiTrackListParserService`: `isEnabled()` = key present and budget not reached; `parse()` uses the settings model and key.
+- Docs: PRD, ROADMAP, DATABASE, API, ARCHITECTURE, UI-FLOW, DECISIONS, TESTING, TODO.
+
+### Notes
+- Ran `sail artisan migrate`, `queue:restart`, `npm run build`. 86 tests pass.
+

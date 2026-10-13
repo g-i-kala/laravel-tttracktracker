@@ -149,7 +149,7 @@ Decisions from the architecture review of `CLAUDE.md`, made point by point.
 ### D1 — Slim down CLAUDE.md
 
 **Decision:** CLAUDE.md is to keep rules, stack, safety, a short MVP summary and a docs map; the specification lives in `docs/`.
-**Status:** Pending (separate task).
+**Status:** Done 2026-10-13.
 
 ### D2 — Keep 13 doc files
 
@@ -207,3 +207,23 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 - Planned controllers (Dashboard, ImportBatch, ImportItem, YoutubeSearch) are replaced by Livewire components.
 - Feature tests use `Livewire::test()`.
 - Flux can be added later if we want a nicer UI faster.
+
+## 2026-10-13 — Schema conventions (MVP data model)
+
+**Decision:**
+1. Foreign keys use `restrictOnDelete()` (batch → items/exports, item → candidates). No cascade, no soft deletes.
+2. Statuses are `string` columns + PHP backed enum casts (no CHECK constraints, no native PG enums).
+3. Factories with states only; no demo seeder for now.
+4. Keep Laravel's default `users` / `password_reset_tokens` tables (unused, no auth); remove only the Test User from `DatabaseSeeder`.
+5. `import_items.artist` is nullable (lines without an `Artist - Title` separator); `title` is required.
+
+**Reason:**
+1. Deleting a batch must be a deliberate action; nothing disappears by accident.
+2. Changing statuses needs no migration; Laravel standard.
+3. Demo data is useful only once there is UI to look at.
+4. The default users migration also creates `sessions`; fighting the skeleton gains nothing.
+5. The parser must keep unparseable lines for review instead of dropping them.
+
+**Consequences:**
+- A future "delete batch" feature deletes candidates → items → export rows (and TXT files) explicitly, in a transaction.
+- Re-searching an item deletes its old candidates first.

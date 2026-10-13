@@ -15,6 +15,10 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - **Feature** — Livewire components via `Livewire::test()` (create import, review/edit, select link, custom link, toggle, export modals) + HTTP test for the download route.
 - YouTube API mocked via `Http::fake()`; no real API calls in tests.
 
+## Existing tests
+
+- `tests/Feature/ImportModelsTest.php`: factories, relationships, enum casts + defaults, restrict-on-delete FK, singular `youtube_search_cache` table.
+
 ## Important test cases
 
 - Import parser: `Artist - Title`, remix kept in title, extra spaces, en/em dashes, lines without separator, empty lines.

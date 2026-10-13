@@ -87,3 +87,19 @@
 
 ### Notes
 - Used `boost:update` instead of a full `boost:install` (keeps existing config, only adds what's new).
+
+## 2026-10-13 (4)
+
+### Added
+- Enums `ImportBatchStatus`, `ImportItemStatus` (`app/Enums/`).
+- Migrations: `import_batches`, `import_items`, `youtube_candidates`, `export_files`, `youtube_search_cache` (restrict FKs, indexes per DATABASE.md, unique export version and query hash).
+- Models with `#[Fillable]`, `casts()`, relationships; `YoutubeSearchCache` uses `#[Table('youtube_search_cache')]`.
+- Factories for all 5 models (states: `ImportBatch::parsed`, `ImportItem::withSelectedYoutubeLink` / `withSearchUrlOnly`, `YoutubeSearchCache::expired`).
+- `tests/Feature/ImportModelsTest.php` (5 tests).
+
+### Changed
+- `DatabaseSeeder`: removed Test User creation.
+- DATABASE.md rewritten with column types, FK behavior, factories; DECISIONS "Schema conventions"; D1 marked done.
+
+### Notes
+- Ran `sail artisan migrate` (5 new migrations) and `sail artisan test` (7 passed). Pint clean.

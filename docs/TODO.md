@@ -21,9 +21,9 @@
 
 ## MVP
 
-- [ ] Status enums (`ImportBatchStatus`, `ImportItemStatus`)
-- [ ] Create migrations (incl. `job_batches`, `normalized_key`)
-- [ ] Create models + factories
+- [x] Status enums (`ImportBatchStatus`, `ImportItemStatus`)
+- [x] Create migrations (incl. `normalized_key`; `job_batches` already in default migration)
+- [x] Create models + factories
 - [ ] `config/services.php` YouTube entry
 - [ ] App layout (`layouts/app.blade.php`) + `<x-modal>` component
 - [ ] Build dashboard

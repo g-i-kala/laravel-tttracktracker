@@ -21,7 +21,7 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 - **Kontenery Sail działają, aplikacja jest online** (http://localhost:8000), potwierdzone 2026-10-11.
 - Przegląd architektury zakończony, decyzje w [DECISIONS.md](DECISIONS.md).
 - Frontend: **Livewire 4.4** zainstalowany (2026-10-13): komponenty full-page, class-based, jeden na ekran, własny `<x-modal>`. Boost ma wytyczne i skill `livewire-development`.
-- **Brak** migracji aplikacji i logiki.
+- Model danych gotowy (2026-10-13): enumy statusów, 5 migracji, modele, factories, test `ImportModelsTest`. **Brak** logiki biznesowej i UI.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -112,4 +112,5 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 2. ~~Ponowić `boost:install` pod Sail~~ **(zrobione**: `sail: true`, MCP przez `vendor/bin/sail`, tylko Claude Code). `.cursor/` i `opencode.json` usunięte. Zostało: dodać `.vscode/extensions.json`.
 3. ~~Odchudzić `CLAUDE.md`~~ **(zrobione 2026-10-13**: 1253 → 370 linii, specyfikacja tylko w `docs/`, słowniczek przeniesiony do PRD.md, `CLAUDE.md` mówi już o Livewire).
 4. ~~Zaktualizować docs i `CLAUDE.md` pod Livewire, potem zainstalować Livewire~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Livewire conventions”).
-5. Start MVP: enumy, migracje, modele i factories (patrz [TODO.md](TODO.md)).
+5. ~~Start MVP: enumy, migracje, modele i factories~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Schema conventions”).
+6. Dalej wg [TODO.md](TODO.md): `config/services.php` (YouTube), parser + `normalized_key`, potem layout + `<x-modal>` i ekrany.

@@ -27,7 +27,7 @@ APP_TIMEZONE=Europe/Warsaw
 
 OPENAI_API_KEY=           # set → AI parsing on (any pasted format); empty → line parser
 AI_PARSER_PROVIDER=openai # any provider from config/ai.php (anthropic needs ANTHROPIC_API_KEY)
-AI_PARSER_MODEL=          # empty = provider default
+AI_PARSER_MODEL=gpt-4.1-mini  # small model is enough for extraction; empty = provider default
 AI_PARSER_TIMEOUT=180
 DB_QUEUE_RETRY_AFTER=300  # must exceed the AI job timeout (240 s)
 APP_URL=http://localhost:8000

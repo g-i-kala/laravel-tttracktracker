@@ -30,8 +30,14 @@
 - [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)
 - [x] AI parsing of any pasted format (Laravel AI SDK, queued, retry / simple-parser fallback)
-- [ ] Set `OPENAI_API_KEY` in `.env` and try a real Beatport paste (user)
+- [x] Set `OPENAI_API_KEY` in `.env` (smoke test OK with `gpt-4.1-mini`)
+- [x] ~~Rotate the OpenAI key~~ — not rotating: key is capped at $4 (user decision, 2026-10-13)
+- [ ] (optional) Scrub the key from Claude Code transcripts in `~/.claude/projects/...`
+- [ ] Try a full real Beatport paste in the UI (user)
 - [x] Parse review page (edit + autosave + remove; duplicates and Search YouTube pending)
+- [ ] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
+- [ ] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
+- [ ] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
 - [ ] Duplicate detection
 - [ ] YouTube search URL service (no-key mode — primary at start)
 - [ ] YouTube URL normalizer

@@ -5,7 +5,7 @@
 **TTTrackTracker** (projekt: DJ Library Agent) to lokalna aplikacja Laravel dla workflow DJ-a.
 
 MVP (Milestone 1) działa tak:
-1. Wklejasz listę utworów, a aplikacja parsuje `Artist - Title`.
+1. Wklejasz listę utworów w dowolnym formacie (z kluczem AI także np. wklejkę z Beatportu), a aplikacja wyciąga artystę, tytuł i gatunek.
 2. Przeglądasz i edytujesz wynik.
 3. Aplikacja generuje linki wyszukiwania YouTube (na start bez klucza API; tryb API dochodzi równolegle).
 4. Wybierasz linki.
@@ -15,13 +15,15 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 
 ## Aktualny status
 
-- Laravel 13 + Laravel Boost.
-- Sail skonfigurowany (`compose.yaml`): PHP 8.4, PostgreSQL 16, worker kolejki jako serwis `queue`.
-- `.env` ustawiony pod Sail (baza `tttracktracker`, port 5433 na hoście).
-- **Kontenery Sail działają, aplikacja jest online** (http://localhost:8000), potwierdzone 2026-10-11.
-- Przegląd architektury zakończony, decyzje w [DECISIONS.md](DECISIONS.md).
-- Frontend: **Livewire 4.4** zainstalowany (2026-10-13): komponenty full-page, class-based, jeden na ekran, własny `<x-modal>`. Boost ma wytyczne i skill `livewire-development`.
-- Model danych gotowy (2026-10-13): enumy statusów, 5 migracji, modele, factories, test `ImportModelsTest`. **Brak** logiki biznesowej i UI.
+Stan na 2026-10-13:
+
+- Laravel 13, PHP 8.4, Sail (`compose.yaml`): app, PostgreSQL 16 (`tttracktracker`, port 5433 na hoście), worker kolejki jako serwis `queue`. Aplikacja: http://localhost:8000.
+- Frontend: Blade + **Livewire 4.4** (full-page, class-based, jeden komponent na ekran), Tailwind 4, własny `<x-modal>`. Sidebar, motyw jasny/ciemny wg systemu, akcent z `APP_ACCENT`.
+- Model danych gotowy: 5 tabel, enumy statusów, modele, factories.
+- **Działa:** Dashboard (placeholder), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, usuwanie wierszy).
+- **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle; bez klucza parser linii `Artist - Title`.
+- **Jeszcze nie ma:** duplikatów, wyszukiwania YouTube, eksportu TXT, listy importów i eksportów.
+- Testy: 67, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -76,49 +78,51 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 > Do przeczytania na początku nowej sesji, po `/clear`. Aktualizować na końcu każdej sesji.
 
+### Zasady współpracy (ważne)
+
+- Pracujemy **atomowo**: jedno zadanie naraz, potem raport i propozycja następnego kroku. Czekamy na zgodę.
+- **Pytamy**, gdy coś jest niejasne albo decyzji jest kilka. Opcje podajemy z rekomendacją, „tworzymy team”.
+- Commit tylko na prośbę (Conventional Commits). Docs aktualizujemy przy każdej zmianie.
+- **Nigdy nie wyświetlamy sekretów z `.env`** (`cat` / `grep` na liniach z kluczami). Patrz incydent niżej.
+
 ### Sesja 2026-10-11: setup i przegląd architektury
 
-**Zrobione:**
-- `CLAUDE.md` przeformatowany do poprawnego Markdown. Dodana sekcja **Working Rules**: pracujemy **atomowo**, czyli robimy tylko to, o co poproszono, kolejne kroki proponujemy i czekamy na zgodę.
-- Laravel Boost 2.10.3 zainstalowany (guidelines, skills, MCP). Jego wytyczne są doklejone na końcu `CLAUDE.md` i `AGENTS.md`. Nasza polityka docs ma pierwszeństwo przed regułą Boosta „docs tylko na prośbę”.
-- `docs/` z 13 wymaganymi plikami.
-- Git zainicjowany (commity: `first commit`, `init: init`).
-- Sail: `compose.yaml` (nie `docker-compose.yml`) z PHP 8.4, `postgres:16` i serwisem `queue`. PHP 8.3 odpada, bo Symfony 8 wymaga >= 8.4.1.
-- `.env` / `.env.example`: `APP_NAME=TTTrackTracker`, `APP_PORT=8000`, baza `tttracktracker` (user `sail` / hasło `password`), `FORWARD_DB_PORT=5433` (bo `pg-dev` zajmuje 5432), klucze `YOUTUBE_*` (klucz API na razie pusty).
-- Przegląd architektury w formie Q&A. Wszystkie decyzje są w [DECISIONS.md](DECISIONS.md) („Architecture review”). W skrócie:
-  - na start tryb no-key, API dochodzi równolegle, przy wyczerpaniu quoty item przechodzi na search URL;
-  - scoring tylko po tytule, bez `duration_seconds`;
-  - wybrany link: snapshot `selected_youtube_*` na itemie, bez `is_selected`;
-  - statusy tylko jako etapy pipeline'u, w PHP enums; bez liczników na batchu;
-  - eksport synchroniczny; wyszukiwanie przez `Bus::batch()`; worker jako serwis w compose;
-  - własna tabela `youtube_search_cache`; konfiguracja przez `config('services.youtube.*')`;
-  - kolumna `normalized_key` od razu, duplikaty między batchami po MVP;
-  - `year`/`month` służą do filtrowania; UI po angielsku; frontend to Vue w Blade (później zmienione na Livewire).
-- Alias `sail` jest w `~/.zshrc` i działa z root projektu.
+- Sail, PostgreSQL, worker kolejki, Laravel Boost, `docs/` (13 plików), git.
+- Przegląd architektury (Q&A), decyzje w [DECISIONS.md](DECISIONS.md) „Architecture review”.
+- Decyzja: Livewire zamiast Vue.
 
-**Koniec sesji:**
-- Pierwsze uruchomienie zrobione: kontenery działają, aplikacja jest online.
-- Decyzja: **Livewire zamiast Vue** (wpis w [DECISIONS.md](DECISIONS.md), C2 oznaczone jako zastąpione).
-- ~~Pozostałe docs i `CLAUDE.md` jeszcze wspominają Vue~~ (poprawione 2026-10-13).
-- Dalsze prace: następna sesja (2026-10-12).
+### Sesja 2026-10-13: od docs do działającego importu
 
-**W toku (robi użytkownik):**
-- Zdobycie klucza YouTube Data API.
+**Zrobione (commity po kolei):**
+1. `CLAUDE.md` odchudzony (specyfikacja tylko w `docs/`, `docs/` są źródłem prawdy).
+2. Livewire 4.4 i konwencje (full-page, class-based, `<x-modal>`, jeden komponent na ekran). `boost:update` dodał skill `livewire-development`.
+3. Enumy, migracje, modele, factories. Klucze obce `restrictOnDelete`, statusy jako string + enum cast.
+4. `config/services.php`: `youtube` (progi 80/60, limit 3, cache 30 dni) i `track_list_ai`.
+5. `ImportParserService`: parser linii i `normalized_key`.
+6. Layout (sidebar), `<x-modal>`, `<x-nav-link>` („Coming soon”), placeholder Dashboard. Akcent `navy` (granat w trybie jasnym, błękit w ciemnym), lokalnie `APP_ACCENT=navy`.
+7. New Import: auto-nazwa w czasie `Europe/Warsaw`, licznik na żywo, walidacja 1–200 tracków.
+8. Parse Review: autosave po wyjściu z pola, przeliczanie klucza, usuwanie z potwierdzeniem, Search YouTube na razie wyszarzony.
+9. **Parsowanie AI** (Laravel AI SDK): agent `TrackListParser`, job `ParseImportBatchWithAiJob`, status `parsing`, polling na review, przyciski retry i „simple parser”. Powód: wklejka z Beatportu (jeden track zajmuje ~8 linii) rozpadała się na śmieciowe itemy.
+10. Model AI `gpt-4.1-mini`. Test na prawdziwym API: 2 tracki z Beatportu poprawnie w 3,4 s.
 
-**Uwaga, znana niespójność:**
-- Specyfikacja w `CLAUDE.md` (statusy, schemat tabel, lista jobów, struktura `app/`) jest **starsza** niż decyzje z Q&A. **Źródłem prawdy są `docs/`** (DATABASE, ARCHITECTURE, DECISIONS). Naprawi to zadanie „odchudzenie CLAUDE.md”.
-- Zmiany z tej sesji są zacommitowane (`build(sail): ...`, `docs: ...`). `.env` jest w `.gitignore`.
+**Niezacommitowane (do commita na początku następnej sesji):**
+- `.env.example` z `AI_PARSER_MODEL=gpt-4.1-mini` plus docs (DECISIONS, ARCHITECTURE, DOCKER, TODO, DEVELOPMENT-LOG, START-TUTAJ). Proponowany commit: `chore(ai): use gpt-4.1-mini for track list parsing`.
 
-**Następne kroki (do wyboru, po kolei):**
-1. ~~Sprawdzić `sail up`, `migrate` i worker~~ **(zrobione)**: 3 kontenery działają, migracje przeszły, worker działa (przed `migrate` restartował się z błędem braku tabeli `cache`, to normalne).
-2. ~~Ponowić `boost:install` pod Sail~~ **(zrobione**: `sail: true`, MCP przez `vendor/bin/sail`, tylko Claude Code). `.cursor/` i `opencode.json` usunięte. Zostało: dodać `.vscode/extensions.json`.
-3. ~~Odchudzić `CLAUDE.md`~~ **(zrobione 2026-10-13**: 1253 → 370 linii, specyfikacja tylko w `docs/`, słowniczek przeniesiony do PRD.md, `CLAUDE.md` mówi już o Livewire).
-4. ~~Zaktualizować docs i `CLAUDE.md` pod Livewire, potem zainstalować Livewire~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Livewire conventions”).
-5. ~~Start MVP: enumy, migracje, modele i factories~~ **(zrobione 2026-10-13**, konwencje w [DECISIONS.md](DECISIONS.md) „Schema conventions”).
-6. ~~`config/services.php` (YouTube)~~ **(zrobione 2026-10-13**: 5 kluczy, patrz [ARCHITECTURE.md](ARCHITECTURE.md#youtube-api--fallback-strategy)).
-7. ~~Parser + `normalized_key`~~ **(zrobione 2026-10-13**: `ImportParserService`, reguły w [ARCHITECTURE.md](ARCHITECTURE.md#import-parsing-implemented)).
-8. ~~Layout + `<x-modal>`~~ **(zrobione 2026-10-13**: sidebar, motyw wg systemu, akcent z `APP_ACCENT`, placeholder Dashboard).
-9. ~~Ekran New Import~~ **(zrobione 2026-10-13**: `/imports/create`, po zapisie na razie redirect na Dashboard).
-10. ~~Parse Review~~ **(zrobione 2026-10-13**: edycja z autosave, usuwanie wierszy, New Import przekierowuje na review).
-11. ~~Parsowanie AI~~ **(zrobione 2026-10-13**: Laravel AI SDK, OpenAI, job w kolejce; bez klucza zwykły parser). **Do zrobienia przez użytkownika:** wpisać `OPENAI_API_KEY` w `.env`, `sail artisan queue:restart`, przetestować wklejkę z Beatportu.
-12. Dalej: **duplikaty** (`DuplicateDetectionService`, modal exact duplicates, ostrzeżenie similar).
+**Incydent: klucz OpenAI w logu sesji**
+- 2026-10-13 pełny `OPENAI_API_KEY` wyświetlił się w wyniku polecenia, bo maskowanie `sed` nie działa na macOS (BSD sed). Nie ma go w gicie ani w plikach projektu.
+- Decyzja użytkownika: **bez rotacji**, bo klucz ma z góry limit $4. Ryzyko zaakceptowane.
+- Opcjonalnie: wyczyścić klucz z transkryptów Claude Code w `~/.claude/projects/-Volumes-data-dev-VibeCode-tt-tracktracker/*.jsonl`.
+
+**Lokalny `.env` (poza gitem):** `APP_ACCENT=navy`, `APP_TIMEZONE=Europe/Warsaw`, `OPENAI_API_KEY` ustawiony, `AI_PARSER_MODEL=gpt-4.1-mini`, `DB_QUEUE_RETRY_AFTER=300`. Po zmianach `.env` uruchom `sail artisan config:clear` i `sail artisan queue:restart`.
+
+**Do zrobienia przez użytkownika:**
+- Przetestować w UI pełną wklejkę z Beatportu. Jeśli AI coś źle parsuje, dostroić instrukcje agenta (`app/Ai/Agents/TrackListParser.php`).
+- Klucz YouTube Data API (na razie nie jest potrzebny, tryb bez klucza jest pierwszy).
+
+**Następne kroki (po kolei):**
+1. Commit niezacommitowanych zmian (wyżej).
+2. **Duplikaty**: `DuplicateDetectionService`, modal dla dokładnych duplikatów (Remove duplicates / Keep all / Review manually), ostrzeżenie dla podobnych. Najpierw pytania o to, co liczy się jako „podobny”.
+3. Wyszukiwanie YouTube w trybie bez klucza (search URL), ekran YouTube Results (`Imports\Show`), custom link z normalizacją.
+4. Eksport Supersimple TXT, wersjonowanie, historia, download.
+5. Dashboard z ostatnimi importami i eksportami, lista importów (`/imports`).
+6. Drobne: `.vscode/extensions.json`, decyzja o `database/database.sqlite`.

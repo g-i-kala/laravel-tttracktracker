@@ -321,3 +321,27 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 - `phpunit.xml` forces an empty `OPENAI_API_KEY`; tests enable AI via config and fake the agent (`preventStrayPrompts()`).
 - `DB_QUEUE_RETRY_AFTER=300` (> job timeout 240 s).
 - Without a key the app still works exactly as before.
+
+## 2026-10-13 — AI parser model: gpt-4.1-mini
+
+**Decision:** Use OpenAI `gpt-4.1-mini` for track list parsing (`AI_PARSER_MODEL=gpt-4.1-mini`, also in `.env.example`).
+
+**Reason:** Extraction is simple; a small model is cheap and fast. Smoke test on two Beatport tracks: correct artists, titles with "(Original Mix)", genre, "Exclusive" badge removed, 3.4 s.
+
+**Consequences:** Switch models via `.env` only. If results get worse on messy inputs, try a larger model first.
+
+## 2026-10-13 — Save & close, imports list, AI usage and settings
+
+**Decision:**
+- Parse Review gets a **Save & close** button: sets the batch to a new status `reviewed` (between `parsed` and `searching`) and redirects to a new **imports list** (`/imports`), where the user can continue a batch later. Field edits keep autosaving on blur.
+- **AI usage logging:** a listener on the SDK event `AgentPrompted` writes every call to a new table `ai_usage_logs` (batch id if known, agent, provider, model, input/output tokens, estimated `cost_usd`, duration, status). Model prices live in config; the cost is an estimate.
+- **Monthly AI budget (USD)**, counted from the 1st of the month: warning at 80%. Once it is reached, new imports use the line parser instead of AI and show a "budget reached" message.
+- **API key in the database, encrypted** (`settings` table, `encrypted` cast, `APP_KEY`). A key set in the UI overrides `.env`, and `.env` stays as the fallback. The UI only shows a masked key (`sk-…abcd`), with Replace / Remove / Test key.
+- Screen **`/settings/ai`** (later `/settings/youtube`): spend vs. limit, call count, tokens, recent calls table, form (key, model, limit).
+
+**Reason:** User feedback after the first manual test: there is no way to come back to a reviewed import, and the AI spend should be visible and capped from inside the app (the OpenAI key has a hard $4 cap).
+
+**Consequences:**
+- New tables `ai_usage_logs`, `settings`; new enum case `ImportBatchStatus::Reviewed`.
+- The key is resolved at runtime (DB first, then `.env`). Losing `APP_KEY` makes the stored key unreadable, so the user has to enter it again.
+- Order of work: Save & close + `/imports` → usage logging → settings screen.

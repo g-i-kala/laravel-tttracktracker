@@ -204,3 +204,21 @@
 - Trigger: a Beatport copy-paste was split into one junk item per line by the line parser.
 - `sail artisan test`: 67 passed. Pint clean. `queue:restart` done. Assets rebuilt.
 - Not yet tried against the real OpenAI API (no key in `.env` yet).
+
+## 2026-10-13 (12)
+
+### Changed
+- AI parser model set to `gpt-4.1-mini` (`.env`, `.env.example`, DOCKER, ARCHITECTURE, DECISIONS).
+
+### Notes
+- Real API smoke test (2 Beatport tracks): correct artist/title/genre, 3.4 s.
+- The OpenAI key was accidentally printed in a session log (masking `sed` did not work on macOS); user advised to rotate it.
+
+## 2026-10-13 (13)
+
+### Changed
+- START-TUTAJ: status rewritten, session handoff for 2026-10-13 (done list, uncommitted changes, key incident, next steps). TODO: key rotation decision.
+
+### Notes
+- Leaked OpenAI key not rotated: user capped it at $4. Risk accepted.
+- End of session, user runs `/clear`.

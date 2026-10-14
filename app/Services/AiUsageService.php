@@ -56,7 +56,8 @@ class AiUsageService
      */
     public function estimateCost(string $provider, string $model, int $inputTokens, int $cachedInputTokens, int $outputTokens): ?float
     {
-        $prices = config("services.ai_pricing.{$provider}.{$model}");
+        // Model names contain dots (gpt-4.1-mini), so they cannot be part of a config() dot path.
+        $prices = config("services.ai_pricing.{$provider}", [])[$model] ?? null;
 
         if (! is_array($prices)) {
             return null;

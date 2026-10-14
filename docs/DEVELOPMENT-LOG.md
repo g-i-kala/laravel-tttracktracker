@@ -286,3 +286,17 @@
 ### Notes
 - Ran `sail artisan migrate`. 113 tests pass. Not filled yet: the AI agent change is step 2.
 
+## 2026-10-13 (Track metadata, step 2)
+
+### Changed
+- `TrackListParser`: instructions and schema return `bpm`, `key`, `label` (only when listed; remixers are not the label).
+- `AiTrackListParserService`: maps them to `bpm` (rounded, 40–300), `musical_key`, `camelot_key`, `label`; stored by `storeParsedLines()`.
+- Tests: AI parsing tests cover the new fields, BPM rounding/out-of-range, unknown key → no Camelot.
+
+### Fixed
+- AI cost was never computed: `config("services.ai_pricing.openai.gpt-4.1-mini")` treats the dots in the model name as nesting. Prices are now read as `config('services.ai_pricing.openai')[$model]`. Regression test reads the shipped config. Tests had set the price with the same dotted path, which hid the bug.
+
+### Notes
+- Real smoke test on the user's Beatport paste (4 tracks, last one cut off): artists, titles with "(Original Mix)", genre, BPM, key, Camelot (9A, 7B, 5A) and label correct; cut-off track has only artist + title. 683 input / 261 output tokens, 4.7 s.
+- 3 existing `ai_usage_logs` rows had `cost_usd` null because of the bug; backfilled with `estimateCost()` via tinker on 2026-10-14 ($0.000601, $0, $0.000691).
+- 115 tests pass.

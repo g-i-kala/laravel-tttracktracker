@@ -29,7 +29,7 @@ class AiUsageLoggingTest extends TestCase
             'ai.providers.openai.key' => 'test-key',
             'services.track_list_ai.provider' => 'openai',
             'services.track_list_ai.model' => 'gpt-4.1-mini',
-            'services.ai_pricing.openai.gpt-4.1-mini' => ['input' => 0.40, 'cached_input' => 0.10, 'output' => 1.60],
+            'services.ai_pricing' => ['openai' => ['gpt-4.1-mini' => ['input' => 0.40, 'cached_input' => 0.10, 'output' => 1.60]]],
         ]);
     }
 
@@ -107,8 +107,16 @@ class AiUsageLoggingTest extends TestCase
 
     public function test_cost_estimate_uses_the_input_price_when_there_is_no_cached_price(): void
     {
-        config(['services.ai_pricing.openai.test-model' => ['input' => 1.00, 'output' => 2.00]]);
+        config(['services.ai_pricing.openai' => ['test-model' => ['input' => 1.00, 'output' => 2.00]]]);
 
         $this->assertSame(0.004, app(AiUsageService::class)->estimateCost('openai', 'test-model', 2_000, 1_000, 1_000));
+    }
+
+    public function test_cost_estimate_reads_the_shipped_price_of_a_dotted_model_name(): void
+    {
+        config(['services.ai_pricing' => (require config_path('services.php'))['ai_pricing']]);
+
+        // 1M input tokens × $0.40
+        $this->assertSame(0.4, app(AiUsageService::class)->estimateCost('openai', 'gpt-4.1-mini', 1_000_000, 0, 0));
     }
 }

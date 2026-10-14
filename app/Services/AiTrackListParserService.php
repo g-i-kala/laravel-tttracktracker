@@ -12,7 +12,14 @@ use Illuminate\Support\Str;
  */
 class AiTrackListParserService
 {
-    public function __construct(private ImportParserService $lineParser, private AiSettingsService $aiSettings) {}
+    /**
+     * BPM values outside this range are treated as parsing noise.
+     */
+    public const int MIN_BPM = 40;
+
+    public const int MAX_BPM = 300;
+
+    public function __construct(private ImportParserService $lineParser, private AiSettingsService $aiSettings, private MusicalKeyService $musicalKeys) {}
 
     public function isEnabled(): bool
     {
@@ -20,7 +27,7 @@ class AiTrackListParserService
     }
 
     /**
-     * @return list<array{line_number: int, raw_line: string, artist: ?string, title: string, genre: ?string, normalized_key: string, error_message: ?string}>
+     * @return list<array{line_number: int, raw_line: string, artist: ?string, title: string, genre: ?string, bpm: ?int, musical_key: ?string, camelot_key: ?string, label: ?string, normalized_key: string, error_message: ?string}>
      */
     public function parse(string $rawInput): array
     {
@@ -36,6 +43,9 @@ class AiTrackListParserService
                 'artist' => $this->nullIfBlank($track['artist'] ?? null),
                 'title' => Str::squish((string) ($track['title'] ?? '')),
                 'genre' => $this->nullIfBlank($track['genre'] ?? null),
+                'bpm' => $this->bpm($track['bpm'] ?? null),
+                'key' => $this->nullIfBlank($track['key'] ?? null),
+                'label' => $this->nullIfBlank($track['label'] ?? null),
                 'source' => Str::squish((string) ($track['source'] ?? '')),
             ])
             ->filter(fn (array $track): bool => $track['title'] !== '')
@@ -47,9 +57,24 @@ class AiTrackListParserService
             'artist' => $track['artist'],
             'title' => $track['title'],
             'genre' => $track['genre'],
+            'bpm' => $track['bpm'],
+            'musical_key' => $track['key'],
+            'camelot_key' => $this->musicalKeys->toCamelot($track['key']),
+            'label' => $track['label'],
             'normalized_key' => $this->lineParser->normalizedKey($track['artist'], $track['title']),
             'error_message' => $track['artist'] === null ? ImportParserService::ARTIST_NOT_DETECTED : null,
         ])->all();
+    }
+
+    private function bpm(mixed $value): ?int
+    {
+        if (! is_numeric($value)) {
+            return null;
+        }
+
+        $bpm = (int) round((float) $value);
+
+        return $bpm >= self::MIN_BPM && $bpm <= self::MAX_BPM ? $bpm : null;
     }
 
     private function nullIfBlank(?string $value): ?string

@@ -68,7 +68,7 @@ class ImportBatchService
      * Replace the batch's items with the parsed lines and mark it as parsed.
      * Items without their own genre get the batch's default genre.
      *
-     * @param  list<array{line_number: int, raw_line: string, artist: ?string, title: string, normalized_key: string, error_message: ?string, genre?: ?string}>  $parsedLines
+     * @param  list<array{line_number: int, raw_line: string, artist: ?string, title: string, normalized_key: string, error_message: ?string, genre?: ?string, bpm?: ?int, musical_key?: ?string, camelot_key?: ?string, label?: ?string}>  $parsedLines
      */
     public function storeParsedLines(ImportBatch $batch, array $parsedLines): void
     {

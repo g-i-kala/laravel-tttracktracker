@@ -37,7 +37,7 @@ class AiTrackListParsingTest extends TestCase
     private function fakeTracks(): array
     {
         return ['tracks' => [
-            ['artist' => 'Midas Field, Marijn Jansen', 'title' => 'What We Got (Original Mix)', 'genre' => 'Deep House', 'source' => 'What We Got Original Mix | Midas Field, Marijn Jansen | tszr | Deep House'],
+            ['artist' => 'Midas Field, Marijn Jansen', 'title' => 'What We Got (Original Mix)', 'genre' => 'Deep House', 'bpm' => 128, 'key' => 'E Minor', 'label' => 'tszr', 'source' => 'What We Got Original Mix | Midas Field, Marijn Jansen | tszr | Deep House'],
             ['artist' => null, 'title' => 'Noir Muse (Original Mix)', 'genre' => null, 'source' => 'Noir Muse Original Mix'],
             ['artist' => 'Nobody', 'title' => '  ', 'genre' => null, 'source' => 'junk'],
         ]];
@@ -67,11 +67,19 @@ class AiTrackListParsingTest extends TestCase
             'artist' => 'Midas Field, Marijn Jansen',
             'title' => 'What We Got (Original Mix)',
             'genre' => 'Deep House',
+            'bpm' => 128,
+            'musical_key' => 'E Minor',
+            'camelot_key' => '9A',
+            'label' => 'tszr',
             'normalized_key' => 'midas field marijn jansen|what we got',
             'error_message' => null,
         ], $lines[0]);
         $this->assertSame(2, $lines[1]['line_number']);
         $this->assertNull($lines[1]['artist']);
+        $this->assertNull($lines[1]['bpm']);
+        $this->assertNull($lines[1]['musical_key']);
+        $this->assertNull($lines[1]['camelot_key']);
+        $this->assertNull($lines[1]['label']);
         $this->assertSame(ImportParserService::ARTIST_NOT_DETECTED, $lines[1]['error_message']);
     }
 
@@ -114,6 +122,9 @@ class AiTrackListParsingTest extends TestCase
 
         $this->assertSame(ImportBatchStatus::Parsed, $batch->refresh()->status);
         $this->assertSame(['Deep House', 'House'], $batch->items()->orderBy('line_number')->pluck('genre')->all());
+
+        $first = $batch->items()->orderBy('line_number')->first();
+        $this->assertSame([128, 'E Minor', '9A', 'tszr'], [$first->bpm, $first->musical_key, $first->camelot_key, $first->label]);
     }
 
     public function test_job_does_nothing_when_the_batch_is_no_longer_parsing(): void
@@ -169,5 +180,18 @@ class AiTrackListParsingTest extends TestCase
 
         $this->assertSame(ImportBatchStatus::Parsed, $batch->refresh()->status);
         $this->assertSame(2, $batch->items()->count());
+    }
+
+    public function test_service_rounds_bpm_drops_implausible_values_and_keeps_unknown_keys_without_camelot(): void
+    {
+        TrackListParser::fake([['tracks' => [
+            ['artist' => 'A', 'title' => 'One', 'genre' => null, 'bpm' => 127.6, 'key' => 'H Minor', 'label' => '  ', 'source' => 'A - One'],
+            ['artist' => 'B', 'title' => 'Two', 'genre' => null, 'bpm' => 2026, 'key' => 'F♯ Major', 'label' => 'Mellow Circus Records', 'source' => 'B - Two'],
+        ]]])->preventStrayPrompts();
+
+        $lines = app(AiTrackListParserService::class)->parse('A - One');
+
+        $this->assertSame([128, 'H Minor', null, null], [$lines[0]['bpm'], $lines[0]['musical_key'], $lines[0]['camelot_key'], $lines[0]['label']]);
+        $this->assertSame([null, 'F♯ Major', '2B', 'Mellow Circus Records'], [$lines[1]['bpm'], $lines[1]['musical_key'], $lines[1]['camelot_key'], $lines[1]['label']]);
     }
 }

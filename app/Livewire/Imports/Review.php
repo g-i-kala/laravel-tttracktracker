@@ -15,8 +15,9 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * Parse Review: edit artist/title/genre of each parsed track (autosaved on blur)
- * and remove junk lines before searching YouTube. Save & close marks the batch
+ * Parse Review: edit artist/title/genre of each parsed track, plus BPM, key and
+ * label in a panel opened by clicking the row (all autosaved on blur), and
+ * remove junk lines before searching YouTube. Save & close marks the batch
  * as reviewed and returns to the imports list. While AI parsing runs in the
  * background, the page polls until the items are ready.
  */
@@ -28,11 +29,9 @@ class Review extends Component
     /**
      * Editable values keyed by item id.
      *
-     * @var array<int, array{artist: string, title: string, genre: string}>
+     * @var array<int, array{artist: string, title: string, genre: string, bpm: string, musical_key: string, label: string}>
      */
     public array $items = [];
-
-    public ?int $savedItemId = null;
 
     public function mount(ImportBatch $batch): void
     {
@@ -80,6 +79,9 @@ class Review extends Component
             'artist' => (string) $item->artist,
             'title' => $item->title,
             'genre' => (string) $item->genre,
+            'bpm' => (string) $item->bpm,
+            'musical_key' => (string) $item->musical_key,
+            'label' => (string) $item->label,
         ]])->all();
     }
 
@@ -92,6 +94,9 @@ class Review extends Component
             'items.*.artist' => ['nullable', 'string', 'max:255'],
             'items.*.title' => ['required', 'string', 'max:255'],
             'items.*.genre' => ['nullable', 'string', 'max:255'],
+            'items.*.bpm' => ['nullable', 'integer', 'between:'.AiTrackListParserService::MIN_BPM.','.AiTrackListParserService::MAX_BPM],
+            'items.*.musical_key' => ['nullable', 'string', 'max:20'],
+            'items.*.label' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -104,11 +109,15 @@ class Review extends Component
             'items.*.artist' => 'artist',
             'items.*.title' => 'title',
             'items.*.genre' => 'genre',
+            'items.*.bpm' => 'BPM',
+            'items.*.musical_key' => 'key',
+            'items.*.label' => 'label',
         ];
     }
 
     /**
      * Autosave a single field after it loses focus. `$key` looks like `12.artist`.
+     * Dispatches `item-saved` so the row can flash its "Saved" notice.
      */
     public function updatedItems(mixed $value, string $key): void
     {
@@ -120,7 +129,7 @@ class Review extends Component
 
         app(ImportItemService::class)->updateTrackDetails($item, $this->items[$itemId]);
 
-        $this->savedItemId = $itemId;
+        $this->dispatch('item-saved', id: $itemId);
         unset($this->rows);
     }
 

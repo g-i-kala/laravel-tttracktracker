@@ -35,7 +35,7 @@ class ParseReviewTest extends TestCase
         Livewire::test(Review::class, ['batch' => $item->importBatch])
             ->set("items.{$item->id}.title", '  Your Mind  (Original Mix) ')
             ->assertHasNoErrors()
-            ->assertSet('savedItemId', $item->id);
+            ->assertDispatched('item-saved', id: $item->id);
 
         $item->refresh();
 
@@ -71,6 +71,69 @@ class ParseReviewTest extends TestCase
             ->set("items.{$item->id}.genre", ' ');
 
         $this->assertNull($item->refresh()->genre);
+    }
+
+    public function test_metadata_line_shows_bpm_key_with_camelot_and_label(): void
+    {
+        $batch = ImportBatch::factory()->parsed()->create();
+        ImportItem::factory()->for($batch)->withMetadata()->create();
+        ImportItem::factory()->for($batch)->create();
+
+        Livewire::test(Review::class, ['batch' => $batch])
+            ->assertSee('128 BPM · E Minor (9A) · tszr')
+            ->assertSee('+ BPM, key, label');
+    }
+
+    public function test_editing_the_key_recomputes_the_camelot_key(): void
+    {
+        $item = ImportItem::factory()->create(['musical_key' => 'E Minor', 'camelot_key' => '9A']);
+
+        $component = Livewire::test(Review::class, ['batch' => $item->importBatch])
+            ->set("items.{$item->id}.musical_key", 'F# Major')
+            ->assertHasNoErrors()
+            ->assertDispatched('item-saved', id: $item->id);
+
+        $this->assertSame('F# Major', $item->refresh()->musical_key);
+        $this->assertSame('2B', $item->camelot_key);
+
+        $component->set("items.{$item->id}.musical_key", 'weird');
+
+        $this->assertSame('weird', $item->refresh()->musical_key);
+        $this->assertNull($item->camelot_key);
+    }
+
+    public function test_bpm_and_label_are_saved_and_empty_values_become_null(): void
+    {
+        $item = ImportItem::factory()->create(['bpm' => null, 'label' => null]);
+
+        $component = Livewire::test(Review::class, ['batch' => $item->importBatch])
+            ->set("items.{$item->id}.bpm", '126')
+            ->set("items.{$item->id}.label", '  Drumcode ')
+            ->assertHasNoErrors();
+
+        $this->assertSame(126, $item->refresh()->bpm);
+        $this->assertSame('Drumcode', $item->label);
+
+        $component
+            ->set("items.{$item->id}.bpm", '')
+            ->set("items.{$item->id}.label", '')
+            ->assertHasNoErrors();
+
+        $this->assertNull($item->refresh()->bpm);
+        $this->assertNull($item->label);
+    }
+
+    public function test_bpm_must_be_a_whole_number_in_range(): void
+    {
+        $item = ImportItem::factory()->create(['bpm' => 128]);
+
+        Livewire::test(Review::class, ['batch' => $item->importBatch])
+            ->set("items.{$item->id}.bpm", '500')
+            ->assertHasErrors(["items.{$item->id}.bpm" => 'between'])
+            ->set("items.{$item->id}.bpm", '12a')
+            ->assertHasErrors(["items.{$item->id}.bpm" => 'integer']);
+
+        $this->assertSame(128, $item->refresh()->bpm);
     }
 
     public function test_title_is_required(): void

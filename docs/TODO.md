@@ -38,11 +38,12 @@
 - [x] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
 - [x] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
 - [x] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
-- [ ] Track metadata from AI: `bpm`, `musical_key` + `camelot_key`, `label` (second line under title on Parse Review, editable)
+- [x] Track metadata from AI: `bpm`, `musical_key` + `camelot_key`, `label` (second line under title on Parse Review, editable)
   - [x] Columns + `MusicalKeyService` (Camelot)
   - [x] AI agent instructions/schema + storing the fields
-  - [ ] Parse Review UI
-- [ ] Check: "Saved" did not flash after editing a field on Parse Review (manual test 2026-10-13)
+  - [x] Parse Review UI (metadata line + panel on row click)
+- [x] "Saved" did not flash after editing a field on Parse Review: replaced with an `item-saved` event + Alpine (2026-10-14, confirmed manually)
+- [x] Manual test: new Beatport import → metadata line, edit BPM/key/label, "Saved" flash (2026-10-14)
 - [ ] Duplicate detection
 - [ ] YouTube search URL service (no-key mode — primary at start)
 - [ ] YouTube URL normalizer

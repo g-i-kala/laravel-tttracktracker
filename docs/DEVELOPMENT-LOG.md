@@ -300,3 +300,20 @@
 - Real smoke test on the user's Beatport paste (4 tracks, last one cut off): artists, titles with "(Original Mix)", genre, BPM, key, Camelot (9A, 7B, 5A) and label correct; cut-off track has only artist + title. 683 input / 261 output tokens, 4.7 s.
 - 3 existing `ai_usage_logs` rows had `cost_usd` null because of the bug; backfilled with `estimateCost()` via tinker on 2026-10-14 ($0.000601, $0, $0.000691).
 - 115 tests pass.
+
+## 2026-10-14 (Track metadata, step 3)
+
+### Added
+- Parse Review: grey metadata line under the title (`128 BPM · E Minor (9A) · tszr`, or `+ BPM, key, label`); clicking the row or the line opens a panel with BPM, Key (Camelot shown, hint when unrecognized) and Label, autosaved on blur.
+- Tests: metadata line, key → Camelot recompute, BPM/label save + empty → null, BPM validation (integer, 40–300).
+
+### Changed
+- `ImportItemService::updateTrackDetails()` also saves `bpm`, `musical_key`, `label` and recomputes `camelot_key`.
+- `Imports\Review`: `items` holds the new fields; validation rules; each item renders in its own `<tbody>` with Alpine state.
+- Docs: UI-FLOW, ARCHITECTURE, PRD, TODO.
+
+### Fixed
+- "Saved" notice: the `savedItemId` property + self-removing `<span>` was replaced with a Livewire `item-saved` event handled by Alpine in the row (`x-show`, 1.5 s timer), so morphing no longer affects it.
+
+### Notes
+- Ran `sail bin pint`, `sail npm run build`. 119 tests pass. Manual browser test by the user passed (metadata line, panel, "Saved" flash).

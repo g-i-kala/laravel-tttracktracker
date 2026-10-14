@@ -28,7 +28,7 @@ Manual track import
 
 1. **Dashboard** — New YouTube Export button, recent imports, recent exports, items needing attention.
 2. **New YouTube Export** — name (auto-generated, editable), optional year/month/default genre, track list textarea → **Parse**.
-3. **Parse Review** (always shown) — edit artist/title/genre; exact-duplicate modal; similar-duplicate warning → **Search YouTube**.
+3. **Parse Review** (always shown) — edit artist/title/genre, plus BPM/key/label (panel on row click); exact-duplicate modal; similar-duplicate warning → **Search YouTube**.
 4. **YouTube Results** — API mode: 3 scored candidates, best preselected; no-key mode: search URL + custom link.
 5. **Supersimple TXT Export** — missing-link warning modal, existing-export version modal, download.
 

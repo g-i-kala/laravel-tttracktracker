@@ -39,14 +39,16 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Parse Review (`/imports/{batch}/review`) — `Imports\Review`
 
-> Status: editing + removing implemented (2026-10-13). Duplicates and Search YouTube pending.
+> Status: editing + removing implemented (2026-10-13), BPM/key/label editing (2026-10-14). Duplicates and Search YouTube pending.
 
 - Always shown after parse (New Import redirects here).
 - While AI parsing runs: spinner panel "Parsing your track list with AI…" (polls every 2 s), then the table appears.
 - If AI parsing failed: red panel with **Try again with AI** and **Use simple parser**.
 - Header (read-only): batch name, track count, "N without artist", month/year, default genre.
 - Editable table in line order: #, artist, title (raw line shown below in grey), genre.
-- **Autosave on blur**: each field saves when it loses focus; "Saved" flashes next to the row; validation errors inline (title required, max 255).
+- **Metadata line** under the title (grey): `128 BPM · E Minor (9A) · tszr` (Camelot in brackets unless the key is already Camelot; empty parts skipped), or `+ BPM, key, label` when empty.
+- **Clicking a row** (outside inputs/buttons) or the metadata line toggles a panel under the row: BPM (whole number 40–300), Key (as written; the Camelot code is shown next to the label and recomputed on save; amber hint when the key is not recognized), Label. The panel opens automatically when one of its fields has a validation error.
+- **Autosave on blur**: each field saves when it loses focus; "Saved" flashes next to the row for 1.5 s (Livewire event `item-saved` → Alpine); validation errors inline (title required, max 255).
 - Saving recomputes `normalized_key`; filling in an artist clears "Artist not detected", clearing it sets the notice again. Rows without artist have an amber border.
 - **Remove** per row with a browser confirm ("Remove this track?").
 - Exact duplicates → **Duplicate modal**: Remove duplicates / Keep all / Review manually.

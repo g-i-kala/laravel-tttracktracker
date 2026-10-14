@@ -49,7 +49,9 @@ Textarea input
   → ImportParserService → ImportItem[] (artist, title, genre, normalized_key)
   → DuplicateDetectionService (computed on render, nothing stored) → duplicate modal / banner / row marks
   → Imports\Review::searchYoutube()
-       No-key mode (default at start): YoutubeSearchUrlService → youtube_search_url (sync, no queue)
+       No-key mode (implemented, the only mode for now): ImportBatchService::generateYoutubeSearchUrls()
+         → YoutubeSearchUrlService → youtube_search_url, items + batch `searched` (sync, no queue)
+         → redirect to Imports\Show (YouTube Results)
        API mode: Bus::batch([SearchYoutubeForImportItemJob, ...])
          → YoutubeSearchService (cache first) → YoutubeScoringService → YoutubeCandidate[]
          → best candidate copied to import_items.selected_youtube_*
@@ -74,6 +76,8 @@ Textarea input
 `similarKey(?artist, title)` (public) → like `normalizedKey`, but the title without any bracketed part (falls back to the full title if nothing is left) and the artists split on `&` / `,` / `and` / `x` / `vs`, normalized and sorted. Used for similar-duplicate warnings.
 
 `App\Services\DuplicateDetectionService` (pure, works on a collection of items): `exactDuplicates()` → `[duplicate id => first item id]` grouped by `normalized_key` in line order; `similarItems()` → `[item id => [similar item ids]]` for items with a different normalized key whose similar-key parts match: one part (artists / base title) equal and the other equal or within 2 Levenshtein edits (less than half of the shorter text). Pairwise, O(n²); fine for batch sizes in the hundreds. `ImportBatchService::removeExactDuplicates()` deletes the duplicates and keeps the first of each group.
+
+`App\Services\YoutubeSearchUrlService` (pure): `query(?artist, title)` → `"{artist} {title}"` with `(Original Mix)` / `[Original Mix]` removed (other versions, remixes, feat. kept; no artist → title only); `url()` → `https://www.youtube.com/results?search_query=…` (`http_build_query`, spaces as `+`). `generateYoutubeSearchUrls()` regenerates the URLs on every run (after edits in review); exported item/batch statuses are kept. `Imports\Show` builds a URL on the fly for an item without one.
 
 `App\Services\MusicalKeyService::toCamelot(?key)` (pure): store key (`E Minor`, `F♯ Major`, `Bbm`, `C# min`, note only = major) or Camelot (`09a`) → Camelot code (`9A`), null when unrecognized. Enharmonic spellings map to the same code.
 

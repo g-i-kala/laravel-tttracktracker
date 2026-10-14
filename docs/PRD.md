@@ -62,7 +62,8 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - API mode when `YOUTUBE_DATA_API_KEY` is set: up to 3 candidates per track, scored 0–100 (title-based scoring).
 - If the API quota is exceeded or the API fails, the item falls back to no-key mode (search URL + notice in UI).
 - Score >= 80 → preselect + include in export; 60–79 → preselect only; < 60 → not included.
-- No-key mode: generate `https://www.youtube.com/results?search_query=...`.
+- No-key mode: generate `https://www.youtube.com/results?search_query=...` from artist + title without `(Original Mix)` (other versions, remixes, feat. kept).
+- Custom link: pasted into a field in the track's row on YouTube Results (autosave); a valid link ticks Include in export.
 - Custom link accepts `watch?v=`, `youtu.be/`, `shorts/`; normalized to `https://www.youtube.com/watch?v=ID`; non-YouTube URLs rejected.
 - Search results cached (`youtube_search_cache`).
 - All links open in a new tab.
@@ -87,7 +88,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - [x] Exact duplicates show modal.
 - [x] Similar duplicates show warning.
 - [ ] API mode fetches 3 YouTube candidates.
-- [ ] No-key mode generates YouTube search URL.
+- [x] No-key mode generates YouTube search URL.
 - [ ] Links open in new tab.
 - [ ] User can select candidate.
 - [ ] User can paste custom YouTube link.

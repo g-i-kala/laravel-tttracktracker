@@ -29,7 +29,7 @@
                     @foreach ($this->batches as $batch)
                         <tr wire:key="batch-{{ $batch->id }}">
                             <td class="px-3 py-2 font-medium">
-                                <a href="{{ route('imports.review', $batch) }}" wire:navigate class="hover:text-accent-600 dark:hover:text-accent-400">{{ $batch->name }}</a>
+                                <a href="{{ route($batch->status->hasSearchResults() ? 'imports.show' : 'imports.review', $batch) }}" wire:navigate class="hover:text-accent-600 dark:hover:text-accent-400">{{ $batch->name }}</a>
                             </td>
                             <td class="px-3 py-2 whitespace-nowrap text-zinc-600 dark:text-zinc-400">{{ $batch->created_at->format('Y-m-d H:i') }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $batch->items_count }}</td>

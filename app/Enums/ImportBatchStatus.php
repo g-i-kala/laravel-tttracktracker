@@ -30,4 +30,12 @@ enum ImportBatchStatus: string
             self::Failed => 'Failed',
         };
     }
+
+    /**
+     * Whether the batch has been searched on YouTube, so "Continue" opens YouTube Results instead of Parse Review.
+     */
+    public function hasSearchResults(): bool
+    {
+        return in_array($this, [self::Searched, self::Exported], true);
+    }
 }

@@ -10,11 +10,16 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Creates import batches and their items from pasted track lists, with the
- * line parser (synchronous) or with AI (queued).
+ * line parser (synchronous) or with AI (queued), and moves batches through
+ * review, duplicate removal and the no-key YouTube search.
  */
 class ImportBatchService
 {
-    public function __construct(private ImportParserService $parser, private DuplicateDetectionService $duplicates) {}
+    public function __construct(
+        private ImportParserService $parser,
+        private DuplicateDetectionService $duplicates,
+        private YoutubeSearchUrlService $youtubeSearchUrls,
+    ) {}
 
     /**
      * Create a batch from raw input, parse it with the line parser and store one item per detected line.
@@ -109,6 +114,30 @@ class ImportBatchService
         }
 
         return $batch->items()->whereKey($duplicateIds)->delete();
+    }
+
+    /**
+     * No-key YouTube search: store a search URL on every item and mark items and
+     * the batch as searched. Running it again (after edits in Parse Review)
+     * regenerates the URLs; selected links and exported statuses are kept.
+     */
+    public function generateYoutubeSearchUrls(ImportBatch $batch): void
+    {
+        DB::transaction(function () use ($batch): void {
+            foreach ($batch->items()->get() as $item) {
+                $item->youtube_search_url = $this->youtubeSearchUrls->url($item->artist, $item->title);
+
+                if ($item->status !== ImportItemStatus::Exported) {
+                    $item->status = ImportItemStatus::Searched;
+                }
+
+                $item->save();
+            }
+
+            if ($batch->status !== ImportBatchStatus::Exported) {
+                $batch->update(['status' => ImportBatchStatus::Searched]);
+            }
+        });
     }
 
     /**

@@ -59,9 +59,12 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Similar tracks (other version, artists in another order, small typo in artist or title) → note above the table "N tracks look similar … nothing is removed" and "Similar to #N" under the title. Non-blocking.
 - Marks update after every edit or removal.
 - **Save & close** button (hidden while parsing / failed): validates all fields, marks the batch `reviewed` (a later status is kept), flash "Saved \"name\".", redirects to the imports list.
-- **Search YouTube** button → `searchYoutube()` → redirect to YouTube Results. *Now: disabled, "Coming soon".*
+- **Search YouTube** button (hidden while parsing / failed, disabled with no tracks) → `searchYoutube()`: validates all fields, generates search URLs, redirects to YouTube Results. Can be run again after edits (URLs are regenerated).
 
 ## YouTube Results (`/imports/{batch}`) — `Imports\Show`
+
+> Status: step A implemented (2026-10-14): header (name, count, month/year, genre), **Back to review**, **Generate TXT** disabled ("Coming soon"), table #, track (artist bold + title, grey line `BPM · Camelot · label`), **Search YouTube ↗** link per row (new tab, `rel="noopener noreferrer"`). Imports list **Continue** opens this screen once the batch is `searched` / `exported`.
+> Step B (next): inline **Paste YouTube link** field per row instead of the custom link modal (autosave on paste/blur; a valid link ticks Include in export), Include-in-export checkbox.
 
 - While the API search batch is running: progress (e.g. 12/30) via `wire:poll`, which stops when the batch finishes.
 - API mode: best candidate preselected; expand a row (Alpine) to see the 3 candidates; select another.

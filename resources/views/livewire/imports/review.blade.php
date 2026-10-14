@@ -36,14 +36,16 @@
                 </button>
             @endunless
 
-            <button
-                type="button"
-                disabled
-                title="Coming soon"
-                class="cursor-not-allowed rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white opacity-50"
-            >
-                Search YouTube
-            </button>
+            @unless (in_array($batch->status, [\App\Enums\ImportBatchStatus::Parsing, \App\Enums\ImportBatchStatus::Failed], true))
+                <button
+                    type="button"
+                    wire:click="searchYoutube"
+                    @disabled($this->rows->isEmpty())
+                    class="rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Search YouTube
+                </button>
+            @endunless
         </div>
     </div>
 

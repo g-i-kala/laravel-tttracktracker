@@ -199,6 +199,22 @@ class Review extends Component
         $this->redirectRoute('imports.index', navigate: true);
     }
 
+    /**
+     * Validate all fields, generate YouTube search URLs (no-key mode) and go to YouTube Results.
+     */
+    public function searchYoutube(ImportBatchService $importBatches): void
+    {
+        $this->validate();
+
+        if ($this->rows->isEmpty()) {
+            return;
+        }
+
+        $importBatches->generateYoutubeSearchUrls($this->batch);
+
+        $this->redirectRoute('imports.show', ['batch' => $this->batch], navigate: true);
+    }
+
     public function removeItem(int $itemId): void
     {
         $this->batch->items()->findOrFail($itemId)->delete();

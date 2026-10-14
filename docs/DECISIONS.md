@@ -374,3 +374,15 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-14). Computing on the fly keeps the marks correct after every edit or removal without syncing a status.
 
 **Consequences:** Cross-batch warnings (after MVP) can reuse the same keys; if they need an index, the similar key can become a stored column then.
+
+## 2026-10-14 — No-key YouTube search and custom links
+
+**Decision:**
+- Search query = artist + title with only `(Original Mix)` removed; other versions, remixes and `feat.` stay. No artist → title only.
+- **Search YouTube** on Parse Review runs synchronously in no-key mode (the only mode until the API key arrives): stores `youtube_search_url`, items and batch become `searched` (exported statuses kept), redirect to YouTube Results. Running it again regenerates the URLs.
+- Custom links: an **inline field per row** on YouTube Results (autosave), not the planned custom link modal. A valid link ticks Include in export automatically.
+- Work split in two steps: A (search URLs + results screen), B (normalizer + inline link + include checkbox), one commit each.
+
+**Reason:** User's answers (2026-10-14). The inline field is the fastest flow for ~30 tracks: open the search, copy the video URL, paste it in the row.
+
+**Consequences:** The "Custom link modal" is dropped from UI-FLOW. The imports list Continue opens YouTube Results for `searched` / `exported` batches (`ImportBatchStatus::hasSearchResults()`).

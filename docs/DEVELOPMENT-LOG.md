@@ -335,3 +335,19 @@
 ### Notes
 - Ran `sail bin pint`, `sail npm run build`. 139 tests pass.
 - Manual test by the user: exact duplicates OK; `Brunello – Ghost Dance (Original Mix)` vs `Brunel – Ghost Dance (Origl Mix)` was not flagged. User chose typo tolerance in the similar warning: one part equal, the other within 2 edits (less than half of the shorter text). `DuplicateDetectionService::similarItems()` now compares pairwise; tests for the typo cases (`typoProvider`). 146 tests pass.
+
+## 2026-10-14 (YouTube search, step A: no-key mode)
+
+### Added
+- `YoutubeSearchUrlService` (`query()`, `url()`) + `YoutubeSearchUrlServiceTest`.
+- `ImportBatchService::generateYoutubeSearchUrls()`.
+- `Imports\Review::searchYoutube()`; the Search YouTube button is active.
+- `Imports\Show` (YouTube Results, `/imports/{batch}`, `whereNumber`): track list with Search YouTube ↗ links (new tab), Back to review, Generate TXT placeholder.
+- `ImportBatchStatus::hasSearchResults()`; imports list Continue opens YouTube Results for searched / exported batches.
+- `YoutubeResultsTest` (7 tests).
+
+### Changed
+- Docs: DECISIONS (ADR), API, ARCHITECTURE, UI-FLOW, PRD, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- Ran `sail bin pint`, `sail npm run build`. 160 tests pass. Manual browser test by the user passed (search links sensible, Continue opens results).

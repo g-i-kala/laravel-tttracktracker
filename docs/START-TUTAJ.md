@@ -23,9 +23,10 @@ Stan na 2026-10-13:
 - **Działa:** Dashboard (placeholder), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, BPM/tonacja/label po kliknięciu w wiersz, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle, także BPM, tonacja (+ Camelot) i label; bez klucza parser linii `Artist - Title`.
 - **Duplikaty** w obrębie importu: modal raz po parsowaniu + banner, oznaczenia podobnych (inna wersja, kolejność artystów, drobna literówka).
-- **Jeszcze nie ma:** wyszukiwania YouTube, eksportu TXT, listy eksportów.
+- **YouTube (krok A, bez klucza API):** Search YouTube na Parse Review → ekran **YouTube Results** (`/imports/{batch}`) z linkami wyszukiwania.
+- **Jeszcze nie ma:** wklejania własnego linku + Include in export (krok B), eksportu TXT, listy eksportów.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 146, wszystkie przechodzą.
+- Testy: 160, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 

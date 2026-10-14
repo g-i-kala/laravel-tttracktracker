@@ -34,7 +34,7 @@
 - [x] ~~Rotate the OpenAI key~~ — not rotating: key is capped at $4 (user decision, 2026-10-13)
 - [ ] (optional) Scrub the key from Claude Code transcripts in `~/.claude/projects/...`
 - [ ] Try a full real Beatport paste in the UI (user)
-- [x] Parse review page (edit + autosave + remove + duplicates; Search YouTube pending)
+- [x] Parse review page (edit + autosave + remove + duplicates + Search YouTube)
 - [x] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
 - [x] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
 - [x] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
@@ -46,11 +46,12 @@
 - [x] Manual test: new Beatport import → metadata line, edit BPM/key/label, "Saved" flash (2026-10-14)
 - [x] Duplicate detection (exact: modal once after parse + banner; similar: warning)
 - [x] Manual test: import with exact and similar duplicates → modal, Remove / Keep all / Review manually, marks, typo warning (2026-10-14)
-- [ ] YouTube search URL service (no-key mode — primary at start)
-- [ ] YouTube URL normalizer
+- [x] YouTube search URL service (no-key mode — primary at start) + Search YouTube + YouTube Results screen (step A, 2026-10-14)
+- [x] Manual test step A: Search YouTube → YouTube Results, search links open in a new tab, imports list Continue (2026-10-14)
+- [ ] Step B: YouTube URL normalizer + inline custom link field per row (autosave, valid link auto-includes) + include-in-export checkbox
 - [ ] YouTube API search + cache + quota fallback
 - [ ] Scoring service (title-based)
-- [ ] Candidate selection / custom link / toggle export
+- [ ] Candidate selection (API mode)
 - [ ] Supersimple TXT export (sync) + versioning
 - [ ] Export history + download
 

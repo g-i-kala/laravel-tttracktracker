@@ -1,6 +1,6 @@
 # API / Routes
 
-> Status: `/` (Dashboard placeholder), `/imports`, `/imports/create`, `/imports/{batch}/review` and `/settings/ai` implemented; other routes planned.
+> Status: `/` (Dashboard placeholder), `/imports`, `/imports/create`, `/imports/{batch}/review`, `/imports/{batch}` (YouTube Results, no-key mode) and `/settings/ai` implemented; other routes planned.
 
 The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTURE.md#frontend)). There is no JSON API: user actions are Livewire component methods, called over Livewire's own endpoint (session + CSRF handled by Livewire).
 
@@ -12,7 +12,7 @@ The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTU
 | GET    | `/imports`                     | `App\Livewire\Imports\Index`              | `imports.index`    |
 | GET    | `/imports/create`              | `App\Livewire\Imports\Create`             | `imports.create`   |
 | GET    | `/imports/{batch}/review`      | `App\Livewire\Imports\Review`             | `imports.review`   |
-| GET    | `/imports/{batch}`             | `App\Livewire\Imports\Show`               | `imports.show`     |
+| GET    | `/imports/{batch}`             | `App\Livewire\Imports\Show` (`whereNumber('batch')`) | `imports.show`     |
 | GET    | `/settings/ai`                 | `App\Livewire\Settings\Ai`                | `settings.ai`      |
 | GET    | `/exports`                     | `App\Livewire\Exports\Index`              | `exports.index`    |
 | GET    | `/exports/{export}/download`   | `ExportController@download`               | `exports.download` |
@@ -34,10 +34,10 @@ These replace the POST/PATCH routes from the original plan.
 | `Settings\Ai`     | `saveApiKey()` / `removeApiKey()` **(implemented)** | —                                     | Store the key encrypted (`AiSettingsService`) / delete it (falls back to `.env`); flash + redirect |
 | `Settings\Ai`     | `testApiKey()` **(implemented)**       | —                                              | `GET https://api.openai.com/v1/models` with the key (no tokens); `valid` / `invalid` / `unsupported` |
 | `Settings\Ai`     | `saveSettings()` **(implemented)**     | —                                              | Validate + save model and monthly budget (empty = no limit)         |
-| `Imports\Review`  | `removeDuplicates()` / `keepAll()`     | —                                              | Exact-duplicate modal choices                                       |
-| `Imports\Review`  | `searchYoutube()`                      | `POST /imports/{batch}/youtube/search` | Start search (no-key: sync URLs; API: `Bus::batch()`), redirect to results |
+| `Imports\Review`  | `removeDuplicates()` / `keepAllDuplicates()` **(implemented)** | —                      | Exact-duplicate modal choices (`ImportBatchService::removeExactDuplicates()` keeps the first of each group) |
+| `Imports\Review`  | `searchYoutube()` **(implemented, no-key mode)** | `POST /imports/{batch}/youtube/search` | Validate all fields, `ImportBatchService::generateYoutubeSearchUrls()` (sync), redirect to results. API mode (`Bus::batch()`) later |
 | `Imports\Show`    | `selectCandidate($itemId, $candidateId)` | `POST /items/{item}/youtube/select`          | Copy candidate to `selected_youtube_*`                              |
-| `Imports\Show`    | `saveCustomLink($itemId)`              | `POST /items/{item}/youtube/custom`            | Validate + normalize the YouTube URL, store as selected             |
+| `Imports\Show`    | `saveCustomLink($itemId)` (step B: inline field per row, autosave) | `POST /items/{item}/youtube/custom` | Validate + normalize the YouTube URL, store as selected, set `include_in_export` |
 | `Imports\Show`    | `toggleExport($itemId)`                | `POST /items/{item}/toggle-export`             | Flip `include_in_export`                                            |
 | `Imports\Show`    | `export()` / `confirmExport($mode)`    | `POST /imports/{batch}/exports/supersimple-txt`| Check missing links / existing export (modals), generate TXT sync   |
 

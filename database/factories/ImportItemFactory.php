@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\ImportItemStatus;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
+use App\Services\ImportParserService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -30,7 +31,7 @@ class ImportItemFactory extends Factory
             'artist' => $artist,
             'title' => $title,
             'genre' => null,
-            'normalized_key' => Str::of("{$artist} {$title}")->lower()->squish()->toString(),
+            'normalized_key' => fn (array $attributes): string => (new ImportParserService)->normalizedKey($attributes['artist'], $attributes['title']),
             'status' => ImportItemStatus::Parsed,
             'include_in_export' => false,
         ];

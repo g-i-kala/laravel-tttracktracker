@@ -1,6 +1,9 @@
 @php
     $inputClasses = 'w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/30 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900';
     $withoutArtist = $this->rows->whereNull('artist')->count();
+    $lineNumbers = $this->rows->pluck('line_number', 'id');
+    $exactDuplicates = $this->exactDuplicates;
+    $similarItems = $this->similarItems;
 @endphp
 
 <div class="flex flex-col gap-6">
@@ -61,6 +64,24 @@
             </div>
         </div>
     @else
+    @if ($notice)
+        <p class="rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">{{ $notice }}</p>
+    @endif
+
+    @if ($exactDuplicates !== [] && ! $duplicatesDismissed)
+        <div class="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 sm:flex-row sm:items-center sm:justify-between dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            <span>{{ count($exactDuplicates) }} exact {{ Str::plural('duplicate', count($exactDuplicates)) }} in this import.</span>
+            <button type="button" x-on:click="$wire.showDuplicateModal = true" class="self-start rounded-md border border-amber-300 px-3 py-1.5 font-medium hover:bg-white sm:self-auto dark:border-amber-800 dark:hover:bg-zinc-900">Review duplicates</button>
+        </div>
+    @endif
+
+    @if ($similarItems !== [])
+        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            <span class="text-amber-600 dark:text-amber-400">{{ count($similarItems) }} {{ Str::plural('track', count($similarItems)) }} look similar</span>
+            (other version or artist order). They are marked below; nothing is removed.
+        </p>
+    @endif
+
     <p class="text-sm text-zinc-600 dark:text-zinc-400">Changes are saved automatically when you leave a field. Click a row to edit BPM, key and label.</p>
 
     <div class="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
@@ -90,7 +111,10 @@
                     class="border-t border-zinc-200 first:border-t-0 dark:border-zinc-800"
                 >
                     <tr
-                        class="cursor-pointer align-top hover:bg-zinc-50 dark:hover:bg-zinc-800/40"
+                        @class([
+                            'cursor-pointer align-top hover:bg-zinc-50 dark:hover:bg-zinc-800/40',
+                            'bg-amber-50/60 dark:bg-amber-950/30' => isset($exactDuplicates[$item->id]),
+                        ])
                         x-on:click="if (! $event.target.closest('input, button, a')) open = ! open"
                     >
                         <td class="px-3 py-2 pt-3.5 text-zinc-500 tabular-nums">{{ $item->line_number }}</td>
@@ -113,6 +137,12 @@
                                 {{ $metadata ? implode(' · ', $metadata) : '+ BPM, key, label' }}
                             </button>
                             <p class="mt-1 truncate font-mono text-xs text-zinc-400 dark:text-zinc-500" title="{{ $item->raw_line }}">{{ $item->raw_line }}</p>
+                            @isset($exactDuplicates[$item->id])
+                                <p class="mt-1"><span class="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">Duplicate of #{{ $lineNumbers[$exactDuplicates[$item->id]] }}</span></p>
+                            @endisset
+                            @isset($similarItems[$item->id])
+                                <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">Similar to {{ collect($similarItems[$item->id])->map(fn ($id) => '#'.$lineNumbers[$id])->implode(', ') }}</p>
+                            @endisset
                         </td>
                         <td class="px-3 py-2">
                             <input type="text" wire:model.blur="items.{{ $item->id }}.genre" aria-label="Genre" class="{{ $inputClasses }}">
@@ -166,4 +196,28 @@
         </table>
     </div>
     @endif
+    <x-modal wire:model="showDuplicateModal" title="Duplicates found">
+        @php
+            $duplicateGroups = collect($exactDuplicates)->groupBy(fn ($originalId) => $originalId, preserveKeys: true);
+        @endphp
+        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            {{ count($exactDuplicates) }} {{ Str::plural('track', count($exactDuplicates)) }} {{ count($exactDuplicates) === 1 ? 'appears' : 'appear' }} more than once (same artist and title).
+            Remove duplicates keeps the first one of each.
+        </p>
+        <ul class="mt-4 flex max-h-72 flex-col gap-2 overflow-y-auto text-sm">
+            @foreach ($duplicateGroups as $originalId => $duplicates)
+                @php $original = $this->rows->firstWhere('id', $originalId); @endphp
+                <li wire:key="duplicate-group-{{ $originalId }}" class="rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+                    <span class="font-medium">#{{ $original->line_number }} {{ $original->artist ? $original->artist.' - ' : '' }}{{ $original->title }}</span>
+                    <span class="text-zinc-500 dark:text-zinc-400">· also {{ $duplicates->keys()->map(fn ($id) => '#'.$lineNumbers[$id])->implode(', ') }}</span>
+                </li>
+            @endforeach
+        </ul>
+
+        <x-slot:footer>
+            <button type="button" x-on:click="$wire.showDuplicateModal = false" class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">Review manually</button>
+            <button type="button" wire:click="keepAllDuplicates" class="rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">Keep all</button>
+            <button type="button" wire:click="removeDuplicates" class="rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white hover:bg-accent-500">Remove duplicates</button>
+        </x-slot:footer>
+    </x-modal>
 </div>

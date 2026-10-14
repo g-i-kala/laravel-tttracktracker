@@ -145,4 +145,47 @@ class ImportParserServiceTest extends TestCase
 
         $this->assertSame($lines[0]['normalized_key'], $lines[1]['normalized_key']);
     }
+
+    /**
+     * @return array<string, array{?string, string, ?string, string}>
+     */
+    public static function similarTracksProvider(): array
+    {
+        return [
+            'other version' => ['Bicep', 'Glue (Extended Mix)', 'Bicep', 'Glue (Hammer Remix)'],
+            'version vs no version' => ['Bicep', 'Glue', 'Bicep', 'Glue [Extended Mix]'],
+            'artists swapped with ampersand and comma' => ['Adam Beyer & Bart Skils', 'Your Mind', 'Bart Skils, Adam Beyer', 'Your Mind'],
+            'artists joined with x and vs' => ['Adam Beyer x Bart Skils', 'Your Mind', 'Bart Skils vs. Adam Beyer', 'Your Mind'],
+            'no artist' => [null, 'Teach Me (Remix)', null, 'Teach Me'],
+        ];
+    }
+
+    #[DataProvider('similarTracksProvider')]
+    public function test_similar_tracks_share_the_similar_key(?string $artist, string $title, ?string $otherArtist, string $otherTitle): void
+    {
+        $this->assertSame($this->parser->similarKey($artist, $title), $this->parser->similarKey($otherArtist, $otherTitle));
+    }
+
+    /**
+     * @return array<string, array{?string, string, ?string, string}>
+     */
+    public static function differentTracksProvider(): array
+    {
+        return [
+            'typo in title' => ['Bicep', 'Glue', 'Bicep', 'Glu'],
+            'other artist' => ['Bicep', 'Glue', 'Bonobo', 'Glue'],
+            'extra artist' => ['Adam Beyer & Bart Skils', 'Your Mind', 'Adam Beyer', 'Your Mind'],
+        ];
+    }
+
+    #[DataProvider('differentTracksProvider')]
+    public function test_different_tracks_have_different_similar_keys(?string $artist, string $title, ?string $otherArtist, string $otherTitle): void
+    {
+        $this->assertNotSame($this->parser->similarKey($artist, $title), $this->parser->similarKey($otherArtist, $otherTitle));
+    }
+
+    public function test_similar_key_falls_back_to_the_full_title_when_it_is_only_brackets(): void
+    {
+        $this->assertSame('bicep|intro', $this->parser->similarKey('Bicep', '(Intro)'));
+    }
 }

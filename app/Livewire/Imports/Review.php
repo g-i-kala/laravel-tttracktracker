@@ -6,6 +6,7 @@ use App\Enums\ImportBatchStatus;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
 use App\Services\AiTrackListParserService;
+use App\Services\DuplicateDetectionService;
 use App\Services\ImportBatchService;
 use App\Services\ImportItemService;
 use Illuminate\Contracts\View\View;
@@ -17,7 +18,9 @@ use Livewire\Component;
 /**
  * Parse Review: edit artist/title/genre of each parsed track, plus BPM, key and
  * label in a panel opened by clicking the row (all autosaved on blur), and
- * remove junk lines before searching YouTube. Save & close marks the batch
+ * remove junk lines before searching YouTube. Exact duplicates open a modal
+ * once right after parsing (later: banner); similar tracks are marked in the
+ * rows. Save & close marks the batch
  * as reviewed and returns to the imports list. While AI parsing runs in the
  * background, the page polls until the items are ready.
  */
@@ -33,11 +36,24 @@ class Review extends Component
      */
     public array $items = [];
 
+    public bool $showDuplicateModal = false;
+
+    /**
+     * Set by "Keep all": hides the duplicates banner until the page is reloaded.
+     */
+    public bool $duplicatesDismissed = false;
+
+    public ?string $notice = null;
+
     public function mount(ImportBatch $batch): void
     {
         $this->batch = $batch;
 
         $this->loadItems();
+
+        if (session('check_duplicates')) {
+            $this->openDuplicateModalIfNeeded();
+        }
     }
 
     /**
@@ -48,8 +64,9 @@ class Review extends Component
         $this->batch->refresh();
 
         if ($this->batch->status !== ImportBatchStatus::Parsing) {
-            unset($this->rows);
+            $this->refreshRows();
             $this->loadItems();
+            $this->openDuplicateModalIfNeeded();
         }
     }
 
@@ -69,8 +86,42 @@ class Review extends Component
         $importBatches->parseWithLineParser($this->batch);
 
         $this->batch->refresh();
-        unset($this->rows);
+        $this->refreshRows();
         $this->loadItems();
+        $this->openDuplicateModalIfNeeded();
+    }
+
+    /**
+     * "Remove duplicates" in the modal: delete exact duplicates, keep the first of each group.
+     */
+    public function removeDuplicates(ImportBatchService $importBatches): void
+    {
+        $removed = $importBatches->removeExactDuplicates($this->batch);
+
+        $this->showDuplicateModal = false;
+        $this->notice = "Removed {$removed} ".str('duplicate')->plural($removed).'.';
+        $this->refreshRows();
+        $this->loadItems();
+    }
+
+    /**
+     * "Keep all" in the modal: keep every track and hide the banner for now.
+     */
+    public function keepAllDuplicates(): void
+    {
+        $this->showDuplicateModal = false;
+        $this->duplicatesDismissed = true;
+    }
+
+    private function openDuplicateModalIfNeeded(): void
+    {
+        $this->showDuplicateModal = $this->batch->status !== ImportBatchStatus::Parsing
+            && $this->exactDuplicates !== [];
+    }
+
+    private function refreshRows(): void
+    {
+        unset($this->rows, $this->exactDuplicates, $this->similarItems);
     }
 
     private function loadItems(): void
@@ -130,7 +181,7 @@ class Review extends Component
         app(ImportItemService::class)->updateTrackDetails($item, $this->items[$itemId]);
 
         $this->dispatch('item-saved', id: $itemId);
-        unset($this->rows);
+        $this->refreshRows();
     }
 
     /**
@@ -152,7 +203,8 @@ class Review extends Component
     {
         $this->batch->items()->findOrFail($itemId)->delete();
 
-        unset($this->items[$itemId], $this->rows);
+        unset($this->items[$itemId]);
+        $this->refreshRows();
     }
 
     /**
@@ -162,6 +214,24 @@ class Review extends Component
     public function rows(): Collection
     {
         return $this->batch->items()->orderBy('line_number')->get();
+    }
+
+    /**
+     * @return array<int, int> duplicate item id => original item id
+     */
+    #[Computed]
+    public function exactDuplicates(): array
+    {
+        return app(DuplicateDetectionService::class)->exactDuplicates($this->rows);
+    }
+
+    /**
+     * @return array<int, list<int>> item id => ids of similar items
+     */
+    #[Computed]
+    public function similarItems(): array
+    {
+        return app(DuplicateDetectionService::class)->similarItems($this->rows);
     }
 
     public function render(): View

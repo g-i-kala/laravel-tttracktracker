@@ -57,6 +57,7 @@ class CreateImportTest extends TestCase
         $this->assertTrue($items->every(fn ($item) => $item->status === ImportItemStatus::Parsed));
 
         $this->assertSame('Imported 2 tracks. Review them before searching YouTube.', session('status'));
+        $this->assertTrue(session('check_duplicates'));
     }
 
     public function test_optional_fields_can_be_left_empty(): void

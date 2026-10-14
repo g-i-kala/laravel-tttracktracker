@@ -156,7 +156,7 @@ Statuses describe **pipeline stage only**, implemented as PHP backed enums in `a
 
 `ImportBatchStatus`: `Draft` (`draft`), `Parsing` (`parsing`, AI parsing queued/running), `Parsed`, `Reviewed` (`reviewed`, Save & close on Parse Review), `Searching`, `Searched`, `Exported`, `Failed` (also: AI parsing failed).
 
-`ImportItemStatus`: `Parsed` (`parsed`), `Duplicate`, `SearchPending` (`search_pending`), `Searched`, `Exported`, `Failed`.
+`ImportItemStatus`: `Parsed` (`parsed`), `Duplicate` (not used yet: duplicates are computed, see DECISIONS 2026-10-14), `SearchPending` (`search_pending`), `Searched`, `Exported`, `Failed`.
 
 `AiUsageStatus`: `Succeeded` (`succeeded`), `Failed` (`failed`).
 
@@ -169,7 +169,8 @@ Derived (not stored):
 | has link           | `selected_youtube_url` is not null                |
 | no link            | `selected_youtube_url` is null after search       |
 | excluded           | `include_in_export = false`                       |
-| possible duplicate | computed by `DuplicateDetectionService` (warning) |
+| exact duplicate    | same `normalized_key` as an earlier item in the batch, computed by `DuplicateDetectionService` |
+| possible duplicate | same similar key (`ImportParserService::similarKey()`), computed by `DuplicateDetectionService` (warning) |
 | batch has duplicates / ready to export / missing links | computed from items |
 
 ## Indexes

@@ -130,6 +130,7 @@ class Create extends Component
         } else {
             $batch = $importBatches->createFromRawInput($attributes);
             session()->flash('status', "Imported {$batch->items()->count()} tracks. Review them before searching YouTube.");
+            session()->flash('check_duplicates', true);
         }
 
         $this->redirectRoute('imports.review', ['batch' => $batch], navigate: true);

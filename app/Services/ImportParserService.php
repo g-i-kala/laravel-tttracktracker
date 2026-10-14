@@ -5,8 +5,8 @@ namespace App\Services;
 use Illuminate\Support\Str;
 
 /**
- * Parses a pasted track list into `Artist - Title` lines and builds the
- * normalized key used for exact duplicate detection. Pure: no database access.
+ * Parses a pasted track list into `Artist - Title` lines and builds the keys
+ * used for exact and similar duplicate detection. Pure: no database access.
  */
 class ImportParserService
 {
@@ -34,6 +34,13 @@ class ImportParserService
     private const string FEATURING_PATTERN = '/[(\[]\s*(?:feat\.?|ft\.?|featuring)\s[^)\]]*[)\]]|\b(?:feat\.?|ft\.?|featuring)\s.*?(?=[(\[]|$)/u';
 
     private const string ORIGINAL_MIX_PATTERN = '/[(\[]\s*original mix\s*[)\]]/u';
+
+    /**
+     * Separator between artists for the similar key: `&`, `,`, `and`, `x`, `vs`.
+     */
+    private const string ARTIST_SEPARATOR_PATTERN = '/\s*(?:&|,|\band\b|\bx\b|\bvs\b\.?)\s*/iu';
+
+    private const string BRACKETED_PATTERN = '/[(\[][^)\]]*[)\]]/u';
 
     /**
      * Parse raw textarea input into track lines. Empty lines are skipped;
@@ -75,6 +82,24 @@ class ImportParserService
     public function normalizedKey(?string $artist, string $title): string
     {
         return $this->normalizeKeyPart($artist ?? '').'|'.$this->normalizeKeyPart($title);
+    }
+
+    /**
+     * Build the key for similar duplicate detection: like the normalized key, but
+     * the title without any bracketed part (version, remix) and the artists in
+     * alphabetical order, so other versions and swapped artists match.
+     */
+    public function similarKey(?string $artist, string $title): string
+    {
+        $artists = collect(preg_split(self::ARTIST_SEPARATOR_PATTERN, $artist ?? ''))
+            ->map(fn (string $name): string => $this->normalizeKeyPart($name))
+            ->filter()
+            ->sort()
+            ->implode(' ');
+
+        $baseTitle = $this->normalizeKeyPart(preg_replace(self::BRACKETED_PATTERN, ' ', $title));
+
+        return $artists.'|'.($baseTitle !== '' ? $baseTitle : $this->normalizeKeyPart($title));
     }
 
     private function cleanLine(string $rawLine): string

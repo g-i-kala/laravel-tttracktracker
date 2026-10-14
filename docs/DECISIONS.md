@@ -360,3 +360,17 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** Store copy-pastes (Beatport) contain DJ-relevant data, and the user wants it kept. It is also useful for sorting/filtering and the later Rekordbox export.
 
 **Consequences:** Revisit the field set when playlist imports (Rekordbox, Traktor) arrive: they carry more data (e.g. decimal BPM, rating, comments), and the answer may be more columns or a jsonb `metadata` column. One migration, a key → Camelot mapper with unit tests, prompt and schema change (slightly more output tokens), and the AI tests' fake responses get the new fields.
+
+## 2026-10-14 — Duplicates within a batch
+
+**Decision:**
+- **Exact duplicate:** same `normalized_key` (unchanged rules). **Similar:** same similar key but a different `normalized_key`. The similar key is the title without any bracketed part (version, remix) plus the artists split on `&`, `,`, `and`, `x`, `vs` and sorted. So other versions and swapped artists match.
+- **Typos (added 2026-10-14 after the manual test):** also similar when one part (sorted artists or base title) is equal and the other differs by at most 2 character edits (Levenshtein) that change less than half of the shorter text. Catches `Brunello` / `Brunel` and `Glue` / `Glu`; accepted false alarm: `Teach Me` / `Reach Me` (it is only a warning). Typos in both parts are not matched.
+- Both are **computed on the fly** (`DuplicateDetectionService`, from the batch items), not stored. `ImportItemStatus::Duplicate` stays unused for now.
+- The exact-duplicate **modal opens once right after parsing**: after a line-parser import (flash `check_duplicates`), when AI parsing finishes (`checkParsing`) or after "Use simple parser". Later visits show an amber banner with **Review duplicates**. No migration.
+- **Remove duplicates** keeps the first item of each group (lowest line number) and deletes the rest, without copying metadata from the removed copies (user's choice). **Keep all** closes the modal and hides the banner until reload. **Review manually** closes the modal; duplicate rows stay highlighted ("Duplicate of #N").
+- Similar tracks: non-blocking note above the table plus "Similar to #N" in the row.
+
+**Reason:** User's answers (2026-10-14). Computing on the fly keeps the marks correct after every edit or removal without syncing a status.
+
+**Consequences:** Cross-batch warnings (after MVP) can reuse the same keys; if they need an index, the similar key can become a stored column then.

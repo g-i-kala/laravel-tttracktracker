@@ -32,7 +32,8 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 ## Important test cases
 
 - Import parser: `Artist - Title`, remix kept in title, extra spaces, en/em dashes, lines without separator, empty lines.
-- Duplicate detection: exact match (case/whitespace-insensitive), similar match.
+- Duplicate detection: exact match (case/whitespace-insensitive), similar match (other version, swapped artists, small typo in one part; typos in both parts or short words differing by half are not similar). Unit: `DuplicateDetectionServiceTest`, `ImportParserServiceTest` (similar key). Feature: `ParseReviewDuplicatesTest` (modal once after parse, banner, remove/keep all, similar marks, marks after edit).
+- `ImportItemFactory` computes `normalized_key` from the final artist/title with `ImportParserService`, so overriding artist/title in a test gives a realistic key.
 - YouTube URL normalizer: `watch?v=`, `youtu.be/`, `shorts/`, extra query params, non-YouTube rejected.
 - YouTube search URL generator: proper encoding.
 - Supersimple TXT export: only included items with URLs; no empty lines/metadata.

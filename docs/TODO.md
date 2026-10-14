@@ -34,7 +34,7 @@
 - [x] ~~Rotate the OpenAI key~~ — not rotating: key is capped at $4 (user decision, 2026-10-13)
 - [ ] (optional) Scrub the key from Claude Code transcripts in `~/.claude/projects/...`
 - [ ] Try a full real Beatport paste in the UI (user)
-- [x] Parse review page (edit + autosave + remove; duplicates and Search YouTube pending)
+- [x] Parse review page (edit + autosave + remove + duplicates; Search YouTube pending)
 - [x] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
 - [x] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
 - [x] Settings → AI (`/settings/ai`): usage stats, encrypted API key, model, monthly budget with fallback to line parser
@@ -44,7 +44,8 @@
   - [x] Parse Review UI (metadata line + panel on row click)
 - [x] "Saved" did not flash after editing a field on Parse Review: replaced with an `item-saved` event + Alpine (2026-10-14, confirmed manually)
 - [x] Manual test: new Beatport import → metadata line, edit BPM/key/label, "Saved" flash (2026-10-14)
-- [ ] Duplicate detection
+- [x] Duplicate detection (exact: modal once after parse + banner; similar: warning)
+- [x] Manual test: import with exact and similar duplicates → modal, Remove / Keep all / Review manually, marks, typo warning (2026-10-14)
 - [ ] YouTube search URL service (no-key mode — primary at start)
 - [ ] YouTube URL normalizer
 - [ ] YouTube API search + cache + quota fallback

@@ -39,7 +39,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Parse Review (`/imports/{batch}/review`) — `Imports\Review`
 
-> Status: editing + removing implemented (2026-10-13), BPM/key/label editing (2026-10-14). Duplicates and Search YouTube pending.
+> Status: editing + removing implemented (2026-10-13), BPM/key/label editing (2026-10-14). Duplicates (2026-10-14). Search YouTube pending.
 
 - Always shown after parse (New Import redirects here).
 - While AI parsing runs: spinner panel "Parsing your track list with AI…" (polls every 2 s), then the table appears.
@@ -51,8 +51,13 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - **Autosave on blur**: each field saves when it loses focus; "Saved" flashes next to the row for 1.5 s (Livewire event `item-saved` → Alpine); validation errors inline (title required, max 255).
 - Saving recomputes `normalized_key`; filling in an artist clears "Artist not detected", clearing it sets the notice again. Rows without artist have an amber border.
 - **Remove** per row with a browser confirm ("Remove this track?").
-- Exact duplicates → **Duplicate modal**: Remove duplicates / Keep all / Review manually.
-- Similar duplicates → inline warning, non-blocking.
+- Exact duplicates (same artist + title after normalization) → **Duplicate modal** "Duplicates found", opened **once right after parsing** (line parser, AI parsing finished, or "Use simple parser"). Lists each group: `#1 Artist - Title · also #3, #7`. Buttons:
+  - **Remove duplicates**: keeps the first of each group, deletes the rest, notice "Removed N duplicates."
+  - **Keep all**: closes the modal and hides the banner until reload.
+  - **Review manually**: closes the modal.
+- Later visits: amber banner "N exact duplicates in this import." with **Review duplicates** (opens the modal). Duplicate rows have an amber background and a "Duplicate of #N" badge under the title.
+- Similar tracks (other version, artists in another order, small typo in artist or title) → note above the table "N tracks look similar … nothing is removed" and "Similar to #N" under the title. Non-blocking.
+- Marks update after every edit or removal.
 - **Save & close** button (hidden while parsing / failed): validates all fields, marks the batch `reviewed` (a later status is kept), flash "Saved \"name\".", redirects to the imports list.
 - **Search YouTube** button → `searchYoutube()` → redirect to YouTube Results. *Now: disabled, "Coming soon".*
 
@@ -92,7 +97,7 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | Modal                | Screen          | Trigger                          |
 | -------------------- | --------------- | -------------------------------- |
 | How it works         | Dashboard       | "How it works" button          |
-| Duplicate modal      | Parse Review    | Exact duplicates after parse     |
+| Duplicate modal      | Parse Review    | Exact duplicates right after parse; "Review duplicates" in the banner |
 | Custom link modal    | YouTube Results | Add custom link                  |
 | Missing links modal  | YouTube Results | Export with missing links        |
 | Export version modal | YouTube Results | Export already exists for batch  |

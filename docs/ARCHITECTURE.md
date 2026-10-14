@@ -47,7 +47,7 @@ Rules: small components, business logic in services (components only validate in
 Textarea input
   → ImportBatch (raw_input)
   → ImportParserService → ImportItem[] (artist, title, genre, normalized_key)
-  → DuplicateDetectionService → status duplicate / possible-duplicate warning
+  → DuplicateDetectionService (computed on render, nothing stored) → duplicate modal / banner / row marks
   → Imports\Review::searchYoutube()
        No-key mode (default at start): YoutubeSearchUrlService → youtube_search_url (sync, no queue)
        API mode: Bus::batch([SearchYoutubeForImportItemJob, ...])
@@ -71,6 +71,10 @@ Textarea input
 
 `normalizedKey(?artist, title)` (public; recompute after edits in Parse Review) → `"{artist}|{title}"`, each part: ASCII transliteration, lowercase, featured credits removed (`feat.`, `ft.`, `featuring`, bracketed or trailing up to the next bracket), `(Original Mix)` / `[Original Mix]` removed, `&` → `and`, other punctuation → space, whitespace collapsed. Remixes and extended mixes stay distinct; looser matches are the job of similar-duplicate detection.
 
+`similarKey(?artist, title)` (public) → like `normalizedKey`, but the title without any bracketed part (falls back to the full title if nothing is left) and the artists split on `&` / `,` / `and` / `x` / `vs`, normalized and sorted. Used for similar-duplicate warnings.
+
+`App\Services\DuplicateDetectionService` (pure, works on a collection of items): `exactDuplicates()` → `[duplicate id => first item id]` grouped by `normalized_key` in line order; `similarItems()` → `[item id => [similar item ids]]` for items with a different normalized key whose similar-key parts match: one part (artists / base title) equal and the other equal or within 2 Levenshtein edits (less than half of the shorter text). Pairwise, O(n²); fine for batch sizes in the hundreds. `ImportBatchService::removeExactDuplicates()` deletes the duplicates and keeps the first of each group.
+
 `App\Services\MusicalKeyService::toCamelot(?key)` (pure): store key (`E Minor`, `F♯ Major`, `Bbm`, `C# min`, note only = major) or Camelot (`09a`) → Camelot code (`9A`), null when unrecognized. Enharmonic spellings map to the same code.
 
 ## AI parsing (implemented)
@@ -82,6 +86,7 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - Config `config('services.track_list_ai.*')`: `provider` (`AI_PARSER_PROVIDER`, default `openai`), `model` (`AI_PARSER_MODEL`, project default `gpt-4.1-mini`; empty = provider default, for OpenAI in laravel/ai 1.2: `gpt-6.1-sol`), `timeout` (`AI_PARSER_TIMEOUT`, 180 s). Provider keys live in `config/ai.php` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …).
 - Flow: `Imports\Create::save()` → `ImportBatchService::createForAiParsing()` (batch `parsing`, no items) → `ParseImportBatchWithAiJob` (queue, `tries = 1`, `timeout = 240`) → `storeParsedLines()` (items, item genre = AI genre ?? batch default genre, batch `parsed`). On failure `failed()` logs and sets the batch `failed`.
 - Parse Review autosave: `updatedItems()` → `ImportItemService::updateTrackDetails()` (artist, title, genre, bpm, musical_key, label; recomputes `normalized_key` and `camelot_key` via `MusicalKeyService`) → dispatches `item-saved` (Alpine flashes "Saved" in the row).
+- Parse Review duplicates: computed properties `exactDuplicates` / `similarItems` (reset with `rows` after every edit/removal). `showDuplicateModal` opens once after parsing (session flash `check_duplicates` from `Imports\Create`, `checkParsing()`, `useLineParser()`); `removeDuplicates()`, `keepAllDuplicates()`; "Review manually" only closes the modal (Alpine).
 - Parse Review **Save & close** (`saveAndClose()`) → `ImportBatchService::markReviewed()` (`parsed` → `reviewed`) → redirect to `Imports\Index` (`/imports`, list with `withCount('items')`, paginated).
 - Parse Review polls (`wire:poll.2s="checkParsing"`) while `parsing`; on `failed` offers **Try again with AI** (`retryAiParsing`) and **Use simple parser** (`useLineParser`).
 - **Usage logging:** listener `App\Listeners\RecordAiUsage` (auto-discovered, singleton) handles SDK events `PromptingAgent` (start time), `AgentPrompted` (tokens) and `AgentFailed` → `AiUsageService::record()` → `ai_usage_logs`. Works for any future agent. The job runs the parse inside `Context::scope([import_batch_id => …])`, so the log is linked to the batch. Cost = (uncached input × input price + cached input × cached price + output × output price) / 1M, prices in `config('services.ai_pricing.{provider}')[$model]` (model names contain dots, so they are array keys, not part of the config path); unknown model → cost null.

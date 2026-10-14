@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ImportBatchService
 {
-    public function __construct(private ImportParserService $parser) {}
+    public function __construct(private ImportParserService $parser, private DuplicateDetectionService $duplicates) {}
 
     /**
      * Create a batch from raw input, parse it with the line parser and store one item per detected line.
@@ -93,6 +93,22 @@ class ImportBatchService
         if ($batch->status === ImportBatchStatus::Parsed) {
             $batch->update(['status' => ImportBatchStatus::Reviewed]);
         }
+    }
+
+    /**
+     * Delete exact duplicates, keeping the first item (lowest line number) of each group.
+     *
+     * @return int number of deleted items
+     */
+    public function removeExactDuplicates(ImportBatch $batch): int
+    {
+        $duplicateIds = array_keys($this->duplicates->exactDuplicates($batch->items()->get()));
+
+        if ($duplicateIds === []) {
+            return 0;
+        }
+
+        return $batch->items()->whereKey($duplicateIds)->delete();
     }
 
     /**

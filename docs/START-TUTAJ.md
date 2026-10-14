@@ -22,9 +22,10 @@ Stan na 2026-10-13:
 - Model danych: tabele importu/YouTube/eksportu + `ai_usage_logs`, `settings`; enumy statusów, modele, factories. `import_items` ma też `bpm`, `musical_key`, `camelot_key`, `label`.
 - **Działa:** Dashboard (placeholder), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, BPM/tonacja/label po kliknięciu w wiersz, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle, także BPM, tonacja (+ Camelot) i label; bez klucza parser linii `Artist - Title`.
-- **Jeszcze nie ma:** duplikatów, wyszukiwania YouTube, eksportu TXT, listy eksportów.
+- **Duplikaty** w obrębie importu: modal raz po parsowaniu + banner, oznaczenia podobnych (inna wersja, kolejność artystów, drobna literówka).
+- **Jeszcze nie ma:** wyszukiwania YouTube, eksportu TXT, listy eksportów.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 119, wszystkie przechodzą.
+- Testy: 146, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 

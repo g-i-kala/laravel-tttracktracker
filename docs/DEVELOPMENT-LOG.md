@@ -317,3 +317,21 @@
 
 ### Notes
 - Ran `sail bin pint`, `sail npm run build`. 119 tests pass. Manual browser test by the user passed (metadata line, panel, "Saved" flash).
+
+## 2026-10-14 (Duplicates)
+
+### Added
+- `DuplicateDetectionService`: `exactDuplicates()` (same `normalized_key`, first item in line order is the original) and `similarItems()` (same similar key, different normalized key).
+- `ImportParserService::similarKey()`: title without bracketed parts + sorted artists (split on `&`, `,`, `and`, `x`, `vs`).
+- `ImportBatchService::removeExactDuplicates()`.
+- Parse Review: duplicate modal (opens once after parsing), banner "N exact duplicates" with **Review duplicates**, "Duplicate of #N" badge + amber row, similar note + "Similar to #N".
+- Tests: `DuplicateDetectionServiceTest`, similar-key cases in `ImportParserServiceTest`, `ParseReviewDuplicatesTest` (8), flash assertion in `CreateImportTest`.
+
+### Changed
+- `Imports\Create` flashes `check_duplicates` after a line-parser import.
+- `ImportItemFactory`: `normalized_key` computed from the final artist/title with `ImportParserService` (it was computed from the Faker values before overrides).
+- Docs: DECISIONS (ADR), DATABASE, ARCHITECTURE, UI-FLOW, PRD, TESTING, TODO.
+
+### Notes
+- Ran `sail bin pint`, `sail npm run build`. 139 tests pass.
+- Manual test by the user: exact duplicates OK; `Brunello – Ghost Dance (Original Mix)` vs `Brunel – Ghost Dance (Origl Mix)` was not flagged. User chose typo tolerance in the similar warning: one part equal, the other within 2 edits (less than half of the shorter text). `DuplicateDetectionService::similarItems()` now compares pairwise; tests for the typo cases (`typoProvider`). 146 tests pass.

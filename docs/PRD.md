@@ -49,8 +49,8 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - Model (default `gpt-4.1-mini`) and optional monthly budget in USD: warning at 80%, at 100% new imports use the line parser until next month.
 
 ### Duplicates
-- Exact duplicates → modal: Remove duplicates / Keep all / Review manually.
-- Similar duplicates → non-blocking warning.
+- Exact duplicates (same artist + title after normalization) → modal right after parsing: Remove duplicates (keeps the first) / Keep all / Review manually. Later: banner + row badges.
+- Similar duplicates (other version, e.g. Extended Mix vs Remix, or artists in another order, or a small typo in either the artist or the title, e.g. Brunello / Brunel) → non-blocking warning.
 - Detection uses a stored `normalized_key`. Cross-batch warnings ("already exported in batch X") come after MVP.
 
 ### Organization
@@ -84,8 +84,8 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - [ ] System parses `Artist - Title`.
 - [ ] Parse review is always shown.
 - [ ] User can edit artist/title/genre.
-- [ ] Exact duplicates show modal.
-- [ ] Similar duplicates show warning.
+- [x] Exact duplicates show modal.
+- [x] Similar duplicates show warning.
 - [ ] API mode fetches 3 YouTube candidates.
 - [ ] No-key mode generates YouTube search URL.
 - [ ] Links open in new tab.

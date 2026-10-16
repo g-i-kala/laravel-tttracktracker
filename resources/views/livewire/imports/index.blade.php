@@ -22,7 +22,7 @@
                         <th class="px-3 py-2">Created</th>
                         <th class="px-3 py-2 text-right">Tracks</th>
                         <th class="px-3 py-2">Status</th>
-                        <th class="w-28 px-3 py-2"><span class="sr-only">Actions</span></th>
+                        <th class="w-48 px-3 py-2"><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -41,8 +41,11 @@
                                     'bg-accent-100 text-accent-700 dark:bg-accent-950 dark:text-accent-300' => ! in_array($batch->status, [\App\Enums\ImportBatchStatus::Failed, \App\Enums\ImportBatchStatus::Parsed], true),
                                 ])>{{ $batch->status->label() }}</span>
                             </td>
-                            <td class="px-3 py-2 text-right">
-                                <a href="{{ route('imports.review', $batch) }}" wire:navigate class="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Continue</a>
+                            <td class="px-3 py-2 text-right whitespace-nowrap">
+                                <a href="{{ route('imports.review', $batch) }}" wire:navigate class="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Review</a>
+                                @if ($batch->status->hasSearchResults())
+                                    <a href="{{ route('imports.show', $batch) }}" wire:navigate class="ml-3 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">YouTube links</a>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

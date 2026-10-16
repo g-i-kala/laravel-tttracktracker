@@ -48,7 +48,8 @@
 - [x] Manual test: import with exact and similar duplicates → modal, Remove / Keep all / Review manually, marks, typo warning (2026-10-14)
 - [x] YouTube search URL service (no-key mode — primary at start) + Search YouTube + YouTube Results screen (step A, 2026-10-14)
 - [x] Manual test step A: Search YouTube → YouTube Results, search links open in a new tab, imports list Continue (2026-10-14)
-- [ ] Step B: YouTube URL normalizer + inline custom link field per row (autosave, valid link auto-includes) + include-in-export checkbox
+- [x] Step B: YouTube URL normalizer + inline custom link field per row (autosave, valid link auto-includes) + include-in-export checkbox (2026-10-14)
+- [x] Manual test step B: paste links, Export checkbox, direct entry from imports list and review (2026-10-16)
 - [ ] YouTube API search + cache + quota fallback
 - [ ] Scoring service (title-based)
 - [ ] Candidate selection (API mode)

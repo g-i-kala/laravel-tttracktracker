@@ -79,6 +79,8 @@ Textarea input
 
 `App\Services\YoutubeSearchUrlService` (pure): `query(?artist, title)` → `"{artist} {title}"` with `(Original Mix)` / `[Original Mix]` removed (other versions, remixes, feat. kept; no artist → title only); `url()` → `https://www.youtube.com/results?search_query=…` (`http_build_query`, spaces as `+`). `generateYoutubeSearchUrls()` regenerates the URLs on every run (after edits in review); exported item/batch statuses are kept. `Imports\Show` builds a URL on the fly for an item without one.
 
+`App\Services\YoutubeUrlNormalizer` (pure): `videoId(url)` / `normalize(url)` → `https://www.youtube.com/watch?v=ID` for `watch?v=` (any param order), `youtu.be/`, `shorts/`, `embed/`, `live/` on `youtube.com` / `www.` / `m.` / `music.` (scheme optional, `http`/`https` only); ID must be 11 chars `[A-Za-z0-9_-]`; anything else → null. `ImportItemService::selectCustomYoutubeLink()` stores URL + video id, clears title/channel/score (API-only) and sets `include_in_export`; `clearYoutubeLink()` clears all and excludes; `toggleExport()` only flips items with a link.
+
 `App\Services\MusicalKeyService::toCamelot(?key)` (pure): store key (`E Minor`, `F♯ Major`, `Bbm`, `C# min`, note only = major) or Camelot (`09a`) → Camelot code (`9A`), null when unrecognized. Enharmonic spellings map to the same code.
 
 ## AI parsing (implemented)

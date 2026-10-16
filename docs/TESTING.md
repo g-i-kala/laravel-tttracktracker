@@ -34,8 +34,8 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - Import parser: `Artist - Title`, remix kept in title, extra spaces, en/em dashes, lines without separator, empty lines.
 - Duplicate detection: exact match (case/whitespace-insensitive), similar match (other version, swapped artists, small typo in one part; typos in both parts or short words differing by half are not similar). Unit: `DuplicateDetectionServiceTest`, `ImportParserServiceTest` (similar key). Feature: `ParseReviewDuplicatesTest` (modal once after parse, banner, remove/keep all, similar marks, marks after edit).
 - `ImportItemFactory` computes `normalized_key` from the final artist/title with `ImportParserService`, so overriding artist/title in a test gives a realistic key.
-- YouTube URL normalizer: `watch?v=`, `youtu.be/`, `shorts/`, extra query params, non-YouTube rejected.
-- YouTube search URL generator: proper encoding, `(Original Mix)` removed, versions/remixes/feat. kept (`YoutubeSearchUrlServiceTest`). Feature: `YoutubeResultsTest` (Search YouTube stores URLs + statuses, blocked by invalid field, re-run keeps exported, results page links in new tab, numeric route, imports list Continue).
+- YouTube URL normalizer: `watch?v=`, `youtu.be/`, `shorts/`, `embed/`, `live/`, m/music hosts, no scheme, extra query params; rejected: other sites, look-alike hosts, search/channel/playlist pages, bad IDs, `javascript:` (`YoutubeUrlNormalizerTest`). Feature (`YoutubeResultsTest`): paste → normalized + included, custom link clears API title/channel/score, invalid keeps the saved link, empty clears + excludes, toggle only with a link, foreign items 404.
+- YouTube search URL generator: proper encoding, `(Original Mix)` removed, versions/remixes/feat. kept (`YoutubeSearchUrlServiceTest`). Feature: `YoutubeResultsTest` (Search YouTube stores URLs + statuses, blocked by invalid field, re-run keeps exported, results page links in new tab, numeric route, imports list Review / YouTube links, Review → YouTube links).
 - Supersimple TXT export: only included items with URLs; no empty lines/metadata.
 - Export filename versioning: base, `_v2`, `_v3`, overwrite latest.
 - YouTube scoring: penalties (live set, podcast, lyrics, sped up, slowed, cover, reaction, tutorial), thresholds 80/60.
@@ -58,7 +58,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - [ ] Exact duplicate modal appears; each option works.
 - [ ] Similar duplicate warning appears, does not block.
 - [ ] No-key mode: search URL opens in new tab.
-- [ ] Add custom link (all 3 formats); invalid link rejected.
+- [ ] Paste a link in the row (all 3 formats) → saved, normalized, Include ticked; invalid link rejected; empty field removes the link.
 - [ ] API mode: 3 candidates, best preselected, include rules by score.
 - [ ] Toggle include in export.
 - [ ] Export with missing links → warning modal.

@@ -108,14 +108,137 @@ class YoutubeResultsTest extends TestCase
         $this->get('/imports/abc')->assertNotFound();
     }
 
-    public function test_imports_list_continues_on_results_once_searched(): void
+    public function test_imports_list_links_to_review_and_to_youtube_links_once_searched(): void
     {
-        $searched = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
-        $reviewed = ImportBatch::factory()->create(['status' => ImportBatchStatus::Reviewed]);
+        $searched = ImportBatch::factory()->create(['name' => 'Searched batch', 'status' => ImportBatchStatus::Searched]);
+        $reviewed = ImportBatch::factory()->create(['name' => 'Reviewed batch', 'status' => ImportBatchStatus::Reviewed]);
 
         $this->get(route('imports.index'))
             ->assertOk()
-            ->assertSee('href="'.route('imports.show', $searched).'"', false)
-            ->assertSee('href="'.route('imports.review', $reviewed).'"', false);
+            ->assertSeeHtml('<a href="'.route('imports.review', $searched).'" wire:navigate class="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Review</a>')
+            ->assertSeeHtml('<a href="'.route('imports.show', $searched).'" wire:navigate class="ml-3 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">YouTube links</a>')
+            ->assertSeeHtml('<a href="'.route('imports.review', $reviewed).'" wire:navigate class="text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Review</a>')
+            ->assertDontSeeHtml('href="'.route('imports.show', $reviewed).'"');
+    }
+
+    public function test_review_links_to_youtube_links_without_searching_again_once_searched(): void
+    {
+        $searched = ImportItem::factory()->for(ImportBatch::factory()->state(['status' => ImportBatchStatus::Searched]))->create()->importBatch;
+        $parsed = ImportItem::factory()->for(ImportBatch::factory()->parsed())->create()->importBatch;
+
+        Livewire::test(Review::class, ['batch' => $searched])
+            ->assertSeeHtml('href="'.route('imports.show', $searched).'"')
+            ->assertSee('YouTube links');
+
+        Livewire::test(Review::class, ['batch' => $parsed])
+            ->assertDontSeeHtml('href="'.route('imports.show', $parsed).'"');
+    }
+
+    public function test_pasting_a_link_normalizes_it_selects_it_and_includes_the_item(): void
+    {
+        $item = ImportItem::factory()->for(ImportBatch::factory()->state(['status' => ImportBatchStatus::Searched]))->create();
+
+        Livewire::test(Show::class, ['batch' => $item->importBatch])
+            ->set("links.{$item->id}", 'https://youtu.be/dQw4w9WgXcQ?si=abc')
+            ->assertHasNoErrors()
+            ->assertSet("links.{$item->id}", 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+            ->assertDispatched('item-saved', id: $item->id)
+            ->assertSee('1 with a link · 1 in export');
+
+        $item->refresh();
+
+        $this->assertSame('https://www.youtube.com/watch?v=dQw4w9WgXcQ', $item->selected_youtube_url);
+        $this->assertSame('dQw4w9WgXcQ', $item->selected_youtube_video_id);
+        $this->assertTrue($item->include_in_export);
+    }
+
+    public function test_replacing_an_api_candidate_with_a_custom_link_clears_its_title_channel_and_score(): void
+    {
+        $item = ImportItem::factory()->withSelectedYoutubeLink()->create();
+
+        Livewire::test(Show::class, ['batch' => $item->importBatch])
+            ->set("links.{$item->id}", 'https://www.youtube.com/shorts/dQw4w9WgXcQ');
+
+        $item->refresh();
+
+        $this->assertSame('dQw4w9WgXcQ', $item->selected_youtube_video_id);
+        $this->assertNull($item->selected_youtube_title);
+        $this->assertNull($item->selected_youtube_channel);
+        $this->assertNull($item->youtube_score);
+    }
+
+    public function test_an_invalid_link_shows_an_error_and_keeps_the_saved_link(): void
+    {
+        $item = ImportItem::factory()->withSelectedYoutubeLink()->create();
+        $savedUrl = $item->selected_youtube_url;
+
+        Livewire::test(Show::class, ['batch' => $item->importBatch])
+            ->set("links.{$item->id}", 'https://vimeo.com/123456789')
+            ->assertHasErrors("links.{$item->id}")
+            ->assertSee(Show::INVALID_LINK_MESSAGE)
+            ->assertNotDispatched('item-saved');
+
+        $this->assertSame($savedUrl, $item->refresh()->selected_youtube_url);
+        $this->assertTrue($item->include_in_export);
+    }
+
+    public function test_clearing_the_link_removes_it_and_excludes_the_item(): void
+    {
+        $item = ImportItem::factory()->withSelectedYoutubeLink()->create();
+
+        Livewire::test(Show::class, ['batch' => $item->importBatch])
+            ->assertSet("links.{$item->id}", $item->selected_youtube_url)
+            ->set("links.{$item->id}", ' ')
+            ->assertHasNoErrors();
+
+        $item->refresh();
+
+        $this->assertNull($item->selected_youtube_url);
+        $this->assertNull($item->selected_youtube_video_id);
+        $this->assertFalse($item->include_in_export);
+    }
+
+    public function test_include_in_export_can_be_toggled_only_with_a_link(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+        $withLink = ImportItem::factory()->for($batch)->withSelectedYoutubeLink()->create();
+        $withoutLink = ImportItem::factory()->for($batch)->create();
+
+        $component = Livewire::test(Show::class, ['batch' => $batch])
+            ->call('toggleExport', $withLink->id)
+            ->call('toggleExport', $withoutLink->id);
+
+        $this->assertFalse($withLink->refresh()->include_in_export);
+        $this->assertFalse($withoutLink->refresh()->include_in_export);
+
+        $component->call('toggleExport', $withLink->id);
+
+        $this->assertTrue($withLink->refresh()->include_in_export);
+    }
+
+    public function test_items_of_another_batch_cannot_be_changed_on_results(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+        $foreignItem = ImportItem::factory()->withSelectedYoutubeLink()->create();
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->call('toggleExport', $foreignItem->id)
+            ->assertNotFound();
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->set("links.{$foreignItem->id}", '')
+            ->assertNotFound();
+
+        $this->assertTrue($foreignItem->refresh()->include_in_export);
+        $this->assertNotNull($foreignItem->selected_youtube_url);
+    }
+
+    public function test_link_field_sends_its_value_to_the_server_on_blur(): void
+    {
+        $item = ImportItem::factory()->create();
+
+        Livewire::test(Show::class, ['batch' => $item->importBatch])
+            ->assertSeeHtml("wire:model.live.blur=\"links.{$item->id}\"")
+            ->assertDontSeeHtml('wire:model.blur=');
     }
 }

@@ -10,13 +10,14 @@
 - [x] AI parsing of any pasted format (Laravel AI SDK, OpenAI by default)
 - [x] Save & close + imports list
 - [x] AI usage logging + Settings → AI (key, model, monthly budget)
-- [ ] Parse review (edit artist/title/genre)
-- [ ] Duplicate detection (exact modal, similar warning)
-- [ ] YouTube search URL generator (no-key mode)
+- [x] Parse review (edit artist/title/genre, BPM/key/label)
+- [x] Duplicate detection (exact modal, similar warning)
+- [x] YouTube search URL generator (no-key mode) + YouTube Results screen
 - [ ] YouTube Data API search + cache
 - [ ] Candidate scoring + preselect/include rules
-- [ ] Candidate selection, custom link (validation + normalization)
-- [ ] Include-in-export toggle
+- [ ] Candidate selection (API mode)
+- [x] Custom link (inline field, validation + normalization)
+- [x] Include-in-export toggle
 - [ ] Supersimple TXT export + missing-link modal
 - [ ] Export versioning + overwrite modal
 - [ ] Export history + download

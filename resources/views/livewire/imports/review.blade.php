@@ -36,6 +36,16 @@
                 </button>
             @endunless
 
+            @if ($batch->status->hasSearchResults())
+                <a
+                    href="{{ route('imports.show', $batch) }}"
+                    wire:navigate
+                    class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                    YouTube links &rarr;
+                </a>
+            @endif
+
             @unless (in_array($batch->status, [\App\Enums\ImportBatchStatus::Parsing, \App\Enums\ImportBatchStatus::Failed], true))
                 <button
                     type="button"
@@ -121,14 +131,14 @@
                     >
                         <td class="px-3 py-2 pt-3.5 text-zinc-500 tabular-nums">{{ $item->line_number }}</td>
                         <td class="px-3 py-2">
-                            <input type="text" wire:model.blur="items.{{ $item->id }}.artist" aria-label="Artist" @class([$inputClasses, 'border-amber-400 dark:border-amber-600' => $item->artist === null])>
+                            <input type="text" wire:model.live.blur="items.{{ $item->id }}.artist" aria-label="Artist" @class([$inputClasses, 'border-amber-400 dark:border-amber-600' => $item->artist === null])>
                             @error("items.{$item->id}.artist") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                             @if ($item->error_message)
                                 <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">{{ $item->error_message }}</p>
                             @endif
                         </td>
                         <td class="px-3 py-2">
-                            <input type="text" wire:model.blur="items.{{ $item->id }}.title" aria-label="Title" class="{{ $inputClasses }}">
+                            <input type="text" wire:model.live.blur="items.{{ $item->id }}.title" aria-label="Title" class="{{ $inputClasses }}">
                             @error("items.{$item->id}.title") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                             <button
                                 type="button"
@@ -147,7 +157,7 @@
                             @endisset
                         </td>
                         <td class="px-3 py-2">
-                            <input type="text" wire:model.blur="items.{{ $item->id }}.genre" aria-label="Genre" class="{{ $inputClasses }}">
+                            <input type="text" wire:model.live.blur="items.{{ $item->id }}.genre" aria-label="Genre" class="{{ $inputClasses }}">
                             @error("items.{$item->id}.genre") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                         </td>
                         <td class="px-3 py-2 pt-3 text-right whitespace-nowrap">
@@ -168,15 +178,15 @@
                             <div class="flex flex-wrap items-start gap-3">
                                 <label class="flex w-24 flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                     BPM
-                                    <input type="number" min="{{ \App\Services\AiTrackListParserService::MIN_BPM }}" max="{{ \App\Services\AiTrackListParserService::MAX_BPM }}" wire:model.blur="items.{{ $item->id }}.bpm" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
+                                    <input type="number" min="{{ \App\Services\AiTrackListParserService::MIN_BPM }}" max="{{ \App\Services\AiTrackListParserService::MAX_BPM }}" wire:model.live.blur="items.{{ $item->id }}.bpm" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
                                 </label>
                                 <label class="flex w-40 flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                     <span>Key @if ($item->camelot_key) <span class="text-zinc-400 dark:text-zinc-500">· Camelot {{ $item->camelot_key }}</span> @endif</span>
-                                    <input type="text" placeholder="E Minor" wire:model.blur="items.{{ $item->id }}.musical_key" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
+                                    <input type="text" placeholder="E Minor" wire:model.live.blur="items.{{ $item->id }}.musical_key" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
                                 </label>
                                 <label class="flex min-w-48 flex-1 flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
                                     Label
-                                    <input type="text" wire:model.blur="items.{{ $item->id }}.label" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
+                                    <input type="text" wire:model.live.blur="items.{{ $item->id }}.label" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
                                 </label>
                             </div>
                             @error("items.{$item->id}.bpm") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror

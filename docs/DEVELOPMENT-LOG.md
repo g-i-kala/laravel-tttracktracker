@@ -351,3 +351,35 @@
 
 ### Notes
 - Ran `sail bin pint`, `sail npm run build`. 160 tests pass. Manual browser test by the user passed (search links sensible, Continue opens results).
+
+## 2026-10-14 (YouTube search, step B: custom links)
+
+### Added
+- `YoutubeUrlNormalizer` (`videoId()`, `normalize()`) + `YoutubeUrlNormalizerTest` (25 cases).
+- `ImportItemService::selectCustomYoutubeLink()`, `clearYoutubeLink()`, `toggleExport()`.
+- YouTube Results: inline **YouTube link** field per row (autosave on blur, blur on paste), Watch ↗ link, "Saved" flash, error for invalid links, **Export** checkbox (disabled without a link), header counts "N with a link · N in export".
+- 6 feature tests in `YoutubeResultsTest`.
+
+### Changed
+- Docs: API, ARCHITECTURE, UI-FLOW (custom link modal removed), PRD, ROADMAP, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- Ran `sail bin pint`, `sail npm run build`. 191 tests pass. Manual browser test by the user passed after the 2026-10-15 fixes (paste, Export checkbox, navigation).
+- Manual test: pasted links were not saved. `x-on:paste` + `$nextTick(blur)` blurred the field before the browser inserted the pasted text, so `wire:model.blur` saw no change. Fixed with `x-on:input` when `inputType === 'insertFromPaste'` (fires after the text is in the field). Feature tests set the value directly, so they could not catch it.
+
+## 2026-10-15 (Fix: autosave bindings)
+
+### Fixed
+- Pasted links on YouTube Results were never sent to the server; Parse Review edits only reached it with the next action (Remove, Save & close…). Cause: `wire:model.blur` in Livewire ≥ 4.1 (installed 4.4.7) only syncs client state on blur, without a request. Changed every autosave field to `wire:model.live.blur` (Review: 6, Show: 1).
+
+### Added
+- Regression tests asserting the `wire:model.live.blur` binding (`ParseReviewTest`, `YoutubeResultsTest`).
+- DECISIONS: autosave binding rule under "Livewire conventions".
+
+### Notes
+- Found from the request log: no `/livewire/update` request after pasting. Verified in headless Chrome (puppeteer-core in the session scratchpad, temporary profile): Cmd+V paste → normalized + Saved + Export ticked; checkbox toggles; invalid link → error; clearing → excluded. Test link removed again afterwards.
+
+### Changed
+- Direct entry to YouTube Results (user feedback: only reachable via Search YouTube). Imports list actions: **Review** + **YouTube links** (once searched); Parse Review: **YouTube links →** (once searched). In step A only the batch name had been pointed to results; the Continue link still went to review, and the test only checked that the href existed somewhere on the page. Tests now assert the exact links.
+- Docs: UI-FLOW, DECISIONS, TESTING.
+- 194 tests pass.

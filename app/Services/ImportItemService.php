@@ -6,7 +6,7 @@ use App\Models\ImportItem;
 use Illuminate\Support\Str;
 
 /**
- * Edits import items during Parse Review.
+ * Edits import items during Parse Review and on YouTube Results.
  */
 class ImportItemService
 {
@@ -37,6 +37,53 @@ class ImportItemService
             'normalized_key' => $this->parser->normalizedKey($artist, $title),
             'error_message' => $artist === null ? ImportParserService::ARTIST_NOT_DETECTED : null,
         ]);
+
+        return $item;
+    }
+
+    /**
+     * Store a custom (pasted) YouTube link as the selected link and include the
+     * item in the export. Title, channel and score belong to API candidates and are cleared.
+     */
+    public function selectCustomYoutubeLink(ImportItem $item, string $videoId): ImportItem
+    {
+        $item->update([
+            'selected_youtube_url' => "https://www.youtube.com/watch?v={$videoId}",
+            'selected_youtube_video_id' => $videoId,
+            'selected_youtube_title' => null,
+            'selected_youtube_channel' => null,
+            'youtube_score' => null,
+            'include_in_export' => true,
+        ]);
+
+        return $item;
+    }
+
+    /**
+     * Remove the selected link; without a link the item cannot be exported.
+     */
+    public function clearYoutubeLink(ImportItem $item): ImportItem
+    {
+        $item->update([
+            'selected_youtube_url' => null,
+            'selected_youtube_video_id' => null,
+            'selected_youtube_title' => null,
+            'selected_youtube_channel' => null,
+            'youtube_score' => null,
+            'include_in_export' => false,
+        ]);
+
+        return $item;
+    }
+
+    /**
+     * Flip include-in-export. Items without a selected link stay excluded.
+     */
+    public function toggleExport(ImportItem $item): ImportItem
+    {
+        if ($item->selected_youtube_url !== null) {
+            $item->update(['include_in_export' => ! $item->include_in_export]);
+        }
 
         return $item;
     }

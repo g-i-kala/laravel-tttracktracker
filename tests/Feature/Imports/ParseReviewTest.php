@@ -210,4 +210,13 @@ class ParseReviewTest extends TestCase
 
         $this->assertSame(ImportBatchStatus::Searched, $batch->refresh()->status);
     }
+
+    public function test_fields_send_their_value_to_the_server_on_blur(): void
+    {
+        $item = ImportItem::factory()->create();
+
+        Livewire::test(Review::class, ['batch' => $item->importBatch])
+            ->assertSeeHtml("wire:model.live.blur=\"items.{$item->id}.title\"")
+            ->assertDontSeeHtml('wire:model.blur=');
+    }
 }

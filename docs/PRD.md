@@ -29,7 +29,7 @@ Manual track import
 1. **Dashboard** — New YouTube Export button, recent imports, recent exports, items needing attention.
 2. **New YouTube Export** — name (auto-generated, editable), optional year/month/default genre, track list textarea → **Parse**.
 3. **Parse Review** (always shown) — edit artist/title/genre, plus BPM/key/label (panel on row click); exact-duplicate modal; similar-duplicate warning → **Search YouTube**.
-4. **YouTube Results** — API mode: 3 scored candidates, best preselected; no-key mode: search URL + custom link.
+4. **YouTube Results** — API mode: 3 scored candidates, best preselected; no-key mode: search URL + custom link pasted in the row.
 5. **Supersimple TXT Export** — missing-link warning modal, existing-export version modal, download.
 
 Details: [UI-FLOW.md](UI-FLOW.md).
@@ -64,7 +64,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - Score >= 80 → preselect + include in export; 60–79 → preselect only; < 60 → not included.
 - No-key mode: generate `https://www.youtube.com/results?search_query=...` from artist + title without `(Original Mix)` (other versions, remixes, feat. kept).
 - Custom link: pasted into a field in the track's row on YouTube Results (autosave); a valid link ticks Include in export.
-- Custom link accepts `watch?v=`, `youtu.be/`, `shorts/`; normalized to `https://www.youtube.com/watch?v=ID`; non-YouTube URLs rejected.
+- Custom link accepts `watch?v=`, `youtu.be/`, `shorts/` (also `embed/`, `live/`, `m.` and `music.` hosts); normalized to `https://www.youtube.com/watch?v=ID`; non-YouTube URLs rejected.
 - Search results cached (`youtube_search_cache`).
 - All links open in a new tab.
 
@@ -89,10 +89,10 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - [x] Similar duplicates show warning.
 - [ ] API mode fetches 3 YouTube candidates.
 - [x] No-key mode generates YouTube search URL.
-- [ ] Links open in new tab.
+- [x] Links open in new tab.
 - [ ] User can select candidate.
-- [ ] User can paste custom YouTube link.
-- [ ] Custom link is validated and normalized.
+- [x] User can paste custom YouTube link.
+- [x] Custom link is validated and normalized.
 - [ ] User can toggle `include_in_export`.
 - [ ] Export creates TXT with only URLs.
 - [ ] Missing links are skipped after warning.

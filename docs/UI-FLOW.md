@@ -22,8 +22,8 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 > Status: implemented (2026-10-13).
 
-- Table of all batches, newest first, 25 per page: name (link), created, track count, status badge (`To review` amber, `Failed` red, others accent), **Continue**.
-- **Continue** opens Parse Review for now; later it will open the screen matching the status (YouTube Results after searching).
+- Table of all batches, newest first, 25 per page: name (link), created, track count, status badge (`To review` amber, `Failed` red, others accent), actions.
+- Actions: **Review** (Parse Review) always; **YouTube links** (YouTube Results, no new search) once the batch is `searched` / `exported`. The name links to YouTube Results when searched, otherwise to Parse Review.
 - Empty state "No imports yet" + **New YouTube Export** button.
 
 ## New Import (`/imports/create`) — `Imports\Create`
@@ -59,17 +59,17 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Similar tracks (other version, artists in another order, small typo in artist or title) → note above the table "N tracks look similar … nothing is removed" and "Similar to #N" under the title. Non-blocking.
 - Marks update after every edit or removal.
 - **Save & close** button (hidden while parsing / failed): validates all fields, marks the batch `reviewed` (a later status is kept), flash "Saved \"name\".", redirects to the imports list.
+- **YouTube links →** link (once searched): opens YouTube Results without searching again.
 - **Search YouTube** button (hidden while parsing / failed, disabled with no tracks) → `searchYoutube()`: validates all fields, generates search URLs, redirects to YouTube Results. Can be run again after edits (URLs are regenerated).
 
 ## YouTube Results (`/imports/{batch}`) — `Imports\Show`
 
-> Status: step A implemented (2026-10-14): header (name, count, month/year, genre), **Back to review**, **Generate TXT** disabled ("Coming soon"), table #, track (artist bold + title, grey line `BPM · Camelot · label`), **Search YouTube ↗** link per row (new tab, `rel="noopener noreferrer"`). Imports list **Continue** opens this screen once the batch is `searched` / `exported`.
-> Step B (next): inline **Paste YouTube link** field per row instead of the custom link modal (autosave on paste/blur; a valid link ticks Include in export), Include-in-export checkbox.
+> Status: step A implemented (2026-10-14): header (name, count, month/year, genre), **Back to review**, **Generate TXT** disabled ("Coming soon"), table #, track (artist bold + title, grey line `BPM · Camelot · label`), **Search YouTube ↗** link per row (new tab, `rel="noopener noreferrer"`). Reachable directly from the imports list (**YouTube links**) and from Parse Review (**YouTube links →**) once the batch is `searched` / `exported`.
+> Step B implemented (2026-10-14): header also shows "N with a link · N in export". Per row: **YouTube link** field (placeholder "Paste YouTube link"; saves on blur, and pasting blurs the field so it saves right away). Valid link → normalized watch URL shown in the field, **Watch ↗** link, "Saved" flash, Include ticked. Invalid → red border + error, the previous link stays. Emptying the field removes the link and unticks Include. **Export** checkbox per row (disabled until a link is set).
 
 - While the API search batch is running: progress (e.g. 12/30) via `wire:poll`, which stops when the batch finishes.
 - API mode: best candidate preselected; expand a row (Alpine) to see the 3 candidates; select another.
-- No-key mode (or API fallback): **Open YouTube Search** + **Add custom link**.
-- **Custom link modal**: validates/normalizes the URL, shows the validation error inline.
+- No-key mode (or API fallback): **Search YouTube ↗** + inline **YouTube link** field (replaces the planned custom link modal, see DECISIONS 2026-10-14).
 - Include-in-export checkbox per item.
 - All links `target="_blank"`.
 
@@ -101,7 +101,6 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | -------------------- | --------------- | -------------------------------- |
 | How it works         | Dashboard       | "How it works" button          |
 | Duplicate modal      | Parse Review    | Exact duplicates right after parse; "Review duplicates" in the banner |
-| Custom link modal    | YouTube Results | Add custom link                  |
 | Missing links modal  | YouTube Results | Export with missing links        |
 | Export version modal | YouTube Results | Export already exists for batch  |
 

@@ -196,6 +196,7 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 2. **Class-based format**: `app/Livewire/` + `resources/views/livewire/` (not the v4 single-file default). `config/livewire.php` sets `make_command.type = class`.
 3. **Modals**: our own `<x-modal>` Blade component with Alpine. No Flux, no wire-elements/modal.
 4. **One component per screen**: rows are Blade partials. Row components only when there is a real need.
+- **Autosave bindings** (added 2026-10-15): use `wire:model.live.blur`. Since Livewire 4.1, `wire:model.blur` only delays the client-side sync and sends no request, so the `updated*()` hook would not run until some other action. Tests assert the rendered binding.
 
 **Reason:**
 - Full-page components are the standard Livewire approach; they remove page controllers and POST/PATCH routes.
@@ -287,7 +288,7 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 ## 2026-10-13 — Parse Review editing
 
 **Decision:**
-- Autosave each field on blur (`wire:model.blur` + `updatedItems()` hook); no Save button.
+- Autosave each field on blur (`wire:model.live.blur` + `updatedItems()` hook); no Save button. (Was `wire:model.blur`, which in Livewire ≥ 4.1 only syncs client state and sends no request; fixed 2026-10-15.)
 - Rows can be removed with a confirm dialog.
 - Search YouTube button is shown disabled ("Coming soon") until search exists.
 - Batch header on review is read-only.
@@ -385,4 +386,4 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 
 **Reason:** User's answers (2026-10-14). The inline field is the fastest flow for ~30 tracks: open the search, copy the video URL, paste it in the row.
 
-**Consequences:** The "Custom link modal" is dropped from UI-FLOW. The imports list Continue opens YouTube Results for `searched` / `exported` batches (`ImportBatchStatus::hasSearchResults()`).
+**Consequences:** The "Custom link modal" is dropped from UI-FLOW. For `searched` / `exported` batches (`ImportBatchStatus::hasSearchResults()`), YouTube Results is reachable directly: **YouTube links** on the imports list and **YouTube links →** on Parse Review (user feedback 2026-10-15: entering only through Search YouTube was not OK). Search YouTube is only needed to (re)generate the search URLs.

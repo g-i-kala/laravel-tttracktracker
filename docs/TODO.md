@@ -54,6 +54,9 @@
 - [x] Step B: YouTube URL normalizer + inline custom link field per row (autosave, valid link auto-includes) + include-in-export checkbox (2026-10-14)
 - [x] Manual test step B: paste links, Export checkbox, direct entry from imports list and review (2026-10-16)
 - [ ] YouTube API search + cache + quota fallback
+  - [x] Step 0: real-key smoke test (2026-10-17)
+  - [x] Step 1: `YoutubeSearchService` + cache + error/quota detection (2026-10-17)
+  - [ ] Step 3: job + `Bus::batch()` + per-item fallback
 - [ ] Scoring service (title-based)
 - [ ] Candidate selection (API mode)
 - [x] Supersimple TXT export (sync) + versioning + download (export step 1, 2026-10-16)

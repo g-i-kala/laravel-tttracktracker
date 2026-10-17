@@ -15,7 +15,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 
 - **Unit** — pure services (parser, normalizer, search URL, scoring, filename versioning).
 - **Feature** — Livewire components via `Livewire::test()` (create import, review/edit, select link, custom link, toggle, export modals) + HTTP test for the download route.
-- YouTube API mocked via `Http::fake()`; no real API calls in tests.
+- YouTube API mocked via `Http::fake()` + `Http::preventStrayRequests()`; no real API calls in tests. `phpunit.xml` sets `YOUTUBE_DATA_API_KEY` empty (no-key mode by default, even with a real key in `.env`); API tests set `config(['services.youtube.api_key' => …])`.
 
 ## Existing tests
 
@@ -28,6 +28,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - `tests/Feature/Ai/AiTrackListParsingTest.php`: enabled only with a key, AI tracks → parsed lines, New Import queues the job (AI mode), input length limit, job stores items (genre fallback) / skips non-parsing batch / `failed()` marks batch failed, Review polling + retry + simple parser. Agent faked with `preventStrayPrompts()`.
 - `tests/Unit/MusicalKeyServiceTest.php`: key → Camelot for major/minor, ♯/♭ and ASCII, short forms (`Am`, `Bbm`, `min`, `maj`), note only = major, Camelot input normalized, invalid input → null (data provider).
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
+- `tests/Feature/Youtube/YoutubeSearchServiceTest.php`: API call (key in `X-Goog-Api-Key` header, never in the URL; `type=video`, `maxResults=10`), mapping + HTML entity decoding, non-video items skipped, cache write (TTL from config), cache hit (case/whitespace-insensitive, no request, works without key), expired cache refreshed, `quotaExceeded` → quota exception + nothing cached, other API errors, connection failure, no key + no cache → exception without request.
 
 ## Important test cases
 

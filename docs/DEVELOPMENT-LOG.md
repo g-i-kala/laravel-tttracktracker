@@ -459,3 +459,19 @@
 - Titles come HTML-encoded from the API; noted in DECISIONS.
 - Decisions for API mode recorded in DECISIONS ("YouTube API mode: behaviour").
 
+## 2026-10-17 (YouTube API mode, step 1: search service + cache)
+
+### Added
+- `YoutubeSearchService` (`search.list`, cache in `youtube_search_cache`, HTML decoding, 10 results per call) and `YoutubeSearchException` (`reason`, `isQuotaExceeded()`).
+- `tests/Feature/Youtube/YoutubeSearchServiceTest.php` (10 tests).
+
+### Changed
+- `phpunit.xml`: `YOUTUBE_DATA_API_KEY` empty, so tests never use the real key from `.env`.
+- Docs: ARCHITECTURE, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 234 tests pass.
+- One real call through the service (`Daft Punk Around the World`): 10 results, key in the header works; second call served from cache (1 ms). One cache row in the local DB. Quota used today: ~200 units (step 0 + this).
+- Real results show what scoring must handle: official video, "Official Audio", an official live video on the artist's channel, and a "Daft Punk - Topic" channel with "(Radio Edit)".
+- The exception class lives in `app/Services/` to avoid a new `app/Exceptions/` folder without approval.
+

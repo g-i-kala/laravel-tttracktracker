@@ -29,7 +29,7 @@ Stan na 2026-10-17:
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
 - **Jeszcze nie ma:** trybu YouTube API (czeka na klucz).
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 224, wszystkie przechodzą.
+- Testy: 234, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -164,7 +164,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
 
 **Następne kroki (po kolei):**
-1. **Tryb YouTube API** (klucz już jest w `.env`, 2026-10-17): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. 5 atomowych kroków: 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) UI kandydatów + postęp, 5) test na prawdziwym API i strojenie wag. Krok 0 zrobiony (klucz działa, 2026-10-17). Decyzje: DECISIONS „YouTube API mode: behaviour” (API automatycznie z kluczem, postęp z itemów, bez miniatur, ręczne linki pomijane). **Następny: krok 1.**
+1. **Tryb YouTube API** (klucz już jest w `.env`, 2026-10-17): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. 5 atomowych kroków: 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) UI kandydatów + postęp, 5) test na prawdziwym API i strojenie wag. Kroki 0 i 1 zrobione (klucz działa, `YoutubeSearchService` + cache, 2026-10-17). Decyzje: DECISIONS „YouTube API mode: behaviour” (API automatycznie z kluczem, postęp z itemów, bez miniatur, ręczne linki pomijane). **Następny: krok 2 (scoring).**
 2. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
 3. Drobne: `.vscode/extensions.json`.
 4. Po MVP (TODO.md „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami.

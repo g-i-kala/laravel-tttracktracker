@@ -162,11 +162,10 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 **Do zrobienia przez użytkownika:**
 - Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
-- Klucz YouTube Data API (`YOUTUBE_DATA_API_KEY`): potrzebny do trybu API (kandydaci, scoring). Cały flow działa bez niego.
-- Test ręczny usuwania (TODO.md): commit był na prośbę bez osobnego potwierdzenia testu.
 
 **Następne kroki (po kolei):**
-1. **Drobne:** `.vscode/extensions.json`, decyzja o `database/database.sqlite` (nieużywany, Postgres w Sail).
-2. **Tryb YouTube API** (gdy będzie klucz): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. Najpierw pytania (scoring, UI kandydatów).
-3. Po MVP (TODO.md „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami.
-4. Opcjonalnie: „TXT out of date” także na YouTube Results (dziś tylko na Dashboardzie); lista eksportów sortuje po `created_at`, a Dashboard po `updated_at` (do ujednolicenia, jeśli przeszkadza).
+1. **Tryb YouTube API** (klucz już jest w `.env`, 2026-10-17): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. 5 atomowych kroków: 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) UI kandydatów + postęp, 5) test na prawdziwym API i strojenie wag. Krok 0 zrobiony (klucz działa, 2026-10-17). Decyzje: DECISIONS „YouTube API mode: behaviour” (API automatycznie z kluczem, postęp z itemów, bez miniatur, ręczne linki pomijane). **Następny: krok 1.**
+2. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
+3. Drobne: `.vscode/extensions.json`.
+4. Po MVP (TODO.md „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami.
+5. Opcjonalnie: „TXT out of date” także na YouTube Results (dziś tylko na Dashboardzie); lista eksportów sortuje po `created_at`, a Dashboard po `updated_at` (do ujednolicenia, jeśli przeszkadza).

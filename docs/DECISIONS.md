@@ -420,3 +420,29 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User request (2026-10-17) after test imports piled up; user chose bulk selection and the summary modal.
 
 **Consequences:** `ParseImportBatchWithAiJob` gets `#[DeleteWhenMissingModels]` so a queued job for a deleted batch does not fail.
+
+## 2026-10-17 — Music library after MVP, remove unused SQLite file
+
+**Decision:**
+- Finish YouTube API mode first (closes Milestone 1), then build a **music library** as the new Milestone 2: unique tracks, library screen with filters, **playlists**, and import from the music folder on disk (file scan + tags). The library replaces the user's spreadsheets.
+- No spreadsheet (Numbers/XLS/CSV) importer: the user's music folder is the source of truth for the existing collection.
+- Beatport moves to Milestone 3, Rekordbox stays Milestone 4. The former "Local music inventory" milestone is merged into the library.
+- `database/database.sqlite` (from the default Laravel install) is deleted; app and tests use PostgreSQL only.
+
+**Reason:** User's answers (2026-10-17): the user wants to move their track list from spreadsheets into the app and organize playlists; the music already lives in one folder.
+
+**Consequences:** The library milestone needs its own Q&A before code: data model (`tracks` table vs import items), how the Sail container reaches the host music folder (volume mount), and which tag reader (new package, needs approval). `CLAUDE.md` "Do Not Implement Yet" still applies until that milestone starts.
+
+## 2026-10-17 — YouTube API mode: behaviour
+
+**Decision:**
+- **Search YouTube** uses the API automatically when `YOUTUBE_DATA_API_KEY` is set; without a key it stays in no-key mode. Per-item fallback to the search URL on `quotaExceeded` / API errors (A1).
+- Progress on YouTube Results is counted from the batch's items (`search_pending` vs done); no column for the `job_batches` id, no migration.
+- Candidates are shown as compact text rows (title · channel · score), no thumbnails.
+- Re-running the search skips items with a custom (manually pasted) link, so manual work is not overwritten and no quota is spent on them.
+- Work in atomic steps: 0) smoke test of the key, 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) candidates UI + progress, 5) real-API test and weight tuning.
+
+**Reason:** User's answers (2026-10-17), all as recommended.
+
+**Consequences:** A custom link is recognised as "item has `selected_youtube_url` but `youtube_score` is null" (custom links store no score). The API returns HTML-encoded titles (`&amp;`, `&#39;`), so `YoutubeSearchService` must decode them before storing and scoring.
+

@@ -440,3 +440,22 @@
 
 ### Notes
 - 224 tests pass. Headless Chrome on two temporary "ZZ delete test" imports (created with tinker, each exported twice): row Delete on the exports list removed one file; ticking both imports → modal "Delete 2 imports? This removes 2 tracks and 3 export files (TXT)." → both gone with their files. The user's data was untouched.
+
+## 2026-10-17 (Planning: YouTube API mode, music library)
+
+### Changed
+- Deleted unused `database/database.sqlite` (git-ignored, never used; Postgres only).
+- ROADMAP: new Milestone 2 "Music library" (library, playlists, music folder import); Beatport → 3, Rekordbox → 4; "Local music inventory" merged into the library.
+- DECISIONS (ADR), TODO (Library section, SQLite and YouTube key done, delete manual test done), START-TUTAJ.
+
+### Notes
+- `YOUTUBE_DATA_API_KEY` set in `.env` by the user (checked as set, not printed). Next: YouTube API mode in 5 atomic steps.
+- Manual test of deleting imports/exports confirmed by the user.
+
+## 2026-10-17 (YouTube API mode, step 0: key smoke test)
+
+### Notes
+- One real `search.list` call through tinker (`q=Daft Punk Around the World`, `type=video`, `maxResults=3`) with `config('services.youtube.api_key')`: HTTP 200, 3 results (2× channel "Daft Punk" — official video and "Official Audio" — plus 1 re-upload). Cost: 100 quota units. The key was not printed.
+- Titles come HTML-encoded from the API; noted in DECISIONS.
+- Decisions for API mode recorded in DECISIONS ("YouTube API mode: behaviour").
+

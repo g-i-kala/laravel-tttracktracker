@@ -23,13 +23,18 @@
 - [x] Export versioning + overwrite modal
 - [x] Export history (`/exports`) + download
 
-## Milestone 2 — Beatport integration / import helper
+## Milestone 2 — Music library (planned, after MVP)
+
+Replaces the user's spreadsheets (Numbers/XLS) as the main track list. Planned 2026-10-17, details to be agreed before implementation.
+
+- [ ] One library of unique tracks (matched by `normalized_key`); imports link to library tracks
+- [ ] Library screen: search, filters (genre, BPM, Camelot, label, year/month)
+- [ ] Playlists
+- [ ] Import from the music folder on disk (scan files, read tags) — takes over the scope of the former "Local music inventory" milestone
+
+## Milestone 3 — Beatport integration / import helper
 
 Not started. Do not implement until requested.
-
-## Milestone 3 — Local music inventory
-
-Not started. Local file scanning, matching tracks to files.
 
 ## Milestone 4 — Rekordbox export
 

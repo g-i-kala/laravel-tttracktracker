@@ -16,8 +16,8 @@
 - [x] Slim down `CLAUDE.md` (spec → `docs/`)
 - [x] Update docs + `CLAUDE.md` for Livewire, then install Livewire (replaces "Add Vue 3 to Vite")
 - [x] Run `boost:update` so Boost adds Livewire guidelines/skills
-- [ ] Decide: remove `database/database.sqlite`?
-- [ ] Get YouTube Data API key
+- [x] ~~Decide: remove `database/database.sqlite`?~~ Removed (unused, Postgres only; 2026-10-17)
+- [x] Get YouTube Data API key (set in `.env`, 2026-10-17)
 
 ## MVP
 
@@ -28,7 +28,7 @@
 - [x] App layout (`layouts/app.blade.php`) + `<x-modal>` component (+ placeholder Dashboard)
 - [x] Build dashboard (2026-10-17)
 - [x] Delete imports / export files: single + bulk selection, confirmation modal with summary (2026-10-17)
-- [ ] Manual test delete: imports list (row + selected), exports list (row + selected), last export deleted → import back to Searched
+- [x] Manual test delete: imports list (row + selected), exports list (row + selected), last export deleted → import back to Searched (2026-10-17)
 - [x] Manual test dashboard: needs attention rows + links, recent imports/exports, View all (2026-10-17)
 - [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)
@@ -66,3 +66,11 @@
 - [ ] Settings screen (accent color picker; now `APP_ACCENT`)
 - [ ] Light/dark toggle (now follows the OS)
 - [ ] Cross-batch duplicate warning ("already exported in batch X")
+
+## Library (Milestone 2, after MVP)
+
+- [ ] Questions first: data model (`tracks` vs import items), playlists, folder scan (Docker mount, tag reader package)
+- [ ] Library of unique tracks + import items linked to it
+- [ ] Library screen: search + filters (genre, BPM, Camelot, label, year/month)
+- [ ] Playlists
+- [ ] Import from the music folder on disk (scan files, read tags)

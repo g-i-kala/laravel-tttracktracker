@@ -60,6 +60,7 @@
   - [x] Manual test step 3 (user, 2026-10-17: works; asked for progress info instead of refreshing)
   - [x] Step 4a: progress bar + rows fill in live + summary (`wire:poll`, 2026-10-17)
   - [x] Step 4b: candidate list (top 3 with scores) + choosing another candidate (2026-10-17)
+  - [x] Manual test steps 4a/4b (user, 2026-10-17)
   - [ ] Step 5: real-import test + scoring weight tuning
 - [x] Scoring service (title-based) — step 2, 2026-10-17; tune weights in step 5
 - [x] Candidate selection (API mode) (2026-10-17)
@@ -72,7 +73,7 @@
 ## After MVP
 
 - [x] **Add tracks to an existing import** (requested 2026-10-17, done the same day): modal on Parse Review and YouTube Results, duplicates skipped, new tracks searched right away on YouTube Results
-- [ ] Manual test Add tracks (user): Parse Review and YouTube Results, a duplicate in the paste, AI paste from Beatport
+- [x] Manual test Add tracks (user, 2026-10-17)
 
 - [ ] Check feasibility (requested 2026-10-17): build the link list straight from a **YouTube playlist** (paste playlist URL → Supersimple TXT / import). Note: `playlistItems.list` costs 1 quota unit per 50 videos (vs 100 per search); private playlists need OAuth, public/unlisted work with the API key.
 

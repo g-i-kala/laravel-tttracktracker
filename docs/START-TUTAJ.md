@@ -19,16 +19,16 @@ Stan na 2026-10-17:
 
 - Laravel 13, PHP 8.4, Sail (`compose.yaml`): app, PostgreSQL 16 (`tttracktracker`, port 5433 na hoście), worker kolejki jako serwis `queue`. Aplikacja: http://localhost:8000.
 - Frontend: Blade + **Livewire 4.4** (full-page, class-based, jeden komponent na ekran), Tailwind 4, własny `<x-modal>`. Sidebar, motyw jasny/ciemny wg systemu, akcent z `APP_ACCENT`.
-- Model danych: tabele importu/YouTube/eksportu + `ai_usage_logs`, `settings`; enumy statusów, modele, factories. `import_items` ma też `bpm`, `musical_key`, `camelot_key`, `label`.
+- Model danych: tabele importu/YouTube/eksportu + `ai_usage_logs`, `youtube_api_calls`, `settings`; enumy statusów, modele, factories. `import_items` ma też `bpm`, `musical_key`, `camelot_key`, `label`.
 - **Działa:** **Dashboard** (Needs attention, ostatnie importy i eksporty), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, BPM/tonacja/label po kliknięciu w wiersz, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle, także BPM, tonacja (+ Camelot) i label; bez klucza parser linii `Artist - Title`.
 - **Duplikaty** w obrębie importu: modal raz po parsowaniu + banner, oznaczenia podobnych (inna wersja, kolejność artystów, drobna literówka).
-- **YouTube (bez klucza API):** Search YouTube na Parse Review → ekran **YouTube Results** (`/imports/{batch}`) z linkami wyszukiwania, polem na własny link (normalizacja, autosave) i checkboxem Export.
+- **YouTube bez klucza API (fallback):** Search YouTube na Parse Review → ekran **YouTube Results** (`/imports/{batch}`) z linkami wyszukiwania, polem na własny link (normalizacja, autosave) i checkboxem Export.
 - **Eksport Supersimple TXT** na YouTube Results: modal brakujących linków, modal wersji (nowa / nadpisz), auto-pobieranie, „Download again”.
 - **Lista eksportów** (`/exports`): wszystkie wersje, „Latest”, pobieranie.
 - **Add tracks:** dopisywanie tracków do istniejącego importu (Parse Review i YouTube Results; duplikaty pomijane, na YouTube Results od razu wyszukiwane).
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
-- **Tryb YouTube API (w trakcie):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. Brak jeszcze wyświetlania zużycia limitu.
+- **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. Brak jeszcze wyświetlania zużycia limitu i strojenia wag (krok 5).
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
 - Testy: 292, wszystkie przechodzą.
 
@@ -152,21 +152,44 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 **Decyzje** (szczegóły w DECISIONS.md, wpisy 2026-10-14 – 2026-10-17): duplikaty, wyszukiwanie bez klucza + link w wierszu zamiast modala, eksport (modal wersji, auto-pobieranie, plik bez końcowej nowej linii), Dashboard „Needs attention”, usuwanie.
 
-**Stan danych lokalnych (2026-10-17):** 6 importów użytkownika, 1 eksport (`exports/1`). Testowe importy „ZZ …” usunięte.
+### Sesja 2026-10-17 (wieczór): tryb YouTube API, Add tracks, plan biblioteki
+
+**Zrobione (commity po kolei):**
+1. `d4e59ae docs`: plan biblioteki muzyki (Milestone 2: biblioteka, playlisty, skan folderu z muzyką zamiast arkuszy Numbers; Beatport → M3, Rekordbox → M4), usunięty nieużywany `database/database.sqlite`.
+2. `bdbcafb feat(youtube)`: `YoutubeSearchService` (search.list, 10 wyników, cache `youtube_search_cache` 30 dni, klucz w nagłówku `X-Goog-Api-Key`, nigdy w URL), `YoutubeSearchException`. `phpunit.xml` czyści `YOUTUBE_DATA_API_KEY`.
+3. `1a6bccb feat(youtube)`: `YoutubeScoringService` (tytuł 40, artysta 30, kanał = artysta/label 15, oficjalne 5, wersja ±10/−25, słowa typu live/lyrics −30; progi 80/60).
+4. `e2112c2 feat(youtube)`: log `youtube_api_calls` (100 jednostek za zapytanie, 0 przy quota/sieci, cache nie liczony) pod przyszły licznik limitu.
+5. `b8b1c40 feat(youtube)`: Search YouTube z kluczem → `Bus::batch()` jobów `SearchYoutubeForImportItemJob` (tylko tracki bez linku), kandydaci top 3, auto-wybór wg progów, fallback na link wyszukiwania z komunikatem, flaga quota do północy czasu pacyficznego.
+6. `828468d feat(youtube)`: postęp na żywo na YouTube Results (`wire:poll.2s`, pasek „N of M”, „Searching…” w wierszach, podsumowanie na końcu). Wybrana opcja A z trzech (B: blokujący modal, C: websockety/Reverb — na później).
+7. `df0787c feat(youtube)`: lista 3 kandydatów z punktami i wybór innego (radio).
+8. `76b0229 feat(imports)`: **Add tracks** na Parse Review i YouTube Results (wklejka jak w New Import, AI w żądaniu, duplikaty pomijane, na YouTube Results od razu wyszukiwanie). Trait `app/Livewire/Concerns/AddsTracks.php`.
+
+**Testy ręczne użytkownika:** wyszukiwanie przez API, postęp, kandydaci i Add tracks działają (2026-10-17).
+
+**Lekcje:**
+- Postgres `jsonb` zmienia kolejność kluczy: w testach porównywać wyniki z cache przez `assertEquals`, nie `assertSame`.
+- Kolumny `timestamp` mają sekundy: w testach `freezeSecond()` zamiast `freezeTime()`.
+- Blade: `@endif` przyklejony do słowa (`AI@endif`) nie jest dyrektywą → błąd składni.
+- `PHPUnit\Framework\TestCase::result()` jest finalne: nie nazywać tak helperów w testach.
+- Testy UI z „Searching…”: zatrzymać worker (`sail stop queue`), uruchomić wyszukiwanie, potem `sail start queue`. Tracki z cache (Bicep – Glue, Midas Field – What We Got, Daft Punk – Around the World) nie zużywają limitu.
+
+**Decyzje** (DECISIONS.md, wpisy 2026-10-17): biblioteka po MVP, tryb API (zachowanie + szczegóły), wagi scoringu, log limitu, postęp przez polling, Add tracks.
+
+**Stan danych lokalnych (2026-10-17, koniec sesji):** 1 import, 1 eksport, 11 wpisów cache YouTube, w logu `youtube_api_calls` 1000 jednostek (limit dzienny 10 000, reset o 9:00 czasu PL). Testowe importy „ZZ …” usunięte.
 
 **Incydent: klucz OpenAI w logu sesji**
 - 2026-10-13 pełny `OPENAI_API_KEY` wyświetlił się w wyniku polecenia, bo maskowanie `sed` nie działa na macOS (BSD sed). Nie ma go w gicie ani w plikach projektu.
 - Decyzja użytkownika: **bez rotacji**, bo klucz ma z góry limit $4. Ryzyko zaakceptowane.
 - Opcjonalnie: wyczyścić klucz z transkryptów Claude Code w `~/.claude/projects/-Volumes-data-dev-VibeCode-tt-tracktracker/*.jsonl`.
 
-**Lokalny `.env` (poza gitem):** `APP_ACCENT=navy`, `APP_TIMEZONE=Europe/Warsaw`, `OPENAI_API_KEY` ustawiony, `AI_PARSER_MODEL=gpt-4.1-mini`, `DB_QUEUE_RETRY_AFTER=300`. Po zmianach `.env` uruchom `sail artisan config:clear` i `sail artisan queue:restart`.
+**Lokalny `.env` (poza gitem):** `APP_ACCENT=navy`, `APP_TIMEZONE=Europe/Warsaw`, `OPENAI_API_KEY` ustawiony, `AI_PARSER_MODEL=gpt-4.1-mini`, `DB_QUEUE_RETRY_AFTER=300`, `YOUTUBE_DATA_API_KEY` ustawiony (2026-10-17, działa). Po zmianach `.env` uruchom `sail artisan config:clear` i `sail artisan queue:restart`.
 
 **Do zrobienia przez użytkownika:**
 - Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
 
 **Następne kroki (po kolei):**
-1. **Tryb YouTube API** (klucz już jest w `.env`, 2026-10-17): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. 5 atomowych kroków: 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) UI kandydatów + postęp, 5) test na prawdziwym API i strojenie wag. Kroki 0–4 zrobione (klucz działa, `YoutubeSearchService` + cache, `YoutubeScoringService`, log zapytań `youtube_api_calls`, wyszukiwanie w kolejce `Bus::batch()`, postęp na żywo i lista kandydatów z wyborem na YouTube Results, 2026-10-17). Decyzje: DECISIONS „YouTube API mode: behaviour” (API automatycznie z kluczem, postęp z itemów, bez miniatur, ręczne linki pomijane). **Teraz: test ręczny przez użytkownika:** kandydaci (4b) i **Add tracks** (Parse Review + YouTube Results). **Potem:** krok 5 (strojenie wag na prawdziwych importach), wyświetlanie zużycia limitu YouTube. Zapisane na później: lista linków z playlisty YouTube (TODO), websockety (ROADMAP).
-2. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
-3. Drobne: `.vscode/extensions.json`.
-4. Po MVP (TODO.md „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami.
-5. Opcjonalnie: „TXT out of date” także na YouTube Results (dziś tylko na Dashboardzie); lista eksportów sortuje po `created_at`, a Dashboard po `updated_at` (do ujednolicenia, jeśli przeszkadza).
+1. **Krok 5 trybu API:** test na prawdziwych importach użytkownika i strojenie wag scoringu (znane przypadki: „(NOT official video)” dostaje bonus, występ „Glastonbury” 70 pkt, medley na kanale Topic 90). Wagi to stałe w `YoutubeScoringService`.
+2. **Licznik limitu YouTube:** wyświetlanie „Used today: N / 10 000 units · resets 09:00” z `youtube_api_calls` (YouTube Results + ekran Settings → YouTube). Najpierw pytania o miejsce i wygląd.
+3. **Do sprawdzenia:** lista linków z playlisty YouTube (TODO „After MVP”; `playlistItems.list` = 1 jednostka / 50 filmów).
+4. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
+5. Drobne: `.vscode/extensions.json`; po MVP (TODO „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami; opcjonalnie „TXT out of date” na YouTube Results, ujednolicenie sortowania eksportów.

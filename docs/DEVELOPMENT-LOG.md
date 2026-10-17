@@ -562,3 +562,9 @@
 - 292 tests pass. Ran `sail npm run build`, `sail artisan queue:restart`.
 - Headless Chrome on a temporary "ZZ add tracks test" import (deleted afterwards): pasted "Bicep - Glue (Original Mix)" (already there) + "Daft Punk - Around the World" → "Added 1 track. 1 track already in this import was skipped.", the new track was searched (cache, no quota) and the summary appeared. Real AI parse: $0.00036, 1.7 s. The AI parser added "(Original Mix)" to the Daft Punk title (existing parser behaviour, harmless for duplicates and search).
 - First version had `AI@endif` in the partial: Blade does not treat `@endif` glued to a word as a directive (syntax error). Fixed by splitting the sentence into `@if`/`@else` blocks.
+
+## 2026-10-17 (Session handoff)
+
+### Changed
+- START-TUTAJ: session notes (YouTube API mode, Add tracks, library plan), data state, next steps; TODO: manual tests confirmed by the user.
+

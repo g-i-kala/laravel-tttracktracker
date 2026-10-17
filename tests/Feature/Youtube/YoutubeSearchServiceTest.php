@@ -2,12 +2,16 @@
 
 namespace Tests\Feature\Youtube;
 
+use App\Enums\YoutubeApiCallStatus;
+use App\Models\ImportBatch;
+use App\Models\YoutubeApiCall;
 use App\Models\YoutubeSearchCache;
 use App\Services\YoutubeSearchException;
 use App\Services\YoutubeSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -179,6 +183,83 @@ class YoutubeSearchServiceTest extends TestCase
         } finally {
             Http::assertNothingSent();
         }
+    }
+
+    public function test_successful_call_is_recorded_with_the_batch_from_context(): void
+    {
+        $batch = ImportBatch::factory()->create();
+        Http::fake(['www.googleapis.com/*' => Http::response($this->apiResponse())]);
+
+        Context::scope(
+            fn () => $this->youtubeSearch->search('Daft Punk Around the World'),
+            [YoutubeSearchService::BATCH_CONTEXT_KEY => $batch->id],
+        );
+
+        $call = YoutubeApiCall::query()->sole();
+        $this->assertSame($batch->id, $call->import_batch_id);
+        $this->assertSame('search.list', $call->endpoint);
+        $this->assertSame('Daft Punk Around the World', $call->query);
+        $this->assertSame(100, $call->quota_units);
+        $this->assertSame(YoutubeApiCallStatus::Succeeded, $call->status);
+        $this->assertNull($call->error_reason);
+        $this->assertSame(2, $call->results_count);
+        $this->assertNotNull($call->duration_ms);
+    }
+
+    public function test_cache_hit_is_not_recorded(): void
+    {
+        YoutubeSearchCache::factory()->create(['query_hash' => $this->youtubeSearch->queryHash('Bicep Glue')]);
+
+        $this->youtubeSearch->search('Bicep Glue');
+
+        $this->assertDatabaseCount('youtube_api_calls', 0);
+    }
+
+    public function test_quota_exceeded_call_is_recorded_without_units(): void
+    {
+        Http::fake(['www.googleapis.com/*' => Http::response($this->errorResponse(403, 'quotaExceeded'), 403)]);
+
+        rescue(fn () => $this->youtubeSearch->search('Bicep Glue'), report: false);
+
+        $call = YoutubeApiCall::query()->sole();
+        $this->assertSame(YoutubeApiCallStatus::QuotaExceeded, $call->status);
+        $this->assertSame(0, $call->quota_units);
+        $this->assertSame('quotaExceeded', $call->error_reason);
+        $this->assertNull($call->import_batch_id);
+    }
+
+    public function test_failed_call_is_recorded_with_units(): void
+    {
+        Http::fake(['www.googleapis.com/*' => Http::response($this->errorResponse(400, 'badRequest'), 400)]);
+
+        rescue(fn () => $this->youtubeSearch->search('Bicep Glue'), report: false);
+
+        $call = YoutubeApiCall::query()->sole();
+        $this->assertSame(YoutubeApiCallStatus::Failed, $call->status);
+        $this->assertSame(100, $call->quota_units);
+        $this->assertSame('badRequest', $call->error_reason);
+        $this->assertNull($call->results_count);
+    }
+
+    public function test_connection_failure_is_recorded_without_units(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('cURL error 28: timeout'));
+
+        rescue(fn () => $this->youtubeSearch->search('Bicep Glue'), report: false);
+
+        $call = YoutubeApiCall::query()->sole();
+        $this->assertSame(YoutubeApiCallStatus::Failed, $call->status);
+        $this->assertSame(0, $call->quota_units);
+        $this->assertSame('connectionFailed', $call->error_reason);
+    }
+
+    public function test_missing_api_key_is_not_recorded(): void
+    {
+        config(['services.youtube.api_key' => '']);
+
+        rescue(fn () => $this->youtubeSearch->search('Bicep Glue'), report: false);
+
+        $this->assertDatabaseCount('youtube_api_calls', 0);
     }
 
     /**

@@ -451,3 +451,9 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Decision:** Title words up to 40, artist words up to 30, channel = artist/label 15, official marker 5, requested version found 10; remix mismatch −25; each unwanted keyword (live, set, podcast, lyrics, sped up, slowed, nightcore, cover, reaction, tutorial, karaoke, 8D, 1 hour) −30 unless the track contains it. Clamped to 0–100. Edits (Radio Edit, Extended) are not penalized when the original is requested; only other producers' versions (remix, rework, bootleg, VIP, flip, refix) are. Search fetches 10 results; the best 3 are kept.
 **Reason:** User accepted the proposal as a starting point (2026-10-17).
 **Consequences:** Weights are constants in `YoutubeScoringService`; tune in step 5. Known cases from the first real search: "(NOT official video)" still gets the official bonus; official-looking re-uploads on fan channels reach 75 (preselected, not auto-included).
+
+## 2026-10-17 — YouTube quota tracking: own call log
+
+**Decision:** Every real YouTube Data API request is logged in a new `youtube_api_calls` table (step 3a, before the queued search) with estimated quota units: 100 per `search.list`, also for failed requests (Google charges invalid requests); 0 when the quota is already exceeded or the connection failed. Cache hits are not logged. Display (today's usage / remaining of 10,000 units, reset at midnight Pacific Time) comes later with the UI.
+**Reason:** User request (2026-10-17): track the free search quota. Google does not expose the remaining quota through the API, only in Cloud Console; logging from the first real search keeps the count complete (option A).
+**Consequences:** The count is an estimate: calls made with the same key elsewhere are not seen. Like `ai_usage_logs`, the log keeps its rows when an import is deleted (`nullOnDelete`). The two manual test calls of 2026-10-17 (step 0 and step 1 check) are not in the log.

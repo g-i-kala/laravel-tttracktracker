@@ -488,3 +488,16 @@
 - 256 tests pass.
 - Scored the cached real "Daft Punk Around the World" results (no quota): official video, official audio and two Topic uploads 90; fan re-uploads 70–75; official live video 55; another song 50; a Carl Cox live set 40.
 - To tune in step 5: "(NOT official video)" gets the official bonus; a medley on the Topic channel ("Around the World / Harder, Better, Faster, Stronger") scores 90.
+
+## 2026-10-17 (YouTube API mode, step 3a: API call log)
+
+### Added
+- Table `youtube_api_calls` (migration `2026_10_17_205533`), model `YoutubeApiCall`, enum `YoutubeApiCallStatus`, `YoutubeApiCallFactory` (`quotaExceeded()`).
+- `YoutubeSearchService` records every real request (units, status, reason, results count, duration, batch from `Context`).
+- 6 tests in `YoutubeSearchServiceTest`.
+
+### Changed
+- Docs: DATABASE, ARCHITECTURE, DECISIONS (ADR), TESTING, TODO, START-TUTAJ.
+
+### Notes
+- Ran `sail artisan migrate`. 262 tests pass.

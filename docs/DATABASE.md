@@ -123,6 +123,23 @@ One row per AI agent call (Laravel AI SDK), written by the `RecordAiUsage` liste
 | error_message          | text, nullable               | failures only, max 1000 chars                            |
 | created_at, updated_at | timestamps                   |                                                          |
 
+### `youtube_api_calls` — `YoutubeApiCall`
+
+One row per **real** YouTube Data API request (cache hits are not recorded), written by `YoutubeSearchService`. Used to estimate the daily quota use (Google does not expose the remaining quota through the API).
+
+| Column                 | Type                         | Notes                                                    |
+| ---------------------- | ---------------------------- | -------------------------------------------------------- |
+| id                     | bigint PK                    |                                                          |
+| import_batch_id        | FK nullable, `nullOnDelete`  | batch being searched (from `Context`), null outside a batch; history survives batch deletion |
+| endpoint               | string                       | `search.list`                                            |
+| query                  | text                         | search query as sent                                     |
+| quota_units            | unsigned smallint            | estimate: 100 for `search.list` (also failed requests); 0 for `quotaExceeded` and connection failures |
+| status                 | string                       | `YoutubeApiCallStatus`: `succeeded`, `quota_exceeded`, `failed` |
+| error_reason           | string, nullable             | API reason (`quotaExceeded`, `keyInvalid`, …) or `connectionFailed` |
+| results_count          | unsigned smallint, nullable  | successful calls only                                    |
+| duration_ms            | unsigned int, nullable       |                                                          |
+| created_at, updated_at | timestamps                   |                                                          |
+
 ### `settings` — `Setting`
 
 Key/value app settings (`SettingsService`). Secrets are encrypted with `Crypt::encryptString()` (APP_KEY); if APP_KEY changes, the secret reads as missing and must be entered again.
@@ -184,6 +201,7 @@ Derived (not stored):
 | `export_files`         | unique `(import_batch_id, type, version)` | one row per version (covers the FK)       |
 | `youtube_search_cache` | unique `(query_hash)`                   | cache lookup                                |
 | `ai_usage_logs`        | `(created_at)`                          | monthly spend sum                           |
+| `youtube_api_calls`    | `(created_at)`                          | quota units used today                      |
 
 ## Factories
 
@@ -195,10 +213,11 @@ Derived (not stored):
 | `ExportFileFactory`         | —                                                           |
 | `YoutubeSearchCacheFactory` | `expired()`                                                 |
 | `AiUsageLogFactory`         | `failed()`                                                  |
+| `YoutubeApiCallFactory`     | `quotaExceeded()` (0 units)                                 |
 
 No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look at.
 
 ## Migration notes
 
 - Use `./vendor/bin/sail artisan migrate`; never `migrate:fresh` / `db:wipe` without explicit permission.
-- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache).
+- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`.

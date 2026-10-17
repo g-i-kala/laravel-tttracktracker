@@ -2,15 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\YoutubeApiCallStatus;
+use App\Models\YoutubeApiCall;
 use App\Models\YoutubeSearchCache;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
  * Searches YouTube videos through the YouTube Data API (`search.list`, 100 quota units per call).
  * Results are cached in `youtube_search_cache`; a valid cache entry means no API call.
+ * Every real request is recorded in `youtube_api_calls` to estimate the daily quota use.
  */
 class YoutubeSearchService
 {
@@ -23,6 +27,19 @@ class YoutubeSearchService
      * results give scoring more to choose from; only the best candidates are stored.
      */
     public const int MAX_RESULTS = 10;
+
+    public const string ENDPOINT = 'search.list';
+
+    /**
+     * Quota cost of one `search.list` request. Google charges failed requests too,
+     * except when the quota is already used up.
+     */
+    public const int SEARCH_QUOTA_UNITS = 100;
+
+    /**
+     * Context key that links API calls to the import batch being searched.
+     */
+    public const string BATCH_CONTEXT_KEY = 'import_batch_id';
 
     public function isEnabled(): bool
     {
@@ -81,6 +98,8 @@ class YoutubeSearchService
             throw new YoutubeSearchException('YouTube Data API key is not set.', 'missingApiKey');
         }
 
+        $startedAt = hrtime(true);
+
         try {
             $response = Http::timeout(15)->withHeaders([
                 'X-Goog-Api-Key' => config('services.youtube.api_key'),
@@ -91,13 +110,35 @@ class YoutubeSearchService
                 'q' => $query,
             ]);
         } catch (ConnectionException) {
-            throw new YoutubeSearchException('Could not connect to the YouTube Data API.', 'connectionFailed');
+            $exception = new YoutubeSearchException('Could not connect to the YouTube Data API.', 'connectionFailed');
+            $this->recordCall($query, $startedAt, YoutubeApiCallStatus::Failed, 0, $exception->reason);
+
+            throw $exception;
         }
 
         if ($response->failed()) {
-            throw $this->exceptionFor($response);
+            $exception = $this->exceptionFor($response);
+
+            if ($exception->isQuotaExceeded()) {
+                $this->recordCall($query, $startedAt, YoutubeApiCallStatus::QuotaExceeded, 0, $exception->reason);
+            } else {
+                $this->recordCall($query, $startedAt, YoutubeApiCallStatus::Failed, self::SEARCH_QUOTA_UNITS, $exception->reason);
+            }
+
+            throw $exception;
         }
 
+        $results = $this->mapResults($response);
+        $this->recordCall($query, $startedAt, YoutubeApiCallStatus::Succeeded, self::SEARCH_QUOTA_UNITS, null, count($results));
+
+        return $results;
+    }
+
+    /**
+     * @return list<array{video_id: string, url: string, title: string, channel_title: ?string, description: ?string, published_at: ?string}>
+     */
+    private function mapResults(Response $response): array
+    {
         return collect($response->json('items', []))
             ->filter(fn (array $item): bool => filled($item['id']['videoId'] ?? null))
             ->map(fn (array $item): array => [
@@ -110,6 +151,20 @@ class YoutubeSearchService
             ])
             ->values()
             ->all();
+    }
+
+    private function recordCall(string $query, int $startedAt, YoutubeApiCallStatus $status, int $quotaUnits, ?string $errorReason, ?int $resultsCount = null): void
+    {
+        YoutubeApiCall::create([
+            'import_batch_id' => Context::get(self::BATCH_CONTEXT_KEY),
+            'endpoint' => self::ENDPOINT,
+            'query' => $query,
+            'quota_units' => $quotaUnits,
+            'status' => $status,
+            'error_reason' => $errorReason,
+            'results_count' => $resultsCount,
+            'duration_ms' => intdiv(hrtime(true) - $startedAt, 1_000_000),
+        ]);
     }
 
     /**

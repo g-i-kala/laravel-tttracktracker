@@ -59,6 +59,7 @@
   - [ ] Step 3: job + `Bus::batch()` + per-item fallback
 - [x] Scoring service (title-based) — step 2, 2026-10-17; tune weights in step 5
 - [ ] Candidate selection (API mode)
+- [ ] YouTube quota tracking (step 3a done 2026-10-17: `youtube_api_calls` log; display still to do): log every real `search.list` call (100 units; cache hits cost 0), show today's usage / remaining of 10,000 units (day resets at midnight Pacific Time = 09:00 Warsaw; 08:00 in the few weeks when US and EU daylight saving time differ), e.g. on YouTube Results + a Settings → YouTube screen (requested 2026-10-17)
 - [x] Supersimple TXT export (sync) + versioning + download (export step 1, 2026-10-16)
 - [x] Manual test export step 1: Generate TXT → missing links modal → file downloads; second export → version modal (new / overwrite); Download again (2026-10-17)
 - [x] Export step 2: Exports list `/exports` (history, download older versions) + enable "Exports" in the sidebar (2026-10-17)

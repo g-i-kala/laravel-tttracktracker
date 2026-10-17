@@ -26,7 +26,8 @@
 - [x] Create models + factories
 - [x] `config/services.php` YouTube entry
 - [x] App layout (`layouts/app.blade.php`) + `<x-modal>` component (+ placeholder Dashboard)
-- [ ] Build dashboard
+- [x] Build dashboard (2026-10-17)
+- [x] Manual test dashboard: needs attention rows + links, recent imports/exports, View all (2026-10-17)
 - [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)
 - [x] AI parsing of any pasted format (Laravel AI SDK, queued, retry / simple-parser fallback)

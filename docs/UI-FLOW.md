@@ -12,11 +12,15 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Dashboard (`/`) — `Dashboard`
 
-> Status: placeholder (empty state + "How it works" modal). Recent imports/exports come in "Build dashboard".
+> Status: implemented (2026-10-17).
 
-- New YouTube Export button.
-- Recent imports, recent exports.
-- Items needing attention.
+- Header: **How it works** (modal) + **+ New YouTube Export** (when there are imports; otherwise in the empty state).
+- No imports at all → empty state "No imports yet" with **+ New YouTube Export**.
+- **Needs attention** (amber list, each row links to the right screen), or "All caught up…" when empty:
+  - imports `To review` (status `parsed`): "N tracks to review" → **Review** (Parse Review);
+  - searched / exported imports with tracks without a link: "N of M tracks without a link" → **Add links** (YouTube Results);
+  - imports whose latest TXT no longer matches the current links: "links changed since the last TXT" → **Export again** (YouTube Results).
+- **Recent imports** (10 newest: name → YouTube Results once searched, else Parse Review; track count; status) and **Recent exports** (10 newest by date: filename, import, link count, date, **Download**), each with **View all**. Two columns on large screens, stacked on mobile.
 
 ## Imports (`/imports`) — `Imports\Index`
 

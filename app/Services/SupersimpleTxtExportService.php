@@ -52,6 +52,24 @@ class SupersimpleTxtExportService
     }
 
     /**
+     * Whether the latest export no longer matches the links that would be
+     * exported now (links or Export ticks changed since). A missing file counts
+     * as outdated; a batch without exports is not.
+     */
+    public function isLatestExportOutdated(ImportBatch $batch): bool
+    {
+        $latest = $this->latestExport($batch);
+
+        if ($latest === null) {
+            return false;
+        }
+
+        $disk = Storage::disk(self::DISK);
+
+        return ! $disk->exists($latest->path) || $disk->get($latest->path) !== $this->content($batch);
+    }
+
+    /**
      * Write the file as a new version, or overwrite the latest version (same
      * filename and version; a new version when there is none yet). Exported
      * items and the batch get the `exported` status.

@@ -410,3 +410,19 @@
 
 ### Notes
 - 207 tests pass. Headless Chrome on the user's data (read-only): sidebar → `/exports`, row with Latest, Download → file with 2 lines, import link → YouTube Results.
+
+## 2026-10-17 (Dashboard)
+
+### Added
+- Dashboard: Needs attention (to review, tracks without a link, outdated TXT), Recent imports and Recent exports (10 each, View all), New YouTube Export in the header; empty state kept.
+- `SupersimpleTxtExportService::isLatestExportOutdated()`, `ImportBatchStatus::screenRouteName()` (also used by the imports list).
+- `DashboardTest`: 6 new tests; `RefreshDatabase` added (the dashboard now queries the DB).
+
+### Fixed
+- Mobile: a long export filename widened the grid column and caused horizontal scroll; grid sections get `min-w-0`.
+
+### Changed
+- Docs: DECISIONS (ADR), UI-FLOW, ARCHITECTURE, ROADMAP, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 213 tests pass. Headless Chrome (read-only): desktop and 390 px screenshots, no JS errors, no horizontal overflow after the fix.

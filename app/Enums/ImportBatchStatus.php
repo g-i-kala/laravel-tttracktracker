@@ -38,4 +38,12 @@ enum ImportBatchStatus: string
     {
         return in_array($this, [self::Searched, self::Exported], true);
     }
+
+    /**
+     * Route name of the screen to continue on: YouTube Results once searched, otherwise Parse Review.
+     */
+    public function screenRouteName(): string
+    {
+        return $this->hasSearchResults() ? 'imports.show' : 'imports.review';
+    }
 }

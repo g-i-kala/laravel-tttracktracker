@@ -145,6 +145,7 @@ Title-based only (no duration lookup):
 - Overwrite-latest or create-new-version chosen by the user in a modal.
 - Stored on the `local` disk (`storage/app/private`) under `exports/{batch id}/{filename}`; an `ExportFile` row (`type = supersimple_txt`) records path, version, items count, options. Overwrite keeps the latest row's filename/version, updates `items_count` and `updated_at`.
 - After export: exported items → `ImportItemStatus::Exported`, batch → `ImportBatchStatus::Exported`.
+- `isLatestExportOutdated(batch)`: compares `content(batch)` with the latest file (missing file = outdated; no export = not outdated). Edits that do not change the exported links (title, BPM…) keep it up to date. Used by the Dashboard.
 
 ## Frontend
 
@@ -158,3 +159,7 @@ Title-based only (no duration lookup):
 - **Theme**: light/dark follows the OS (`prefers-color-scheme`, Tailwind `dark:`). Neutral `zinc` + an accent palette: `config('app.accent')` (`APP_ACCENT`) → `data-accent` on `<html>` → CSS variables → `accent-*` Tailwind colors (`resources/css/app.css`). Unknown values fall back to red. `navy` is adaptive: dark navy (shifted `blue` scale) in light mode, `sky` in dark mode.
 - The only classic controller is `ExportController@download`, which streams the TXT file.
 - See [UI-FLOW.md](UI-FLOW.md) and [API.md](API.md).
+
+## Dashboard
+
+`App\Livewire\Dashboard` computed properties: `toReview` (status `parsed`, `withCount('items')`), `missingLinks` (status `searched`/`exported`, `whereHas` items without `selected_youtube_url`, `missing_links_count`), `outdatedExports` (batches with exports filtered by `SupersimpleTxtExportService::isLatestExportOutdated()`; reads the latest file of each exported batch, fine for a single-user local app), `recentImports` / `recentExports` (`RECENT_LIMIT = 10`). `ImportBatchStatus::screenRouteName()` picks YouTube Results or Parse Review for links to a batch.

@@ -4,7 +4,7 @@
 
 - [ ] Environment: Sail, project-local PostgreSQL, Livewire
 - [ ] Migrations + models (5 tables)
-- [ ] Dashboard
+- [x] Dashboard (needs attention, recent imports/exports)
 - [ ] New import page + auto-generated name
 - [x] Import parser (`Artist - Title`)
 - [x] AI parsing of any pasted format (Laravel AI SDK, OpenAI by default)

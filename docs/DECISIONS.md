@@ -400,3 +400,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-16). The planned `ExportController@download` stays the only controller, so the same download link works on YouTube Results now and on the exports list later.
 
 **Consequences:** Files live in `storage/app/private/exports/{batch id}/`. A future "delete batch" must delete these files too.
+
+## 2026-10-17 — Dashboard "Needs attention"
+
+**Decision:** Three kinds of rows: imports to review (`parsed`), searched/exported imports with tracks without a link, and imports whose latest TXT is outdated. "Outdated" means the file content differs from the links that would be exported now (compared on the fly), not "an item was edited after the export". AI parsing failures are not listed (user's choice). Recent imports and exports: 10 each, with View all.
+
+**Reason:** User's answers (2026-10-17). Comparing contents avoids false alarms from edits that do not affect the TXT (title, BPM, label).
+
+**Consequences:** The dashboard reads the latest export file of every exported batch on each load; fine for a local single-user app, revisit if exports grow large.

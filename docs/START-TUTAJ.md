@@ -28,9 +28,9 @@ Stan na 2026-10-17:
 - **Lista eksportów** (`/exports`): wszystkie wersje, „Latest”, pobieranie.
 - **Add tracks:** dopisywanie tracków do istniejącego importu (Parse Review i YouTube Results; duplikaty pomijane, na YouTube Results od razu wyszukiwane).
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
-- **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. Brak jeszcze wyświetlania zużycia limitu i strojenia wag (krok 5).
+- **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. **Licznik limitu** (linia na Dashboard, Parse Review, YouTube Results + ekran **YouTube Settings** `/settings/youtube`). Strojenie wag (krok 5) odłożone.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 292, wszystkie przechodzą.
+- Testy: 302, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -188,8 +188,8 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
 
 **Następne kroki (po kolei):**
-1. **Krok 5 trybu API:** test na prawdziwych importach użytkownika i strojenie wag scoringu (znane przypadki: „(NOT official video)” dostaje bonus, występ „Glastonbury” 70 pkt, medley na kanale Topic 90). Wagi to stałe w `YoutubeScoringService`.
-2. **Licznik limitu YouTube:** wyświetlanie „Used today: N / 10 000 units · resets 09:00” z `youtube_api_calls` (YouTube Results + ekran Settings → YouTube). Najpierw pytania o miejsce i wygląd.
+1. **Krok 5 trybu API (odłożony, użytkownik: „na dziś działa super”):** przegląd prawdziwego importu zrobiony 2026-10-17, plan poprawek z decyzjami użytkownika w [TODO.md](TODO.md) pod „Step 5” (artyści z opisu kanałów Topic, „NOT official”, lista znaczników mashup/medley/festiwal −30, wersja przed oficjalnym kanałem, bez powtórek kandydatów). Wagi to stałe w `YoutubeScoringService`.
+2. ~~Licznik limitu YouTube~~ zrobiony 2026-10-17 (decyzje w DECISIONS „YouTube quota counter”). Test ręczny użytkownika OK (2026-10-17).
 3. **Do sprawdzenia:** lista linków z playlisty YouTube (TODO „After MVP”; `playlistItems.list` = 1 jednostka / 50 filmów).
 4. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
 5. Drobne: `.vscode/extensions.json`; po MVP (TODO „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami; opcjonalnie „TXT out of date” na YouTube Results, ujednolicenie sortowania eksportów.

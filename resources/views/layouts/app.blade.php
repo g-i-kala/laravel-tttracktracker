@@ -38,6 +38,7 @@
 
                 <nav class="flex flex-col gap-1 md:mt-auto">
                     <x-nav-link route="settings.ai">AI Settings</x-nav-link>
+                    <x-nav-link route="settings.youtube">YouTube Settings</x-nav-link>
                 </nav>
             </aside>
 

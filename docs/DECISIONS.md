@@ -479,3 +479,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Decision:** An **Add tracks** button on Parse Review and YouTube Results opens a modal to paste more tracks (a track list, parsed like New Import: AI when enabled, otherwise one `Artist - Title` per line). Tracks already in the import (same normalized key) are skipped with a notice. On Parse Review the user stays there; on YouTube Results the new tracks are searched right away (API mode with progress, or search links). AI parsing runs synchronously in the request (not queued) for this modal.
 **Reason:** User's answers (2026-10-17): 1) button on both screens, 2) paste a track list as before (not YouTube links), 3) skip tracks already in the import, 4) search right away on YouTube Results. Running AI in the request keeps the modal simple (no extra `parsing` state on a batch that already has items); added lists are usually short.
 **Consequences:** Long AI pastes block the modal for up to a few minutes (`set_time_limit(240)`). Shared code lives in a trait `App\Livewire\Concerns\AddsTracks` (new folder `app/Livewire/Concerns/`) and a Blade partial. Adding is blocked while a search is running, to avoid two search batches at once.
+
+## 2026-10-17 — YouTube quota counter
+
+**Decision:** Show today's estimated YouTube quota use as one line ("YouTube quota: N / 10,000 units used today (~M searches left) · resets 09:00") on Dashboard, Parse Review and YouTube Results (only with an API key), plus a minimal Settings → YouTube screen (quota today + whether the key is set; no history, no key stored in the database). The daily limit is `YOUTUBE_DAILY_QUOTA` (default 10,000). Amber from 80%, red when less than one search is left or the API reported `quotaExceeded`.
+
+**Reason:** User choice (2026-10-17): see the remaining searches before and during a search; a fuller screen (7 days, recent calls, key in the database) is not needed now. The limit is configurable in case Google raises it.
+
+**Consequences:** The count is an estimate from this app's own `youtube_api_calls` rows (other apps using the same key are not counted). The day starts at midnight Pacific Time, so `created_at` is compared after converting that moment to the app timezone. A stored YouTube key and call history can be added to Settings → YouTube later.

@@ -136,9 +136,11 @@ When the configured AI provider has an API key, New Import parses **any** pasted
   | `preselect_threshold`    | `YOUTUBE_PRESELECT_THRESHOLD`     | 60      | score >= → preselect only                |
   | `candidates_limit`       | `YOUTUBE_CANDIDATES_LIMIT`        | 3       | candidates stored per item               |
   | `cache_ttl_days`         | `YOUTUBE_CACHE_TTL_DAYS`          | 30      | `youtube_search_cache.expires_at` = now + N days |
+  | `daily_quota`            | `YOUTUBE_DAILY_QUOTA`             | 10000   | daily quota units shown in the quota counter |
 - **No-key mode is the primary mode at start.** API mode is built in parallel once a key is obtained.
 - API mode: official YouTube Data API `search.list`, up to 3 candidates.
 - Quota: 10,000 units/day, `search.list` = 100 units (~100 searches/day, ~3 batches of 30). The cache in `youtube_search_cache` is checked before every API call.
+- **Quota counter (`YoutubeQuotaService::today()`):** sums `youtube_api_calls.quota_units` since midnight Pacific Time (converted to the app timezone before querying) → used, limit (`daily_quota`), remaining, searches left (remaining / 100), usage, `isUsedUp` (less than one search left **or** the `youtube:quota_exceeded` flag), `resetsAt` (next midnight PT in the app timezone). It is an estimate from this app's own calls. Shown by `<x-youtube-quota>` (one line; amber ≥ 80%, red when used up) via trait `App\Livewire\Concerns\ShowsYoutubeQuota` (computed `youtubeQuota`, null without an API key) on Dashboard, Parse Review and YouTube Results (refreshes with the search polling), and on `Settings\Youtube`.
 - On `quotaExceeded` or any API failure: that item falls back to no-key mode (`youtube_search_url` + `error_message` notice). The batch never fails as a whole.
 - No scraping.
 

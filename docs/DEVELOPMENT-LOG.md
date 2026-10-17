@@ -568,3 +568,19 @@
 ### Changed
 - START-TUTAJ: session notes (YouTube API mode, Add tracks, library plan), data state, next steps; TODO: manual tests confirmed by the user.
 
+## 2026-10-17 (YouTube quota counter)
+
+### Added
+- `App\Services\YoutubeQuotaService::today()`: units used since midnight Pacific Time, limit, searches left, used up, reset time.
+- `config('services.youtube.daily_quota')` / `YOUTUBE_DAILY_QUOTA=10000` (`.env.example`).
+- `<x-youtube-quota>` component + trait `App\Livewire\Concerns\ShowsYoutubeQuota`; line on Dashboard, Parse Review, YouTube Results.
+- Settings → YouTube (`/settings/youtube`, `App\Livewire\Settings\Youtube`), "YouTube Settings" in the sidebar.
+- `tests/Feature/Youtube/YoutubeQuotaServiceTest.php` (5), `tests/Feature/Settings/YoutubeSettingsTest.php` (5).
+
+### Changed
+- TODO step 5 (scoring tuning): real-import review notes and the agreed plan; tuning postponed by the user.
+- Docs: API, ARCHITECTURE, UI-FLOW, DOCKER, DECISIONS (ADR), TODO, START-TUTAJ.
+
+### Notes
+- 302 tests pass. Ran `sail npm run build`.
+- Headless Chrome: the line shows "1,000 / 10,000 units used today (~90 searches left) · resets 09:00" on all four screens, the sidebar link opens Settings → YouTube, no JS errors.

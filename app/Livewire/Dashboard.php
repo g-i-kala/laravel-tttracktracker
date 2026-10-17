@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ImportBatchStatus;
+use App\Livewire\Concerns\ShowsYoutubeQuota;
 use App\Models\ExportFile;
 use App\Models\ImportBatch;
 use App\Services\SupersimpleTxtExportService;
@@ -20,6 +21,8 @@ use Livewire\Component;
 #[Title('Dashboard')]
 class Dashboard extends Component
 {
+    use ShowsYoutubeQuota;
+
     public const int RECENT_LIMIT = 10;
 
     public bool $showHowItWorks = false;

@@ -23,6 +23,9 @@
                     · {{ $batch->default_genre }}
                 @endif
             </p>
+            @if ($this->youtubeQuota)
+                <x-youtube-quota :quota="$this->youtubeQuota" class="mt-1" />
+            @endif
         </div>
 
         <div class="flex gap-2">

@@ -62,9 +62,16 @@
   - [x] Step 4b: candidate list (top 3 with scores) + choosing another candidate (2026-10-17)
   - [x] Manual test steps 4a/4b (user, 2026-10-17)
   - [ ] Step 5: real-import test + scoring weight tuning
+    - Real-import review done 2026-10-17 (import "YouTube Export 2026-10-17 21:39" + cache). User: works well enough for now, tune later. Agreed plan:
+      - Topic channels with several artists: also match artists in the description when it starts with "Provided to YouTube" (What We Got 75 → 90, Noir Muse 68 → 90).
+      - No official bonus for "NOT official video" / "unofficial".
+      - Marker list, −30: `/`, `vs`, ` x ` or `&` joining titles, `mashup`, `medley`, festivals/performances (Glastonbury, Boiler Room, Tomorrowland, Coachella, Essential Mix, "performs", "at"). Not a generic extra-words penalty (hits good uploads like "Brunello, Vargas – Ghost Dance |[ Indie Dance ]| 2025").
+      - Matching version (e.g. Extended Mix) keeps beating the official channel; add "official visualiser/visualizer" to the official bonus.
+      - Drop duplicate candidates (same title + channel) so top 3 are distinct.
 - [x] Scoring service (title-based) — step 2, 2026-10-17; tune weights in step 5
 - [x] Candidate selection (API mode) (2026-10-17)
-- [ ] YouTube quota tracking (step 3a done 2026-10-17: `youtube_api_calls` log; display still to do): log every real `search.list` call (100 units; cache hits cost 0), show today's usage / remaining of 10,000 units (day resets at midnight Pacific Time = 09:00 Warsaw; 08:00 in the few weeks when US and EU daylight saving time differ), e.g. on YouTube Results + a Settings → YouTube screen (requested 2026-10-17)
+- [x] YouTube quota tracking (step 3a: `youtube_api_calls` log; display done 2026-10-17: quota line on Dashboard / Parse Review / YouTube Results + Settings → YouTube, `YOUTUBE_DAILY_QUOTA`): log every real `search.list` call (100 units; cache hits cost 0), show today's usage / remaining of 10,000 units (day resets at midnight Pacific Time = 09:00 Warsaw; 08:00 in the few weeks when US and EU daylight saving time differ), e.g. on YouTube Results + a Settings → YouTube screen (requested 2026-10-17)
+- [x] Manual test quota counter: line on Dashboard / Parse Review / YouTube Results, sidebar YouTube Settings (user, 2026-10-17)
 - [x] Supersimple TXT export (sync) + versioning + download (export step 1, 2026-10-16)
 - [x] Manual test export step 1: Generate TXT → missing links modal → file downloads; second export → version modal (new / overwrite); Download again (2026-10-17)
 - [x] Export step 2: Exports list `/exports` (history, download older versions) + enable "Exports" in the sidebar (2026-10-17)

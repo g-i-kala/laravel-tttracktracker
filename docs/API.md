@@ -1,6 +1,6 @@
 # API / Routes
 
-> Status: `/` (Dashboard placeholder), `/imports`, `/imports/create`, `/imports/{batch}/review`, `/imports/{batch}` (YouTube Results, no-key mode), `/exports`, `/exports/{export}/download` and `/settings/ai` implemented. All planned routes exist.
+> Status: `/` (Dashboard placeholder), `/imports`, `/imports/create`, `/imports/{batch}/review`, `/imports/{batch}` (YouTube Results, no-key mode), `/exports`, `/exports/{export}/download` `/settings/ai` and `/settings/youtube` implemented. All planned routes exist.
 
 The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTURE.md#frontend)). There is no JSON API: user actions are Livewire component methods, called over Livewire's own endpoint (session + CSRF handled by Livewire).
 
@@ -14,6 +14,7 @@ The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTU
 | GET    | `/imports/{batch}/review`      | `App\Livewire\Imports\Review`             | `imports.review`   |
 | GET    | `/imports/{batch}`             | `App\Livewire\Imports\Show` (`whereNumber('batch')`) | `imports.show`     |
 | GET    | `/settings/ai`                 | `App\Livewire\Settings\Ai`                | `settings.ai`      |
+| GET    | `/settings/youtube`            | `App\Livewire\Settings\Youtube`           | `settings.youtube` |
 | GET    | `/exports`                     | `App\Livewire\Exports\Index`              | `exports.index`    |
 | GET    | `/exports/{export}/download`   | `ExportController@download`               | `exports.download` |
 

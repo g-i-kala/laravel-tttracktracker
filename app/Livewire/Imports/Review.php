@@ -4,6 +4,7 @@ namespace App\Livewire\Imports;
 
 use App\Enums\ImportBatchStatus;
 use App\Livewire\Concerns\AddsTracks;
+use App\Livewire\Concerns\ShowsYoutubeQuota;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
 use App\Services\AiTrackListParserService;
@@ -30,6 +31,7 @@ use Livewire\Component;
 class Review extends Component
 {
     use AddsTracks;
+    use ShowsYoutubeQuota;
 
     public ImportBatch $batch;
 

@@ -6,7 +6,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Layout (implemented)
 
-- Left sidebar: app name, Dashboard / Imports / Exports, **+ New YouTube Export** button, **AI Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
+- Left sidebar: app name, Dashboard / Imports / Exports, **+ New YouTube Export** button, **AI Settings** and **YouTube Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
 - Theme follows the OS (light/dark). Accent color from `APP_ACCENT`.
 - Flash message area above the page content.
 
@@ -122,6 +122,19 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | Delete export files  | Exports         | Delete (row) / Delete selected   |
 | Missing links modal  | YouTube Results | Generate TXT with tracks without a link |
 | Export version modal | YouTube Results | Export already exists for batch  |
+
+## YouTube quota line (`<x-youtube-quota>`)
+
+> Status: implemented (2026-10-17).
+
+- One line under the page header on Dashboard, Parse Review and YouTube Results, only when a YouTube API key is set: "YouTube quota: 1,000 / 10,000 units used today (~90 searches left) · resets 09:00". Amber from 80% used; red "YouTube quota used up — resets 09:00" when less than one search is left or the API reported `quotaExceeded`. On YouTube Results it refreshes with the search progress polling.
+
+## Settings → YouTube (`/settings/youtube`) — `Settings\Youtube`
+
+> Status: implemented (2026-10-17).
+
+- **Quota today** card: used units of the daily limit, searches left, reset time (midnight Pacific Time in local time), progress bar (accent / amber ≥ 80% / red used up), the quota line, note that it is an estimate and the limit is `YOUTUBE_DAILY_QUOTA`.
+- **API key** card: whether `YOUTUBE_DATA_API_KEY` is set (the key is never shown); without a key, Search YouTube creates search links.
 
 ## Settings → AI (`/settings/ai`) — `Settings\Ai`
 

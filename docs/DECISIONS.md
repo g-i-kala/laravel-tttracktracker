@@ -446,3 +446,8 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 
 **Consequences:** A custom link is recognised as "item has `selected_youtube_url` but `youtube_score` is null" (custom links store no score). The API returns HTML-encoded titles (`&amp;`, `&#39;`), so `YoutubeSearchService` must decode them before storing and scoring.
 
+## 2026-10-17 — YouTube scoring weights (start)
+
+**Decision:** Title words up to 40, artist words up to 30, channel = artist/label 15, official marker 5, requested version found 10; remix mismatch −25; each unwanted keyword (live, set, podcast, lyrics, sped up, slowed, nightcore, cover, reaction, tutorial, karaoke, 8D, 1 hour) −30 unless the track contains it. Clamped to 0–100. Edits (Radio Edit, Extended) are not penalized when the original is requested; only other producers' versions (remix, rework, bootleg, VIP, flip, refix) are. Search fetches 10 results; the best 3 are kept.
+**Reason:** User accepted the proposal as a starting point (2026-10-17).
+**Consequences:** Weights are constants in `YoutubeScoringService`; tune in step 5. Known cases from the first real search: "(NOT official video)" still gets the official bonus; official-looking re-uploads on fan channels reach 75 (preselected, not auto-included).

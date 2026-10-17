@@ -132,11 +132,20 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 
 ## Scoring
 
-Title-based only (no duration lookup):
+`App\Services\YoutubeScoringService` (pure, step 2 of 5). Title-based only (no duration lookup). `score(artist, title, label, result)` → 0–100; `rank(…, results, limit)` adds `score`, sorts highest first (API order on ties), keeps `limit` (config `candidates_limit`). Text is compared as lowercase ASCII words (`&` → `and`).
 
-- Boost: artist + title token match, official/Topic/label channel, "extended"/"original mix" when requested.
-- Penalize: live set, podcast, lyrics, sped up, slowed, cover, reaction, tutorial, mix/set keywords.
-- >= 80 preselect + include; 60–79 preselect only; < 60 not included.
+| Signal | Points |
+| --- | --- |
+| Base title words (without bracketed version / feat.) in the video title | up to +40 (share of words) |
+| Artist words in the video title or channel name | up to +30 (share of words) |
+| Channel = one of the artists or the label (ignoring `Topic`, `VEVO`, `Official`, `Music`, `Records`, `Recordings`) | +15 |
+| "Official Audio" / "Official Video" / "Official Music Video" in the title or "Provided to YouTube" in the description | +5 |
+| Requested version words (e.g. `Extended`, `Hammer Remix`; `Mix`, `Version`, `Original` ignored) all in the video title | +10 |
+| Remix requested but not found, or a remix (`remix`, `rmx`, `rework`, `bootleg`, `vip`, `flip`, `refix`) when the original was requested | −25 |
+| Each unwanted keyword in the video title: live, set, podcast, lyrics, sped up, slowed, nightcore, cover, reaction, tutorial, karaoke, 8D, 1 hour / 10 hours (skipped when the track itself contains it) | −30 each |
+
+- Thresholds (config): >= 80 preselect + include; 60–79 preselect only; < 60 not included (applied in step 3).
+- Weights are the starting point agreed on 2026-10-17; tune in step 5 with real imports.
 
 ## Export generation
 

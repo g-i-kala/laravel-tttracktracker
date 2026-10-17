@@ -30,6 +30,8 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - `tests/Unit/ImportParserServiceTest.php`: separators, numbering/timestamp stripping, `50 Cent`/`808 State` kept, empty lines + original line numbers, missing artist, `normalized_key` rules (data providers).
 - `tests/Feature/Youtube/YoutubeSearchServiceTest.php`: API call (key in `X-Goog-Api-Key` header, never in the URL; `type=video`, `maxResults=10`), mapping + HTML entity decoding, non-video items skipped, cache write (TTL from config), cache hit (case/whitespace-insensitive, no request, works without key), expired cache refreshed, `quotaExceeded` → quota exception + nothing cached, other API errors, connection failure, no key + no cache → exception without request.
 
+- `tests/Unit/YoutubeScoringServiceTest.php`: score per signal (official audio, Topic + "Provided to YouTube", re-upload, live, several keywords, keyword in the track title, VEVO, remix found / missing / other remix, original vs remix, extended mix on the label channel, one of several artists, feat., diacritics, artist only in the channel, no artist, partial title, unrelated, clamp to 0), `rank()` order, ties and limit (data provider).
+
 ## Important test cases
 
 - Import parser: `Artist - Title`, remix kept in title, extra spaces, en/em dashes, lines without separator, empty lines.

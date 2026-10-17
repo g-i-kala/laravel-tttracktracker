@@ -475,3 +475,16 @@
 - Real results show what scoring must handle: official video, "Official Audio", an official live video on the artist's channel, and a "Daft Punk - Topic" channel with "(Radio Edit)".
 - The exception class lives in `app/Services/` to avoid a new `app/Exceptions/` folder without approval.
 
+## 2026-10-17 (YouTube API mode, step 2: scoring)
+
+### Added
+- `YoutubeScoringService` (`score()`, `rank()`), weights as constants.
+- `tests/Unit/YoutubeScoringServiceTest.php` (22 tests).
+
+### Changed
+- Docs: ARCHITECTURE (Scoring), DECISIONS (ADR), TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 256 tests pass.
+- Scored the cached real "Daft Punk Around the World" results (no quota): official video, official audio and two Topic uploads 90; fan re-uploads 70–75; official live video 55; another song 50; a Carl Cox live set 40.
+- To tune in step 5: "(NOT official video)" gets the official bonus; a medley on the Topic channel ("Around the World / Harder, Better, Faster, Stronger") scores 90.

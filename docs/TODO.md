@@ -57,7 +57,7 @@
   - [x] Step 0: real-key smoke test (2026-10-17)
   - [x] Step 1: `YoutubeSearchService` + cache + error/quota detection (2026-10-17)
   - [ ] Step 3: job + `Bus::batch()` + per-item fallback
-- [ ] Scoring service (title-based)
+- [x] Scoring service (title-based) — step 2, 2026-10-17; tune weights in step 5
 - [ ] Candidate selection (API mode)
 - [x] Supersimple TXT export (sync) + versioning + download (export step 1, 2026-10-16)
 - [x] Manual test export step 1: Generate TXT → missing links modal → file downloads; second export → version modal (new / overwrite); Download again (2026-10-17)

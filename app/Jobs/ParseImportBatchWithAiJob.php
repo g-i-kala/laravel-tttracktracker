@@ -9,6 +9,7 @@ use App\Services\AiUsageService;
 use App\Services\ImportBatchService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -16,7 +17,9 @@ use Throwable;
 /**
  * Parses a batch's raw input with AI in the background and stores the items.
  * Not retried automatically (each attempt costs money); the user can retry from Parse Review.
+ * Silently dropped when the batch was deleted before the job ran.
  */
+#[DeleteWhenMissingModels]
 class ParseImportBatchWithAiJob implements ShouldQueue
 {
     use Queueable;

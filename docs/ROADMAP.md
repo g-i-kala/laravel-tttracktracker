@@ -5,6 +5,7 @@
 - [ ] Environment: Sail, project-local PostgreSQL, Livewire
 - [ ] Migrations + models (5 tables)
 - [x] Dashboard (needs attention, recent imports/exports)
+- [x] Delete imports and export files (single + bulk, confirmation modal)
 - [ ] New import page + auto-generated name
 - [x] Import parser (`Artist - Title`)
 - [x] AI parsing of any pasted format (Laravel AI SDK, OpenAI by default)

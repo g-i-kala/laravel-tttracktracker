@@ -160,6 +160,12 @@ Title-based only (no duration lookup):
 - The only classic controller is `ExportController@download`, which streams the TXT file.
 - See [UI-FLOW.md](UI-FLOW.md) and [API.md](API.md).
 
+## Deleting
+
+- `ImportBatchService::deletionSummary(ids)` → `{imports, tracks, exports}` for the modal. `deleteBatches(ids)` deletes in a transaction, in foreign-key order: YouTube candidates → items → export rows → batches; then the TXT files and `exports/{batch id}/` directories (after the transaction). `ai_usage_logs.import_batch_id` is `nullOnDelete`, so cost history stays.
+- `SupersimpleTxtExportService::deleteExports(ids)` deletes rows (transaction) and files; batches left without any export go back from `exported` to `searched`, and so do their exported items.
+- `ParseImportBatchWithAiJob` has `#[DeleteWhenMissingModels]`: a job queued for a batch deleted in the meantime is dropped silently.
+
 ## Dashboard
 
 `App\Livewire\Dashboard` computed properties: `toReview` (status `parsed`, `withCount('items')`), `missingLinks` (status `searched`/`exported`, `whereHas` items without `selected_youtube_url`, `missing_links_count`), `outdatedExports` (batches with exports filtered by `SupersimpleTxtExportService::isLatestExportOutdated()`; reads the latest file of each exported batch, fine for a single-user local app), `recentImports` / `recentExports` (`RECENT_LIMIT = 10`). `ImportBatchStatus::screenRouteName()` picks YouTube Results or Parse Review for links to a batch.

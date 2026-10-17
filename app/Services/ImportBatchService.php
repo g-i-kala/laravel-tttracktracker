@@ -5,8 +5,12 @@ namespace App\Services;
 use App\Enums\ImportBatchStatus;
 use App\Enums\ImportItemStatus;
 use App\Jobs\ParseImportBatchWithAiJob;
+use App\Models\ExportFile;
 use App\Models\ImportBatch;
+use App\Models\ImportItem;
+use App\Models\YoutubeCandidate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Creates import batches and their items from pasted track lists, with the
@@ -138,6 +142,59 @@ class ImportBatchService
                 $batch->update(['status' => ImportBatchStatus::Searched]);
             }
         });
+    }
+
+    /**
+     * What deleting these batches removes, for the confirmation modal.
+     *
+     * @param  list<int>  $batchIds
+     * @return array{imports: int, tracks: int, exports: int}
+     */
+    public function deletionSummary(array $batchIds): array
+    {
+        return [
+            'imports' => ImportBatch::query()->whereKey($batchIds)->count(),
+            'tracks' => ImportItem::query()->whereIn('import_batch_id', $batchIds)->count(),
+            'exports' => ExportFile::query()->whereIn('import_batch_id', $batchIds)->count(),
+        ];
+    }
+
+    /**
+     * Delete batches with their YouTube candidates, items, export rows and TXT
+     * files (foreign keys restrict, so the order matters). AI usage logs stay,
+     * their batch reference becomes null. Files are removed after the transaction.
+     *
+     * @param  list<int>  $batchIds
+     * @return int number of deleted batches
+     */
+    public function deleteBatches(array $batchIds): int
+    {
+        $batchIds = ImportBatch::query()->whereKey($batchIds)->pluck('id')->all();
+
+        if ($batchIds === []) {
+            return 0;
+        }
+
+        $paths = ExportFile::query()->whereIn('import_batch_id', $batchIds)->pluck('path')->all();
+
+        $deleted = DB::transaction(function () use ($batchIds): int {
+            $itemIds = ImportItem::query()->whereIn('import_batch_id', $batchIds)->select('id');
+
+            YoutubeCandidate::query()->whereIn('import_item_id', $itemIds)->delete();
+            ImportItem::query()->whereIn('import_batch_id', $batchIds)->delete();
+            ExportFile::query()->whereIn('import_batch_id', $batchIds)->delete();
+
+            return ImportBatch::query()->whereKey($batchIds)->delete();
+        });
+
+        $disk = Storage::disk(SupersimpleTxtExportService::DISK);
+        $disk->delete($paths);
+
+        foreach ($batchIds as $batchId) {
+            $disk->deleteDirectory("exports/{$batchId}");
+        }
+
+        return $deleted;
     }
 
     /**

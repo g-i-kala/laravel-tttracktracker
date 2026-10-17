@@ -27,6 +27,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 > Status: implemented (2026-10-13).
 
 - Table of all batches, newest first, 25 per page: name (link), created, track count, status badge (`To review` amber, `Failed` red, others accent), actions.
+- **Delete** (2026-10-17): checkbox per row + select-all on the page (selection kept across pages) → bar "N selected · **Delete selected** · Clear selection"; **Delete** per row. Both open the **Delete imports** modal: "Delete “name”?" / "Delete N imports?" + "This removes N tracks and N export files (TXT)." + "This cannot be undone." → **Cancel** / red **Delete**. Afterwards: notice "Deleted N imports."
 - Actions: **Review** (Parse Review) always; **YouTube links** (YouTube Results, no new search) once the batch is `searched` / `exported`. The name links to YouTube Results when searched, otherwise to Parse Review.
 - Empty state "No imports yet" + **New YouTube Export** button.
 
@@ -91,6 +92,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 > Status: implemented (2026-10-17).
 
 - Table of all export files (every version), newest first, 25 per page: filename (mono) + **Latest** badge on the highest version of each import, import name (link to YouTube Results), version (`v2`), link count, exported date (`updated_at`, so an overwrite shows its new date), **Download** (`/exports/{export}/download`).
+- **Delete** (2026-10-17): same selection pattern as the imports list; the **Delete export files** modal lists the filenames, says "The imports and their links stay." → **Cancel** / red **Delete**; notice "Deleted N export files."
 - Empty state "No exports yet".
 - Sidebar **Exports** is now active (the `<x-nav-link>` shows "Coming soon" only for routes that do not exist).
 
@@ -111,6 +113,8 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | -------------------- | --------------- | -------------------------------- |
 | How it works         | Dashboard       | "How it works" button          |
 | Duplicate modal      | Parse Review    | Exact duplicates right after parse; "Review duplicates" in the banner |
+| Delete imports       | Imports         | Delete (row) / Delete selected   |
+| Delete export files  | Exports         | Delete (row) / Delete selected   |
 | Missing links modal  | YouTube Results | Generate TXT with tracks without a link |
 | Export version modal | YouTube Results | Export already exists for batch  |
 

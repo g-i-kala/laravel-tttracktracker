@@ -27,6 +27,8 @@
 - [x] `config/services.php` YouTube entry
 - [x] App layout (`layouts/app.blade.php`) + `<x-modal>` component (+ placeholder Dashboard)
 - [x] Build dashboard (2026-10-17)
+- [x] Delete imports / export files: single + bulk selection, confirmation modal with summary (2026-10-17)
+- [ ] Manual test delete: imports list (row + selected), exports list (row + selected), last export deleted → import back to Searched
 - [x] Manual test dashboard: needs attention rows + links, recent imports/exports, View all (2026-10-17)
 - [x] Build import create page (redirect to review pending)
 - [x] Implement parser (+ `normalized_key`)

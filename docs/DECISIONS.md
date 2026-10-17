@@ -408,3 +408,15 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-17). Comparing contents avoids false alarms from edits that do not affect the TXT (title, BPM, label).
 
 **Consequences:** The dashboard reads the latest export file of every exported batch on each load; fine for a local single-user app, revisit if exports grow large.
+
+## 2026-10-17 — Deleting imports and exports
+
+**Decision:**
+- Imports can be deleted from the imports list, export files from the exports list: one by one (row **Delete**) or several at once (checkboxes, select-all per page, **Delete selected**).
+- Always through a confirmation modal with a summary (tracks and TXT files that will disappear). No soft deletes, no undo.
+- Deleting an import deletes its YouTube candidates, items, export rows and TXT files explicitly, in a transaction (foreign keys stay `restrictOnDelete`, as decided in "Database"). AI usage logs stay (`nullOnDelete`).
+- Deleting an export keeps the import; if it was the import's last export, the import and its exported items go back to `searched`.
+
+**Reason:** User request (2026-10-17) after test imports piled up; user chose bulk selection and the summary modal.
+
+**Consequences:** `ParseImportBatchWithAiJob` gets `#[DeleteWhenMissingModels]` so a queued job for a deleted batch does not fail.

@@ -31,6 +31,8 @@ These replace the POST/PATCH routes from the original plan.
 | `Imports\Review`  | `checkParsing()` **(implemented)**     | —                                              | Polled every 2 s while the batch is `parsing`; loads items when done |
 | `Imports\Review`  | `retryAiParsing()` / `useLineParser()` **(implemented)** | —                            | After AI failure: queue AI again (blocked with an error when AI is off / budget reached), or parse `raw_input` line by line |
 | `Imports\Review`  | `saveAndClose()` **(implemented)**     | —                                              | Validate all fields, `ImportBatchService::markReviewed()` (`parsed` → `reviewed`; later statuses kept), flash, redirect to `/imports` |
+| `Imports\Index`   | `toggleAllOnPage()` / `confirmDelete(?$batchId)` / `delete()` **(implemented)** | `DELETE /imports/{batch}` | Selection (`selected`, `wire:model.live`), delete modal, `ImportBatchService::deleteBatches()` |
+| `Exports\Index`   | `toggleAllOnPage()` / `confirmDelete(?$exportId)` / `delete()` **(implemented)** | `DELETE /exports/{export}` | Same pattern, `SupersimpleTxtExportService::deleteExports()` |
 | `Settings\Ai`     | `saveApiKey()` / `removeApiKey()` **(implemented)** | —                                     | Store the key encrypted (`AiSettingsService`) / delete it (falls back to `.env`); flash + redirect |
 | `Settings\Ai`     | `testApiKey()` **(implemented)**       | —                                              | `GET https://api.openai.com/v1/models` with the key (no tokens); `valid` / `invalid` / `unsupported` |
 | `Settings\Ai`     | `saveSettings()` **(implemented)**     | —                                              | Validate + save model and monthly budget (empty = no limit)         |

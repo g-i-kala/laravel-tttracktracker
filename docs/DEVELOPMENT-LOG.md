@@ -426,3 +426,17 @@
 
 ### Notes
 - 213 tests pass. Headless Chrome (read-only): desktop and 390 px screenshots, no JS errors, no horizontal overflow after the fix.
+
+## 2026-10-17 (Delete imports and exports)
+
+### Added
+- `ImportBatchService::deletionSummary()`, `deleteBatches()`; `SupersimpleTxtExportService::deleteExports()`.
+- Imports list and exports list: checkboxes + select all on the page, "N selected · Delete selected · Clear selection" bar, row **Delete**, confirmation modal with summary, notice after deleting.
+- `#[DeleteWhenMissingModels]` on `ParseImportBatchWithAiJob`.
+- Tests: `DeleteImportsTest` (6), `DeleteExportsTest` (5).
+
+### Changed
+- Docs: DECISIONS (ADR), UI-FLOW, API, ARCHITECTURE, PRD, ROADMAP, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 224 tests pass. Headless Chrome on two temporary "ZZ delete test" imports (created with tinker, each exported twice): row Delete on the exports list removed one file; ticking both imports → modal "Delete 2 imports? This removes 2 tracks and 3 export files (TXT)." → both gone with their files. The user's data was untouched.

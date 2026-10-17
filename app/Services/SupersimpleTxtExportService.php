@@ -70,6 +70,49 @@ class SupersimpleTxtExportService
     }
 
     /**
+     * Delete export files (rows and TXT files). Batches left without any export
+     * go back to `searched`, and their exported items too, since no file holds them anymore.
+     *
+     * @param  list<int>  $exportIds
+     * @return int number of deleted exports
+     */
+    public function deleteExports(array $exportIds): int
+    {
+        $exports = ExportFile::query()->whereKey($exportIds)->get();
+
+        if ($exports->isEmpty()) {
+            return 0;
+        }
+
+        $batchIds = $exports->pluck('import_batch_id')->unique()->values()->all();
+
+        $deleted = DB::transaction(function () use ($exports, $batchIds): int {
+            $deleted = ExportFile::query()->whereKey($exports->modelKeys())->delete();
+
+            $batchesWithoutExports = ImportBatch::query()
+                ->whereKey($batchIds)
+                ->whereDoesntHave('exportFiles')
+                ->pluck('id');
+
+            ImportBatch::query()
+                ->whereKey($batchesWithoutExports)
+                ->where('status', ImportBatchStatus::Exported)
+                ->update(['status' => ImportBatchStatus::Searched]);
+
+            ImportItem::query()
+                ->whereIn('import_batch_id', $batchesWithoutExports)
+                ->where('status', ImportItemStatus::Exported)
+                ->update(['status' => ImportItemStatus::Searched]);
+
+            return $deleted;
+        });
+
+        Storage::disk(self::DISK)->delete($exports->pluck('path')->all());
+
+        return $deleted;
+    }
+
+    /**
      * Write the file as a new version, or overwrite the latest version (same
      * filename and version; a new version when there is none yet). Exported
      * items and the batch get the `exported` status.

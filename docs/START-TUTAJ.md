@@ -175,7 +175,17 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 **Decyzje** (DECISIONS.md, wpisy 2026-10-17): biblioteka po MVP, tryb API (zachowanie + szczegóły), wagi scoringu, log limitu, postęp przez polling, Add tracks.
 
-**Stan danych lokalnych (2026-10-17, koniec sesji):** 1 import, 1 eksport, 11 wpisów cache YouTube, w logu `youtube_api_calls` 1000 jednostek (limit dzienny 10 000, reset o 9:00 czasu PL). Testowe importy „ZZ …” usunięte.
+**Stan danych lokalnych (2026-10-17, koniec sesji, bez zmian w nocnej części):** 1 import, 1 eksport, 11 wpisów cache YouTube, w logu `youtube_api_calls` 1000 jednostek (limit dzienny 10 000, reset o 9:00 czasu PL). Testowe importy „ZZ …” usunięte.
+
+### Sesja 2026-10-17 (noc): przegląd scoringu, licznik limitu YouTube
+
+**Zrobione:**
+1. Przegląd punktów na prawdziwym imporcie („YouTube Export 2026-10-17 21:39”, 8 tracków) i w cache. Użytkownik: „na dziś działa super”, strojenie później. Plan z decyzjami zapisany w [TODO.md](TODO.md) pod „Step 5”.
+2. `4c49823 feat(youtube)`: **licznik limitu** `YoutubeQuotaService::today()` (jednostki od północy czasu pacyficznego, `YOUTUBE_DAILY_QUOTA` = 10 000), linia `<x-youtube-quota>` na Dashboard / Parse Review / YouTube Results (tylko z kluczem), ekran **YouTube Settings** `/settings/youtube` (tylko licznik + czy klucz ustawiony). Test ręczny użytkownika OK.
+
+**Lekcja:** porównując `created_at` z momentem w innej strefie (np. północ PT), najpierw `setTimezone(config('app.timezone'))`: Eloquent zapisuje Carbon bez konwersji strefy.
+
+**Na start następnej sesji:** propozycja: punkt 3 niżej (playlista YouTube → TXT), zaczynając od pytań. Użytkownik jeszcze nie wybrał.
 
 **Incydent: klucz OpenAI w logu sesji**
 - 2026-10-13 pełny `OPENAI_API_KEY` wyświetlił się w wyniku polecenia, bo maskowanie `sed` nie działa na macOS (BSD sed). Nie ma go w gicie ani w plikach projektu.

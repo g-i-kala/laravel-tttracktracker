@@ -584,3 +584,8 @@
 ### Notes
 - 302 tests pass. Ran `sail npm run build`.
 - Headless Chrome: the line shows "1,000 / 10,000 units used today (~90 searches left) · resets 09:00" on all four screens, the sidebar link opens Settings → YouTube, no JS errors.
+
+## 2026-10-17 (Session handoff, night)
+
+### Changed
+- START-TUTAJ: session notes (scoring review postponed, quota counter), lesson about timezones in queries, suggested start for the next session.

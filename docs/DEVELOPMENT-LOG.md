@@ -532,3 +532,17 @@
 ### Notes
 - 280 tests pass. Ran `sail npm run build`.
 - Headless Chrome on a temporary "ZZ progress test" import (3 cached tracks, no quota used; deleted afterwards): with the queue worker stopped the page showed "0 of 3 tracks ready" and 3 × "Searching…"; after `sail start queue` the rows filled in and the summary "3 linked and included · 0 to check · 0 not found" appeared without a reload. No JS errors, no horizontal scroll at 390 px.
+
+## 2026-10-17 (YouTube API mode, step 4b: candidates)
+
+### Added
+- YouTube Results: "score N" for API links, "N candidates" toggle with radio, score badge, title link and channel per candidate; `Show::selectCandidate()`, `ImportItemService::selectYoutubeCandidate()`.
+- 3 tests in `YoutubeApiSearchTest`.
+
+### Changed
+- `Show::rows()` eager-loads candidates by rank; rows keyed by id + status.
+- Docs: UI-FLOW, ARCHITECTURE, TESTING, TODO (+ "add tracks to an existing import" request), ROADMAP, START-TUTAJ.
+
+### Notes
+- 283 tests pass. Ran `sail npm run build`.
+- Headless Chrome on a temporary "ZZ candidates test" import (2 cached tracks, no quota; deleted afterwards): list closed for included tracks, opens with the toggle; choosing candidate #2 updated the field, moved the radio, showed "score 70", kept Export ticked. No JS errors, no horizontal scroll at 390 px.

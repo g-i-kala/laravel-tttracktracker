@@ -138,6 +138,21 @@ class Show extends Component
         unset($this->rows, $this->exportableCount);
     }
 
+    /**
+     * Choose another API candidate for a track; it becomes the track's link and is included in the export.
+     */
+    public function selectCandidate(int $itemId, int $candidateId, ImportItemService $items): void
+    {
+        $item = $this->batch->items()->findOrFail($itemId);
+
+        $items->selectYoutubeCandidate($item, $item->youtubeCandidates()->findOrFail($candidateId));
+
+        $this->resetErrorBag("links.{$itemId}");
+        $this->links[$itemId] = (string) $item->selected_youtube_url;
+        $this->dispatch('item-saved', id: $itemId);
+        unset($this->rows, $this->exportableCount);
+    }
+
     public function toggleExport(int $itemId, ImportItemService $items): void
     {
         $items->toggleExport($this->batch->items()->findOrFail($itemId));
@@ -251,7 +266,10 @@ class Show extends Component
     #[Computed]
     public function rows(): Collection
     {
-        return $this->batch->items()->orderBy('line_number')->get();
+        return $this->batch->items()
+            ->with(['youtubeCandidates' => fn ($query) => $query->orderBy('rank')])
+            ->orderBy('line_number')
+            ->get();
     }
 
     /**

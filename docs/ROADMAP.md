@@ -16,7 +16,7 @@
 - [x] YouTube search URL generator (no-key mode) + YouTube Results screen
 - [ ] YouTube Data API search + cache
 - [ ] Candidate scoring + preselect/include rules
-- [ ] Candidate selection (API mode)
+- [x] Candidate selection (API mode)
 - [x] Custom link (inline field, validation + normalization)
 - [x] Include-in-export toggle
 - [x] Supersimple TXT export + missing-link modal

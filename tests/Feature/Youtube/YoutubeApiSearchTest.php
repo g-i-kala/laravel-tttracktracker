@@ -328,6 +328,53 @@ class YoutubeApiSearchTest extends TestCase
             ->assertDontSee('YouTube search finished:');
     }
 
+    public function test_results_screen_lists_candidates_with_scores(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+        $item = ImportItem::factory()->for($batch)->create(['status' => ImportItemStatus::Searched]);
+        YoutubeCandidate::factory()->for($item)->create(['rank' => 2, 'score' => 70, 'title' => 'Second video', 'channel_title' => 'Fan channel']);
+        YoutubeCandidate::factory()->for($item)->create(['rank' => 1, 'score' => 90, 'title' => 'Best video', 'channel_title' => 'Official channel']);
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->assertSee('2 candidates')
+            ->assertSeeInOrder(['Best video', 'Official channel', 'Second video', 'Fan channel'])
+            ->assertSeeHtml('wire:click="selectCandidate('.$item->id.', ');
+    }
+
+    public function test_selecting_a_candidate_makes_it_the_link_and_includes_it(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+        $item = ImportItem::factory()->for($batch)->withSelectedYoutubeLink()->create();
+        $candidate = YoutubeCandidate::factory()->for($item)->create(['video_id' => 'otherVideo1', 'url' => 'https://www.youtube.com/watch?v=otherVideo1', 'score' => 65, 'title' => 'Other video', 'channel_title' => 'Other channel']);
+        $item->update(['include_in_export' => false]);
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->call('selectCandidate', $item->id, $candidate->id)
+            ->assertSet("links.{$item->id}", 'https://www.youtube.com/watch?v=otherVideo1')
+            ->assertDispatched('item-saved', id: $item->id)
+            ->assertSee('score 65');
+
+        $item->refresh();
+        $this->assertSame('otherVideo1', $item->selected_youtube_video_id);
+        $this->assertSame('Other video', $item->selected_youtube_title);
+        $this->assertSame('Other channel', $item->selected_youtube_channel);
+        $this->assertSame(65, $item->youtube_score);
+        $this->assertTrue($item->include_in_export);
+    }
+
+    public function test_candidate_of_another_item_cannot_be_selected(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+        $item = ImportItem::factory()->for($batch)->create(['status' => ImportItemStatus::Searched]);
+        $foreignCandidate = YoutubeCandidate::factory()->create();
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->call('selectCandidate', $item->id, $foreignCandidate->id)
+            ->assertNotFound();
+
+        $this->assertNull($item->refresh()->selected_youtube_url);
+    }
+
     private function customLinkItem(ImportBatch $batch, int $lineNumber): ImportItem
     {
         return ImportItem::factory()->for($batch)->create([

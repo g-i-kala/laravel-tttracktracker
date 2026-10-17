@@ -59,10 +59,10 @@
   - [x] Step 3: job + `Bus::batch()` + per-item fallback + quota flag (2026-10-17)
   - [x] Manual test step 3 (user, 2026-10-17: works; asked for progress info instead of refreshing)
   - [x] Step 4a: progress bar + rows fill in live + summary (`wire:poll`, 2026-10-17)
-  - [ ] Step 4b: candidate list (top 3 with scores) + choosing another candidate
+  - [x] Step 4b: candidate list (top 3 with scores) + choosing another candidate (2026-10-17)
   - [ ] Step 5: real-import test + scoring weight tuning
 - [x] Scoring service (title-based) — step 2, 2026-10-17; tune weights in step 5
-- [ ] Candidate selection (API mode)
+- [x] Candidate selection (API mode) (2026-10-17)
 - [ ] YouTube quota tracking (step 3a done 2026-10-17: `youtube_api_calls` log; display still to do): log every real `search.list` call (100 units; cache hits cost 0), show today's usage / remaining of 10,000 units (day resets at midnight Pacific Time = 09:00 Warsaw; 08:00 in the few weeks when US and EU daylight saving time differ), e.g. on YouTube Results + a Settings → YouTube screen (requested 2026-10-17)
 - [x] Supersimple TXT export (sync) + versioning + download (export step 1, 2026-10-16)
 - [x] Manual test export step 1: Generate TXT → missing links modal → file downloads; second export → version modal (new / overwrite); Download again (2026-10-17)
@@ -70,6 +70,8 @@
 - [x] Manual test export step 2: sidebar Exports → list, Latest badge, Download, import link (2026-10-17)
 
 ## After MVP
+
+- [ ] **Add tracks to an existing import** (requested 2026-10-17): before or after the search, paste more tracks into an import (also links found earlier); the search then only looks up the new ones. Questions first (where the button lives, pasted links vs track names, duplicates).
 
 - [ ] Check feasibility (requested 2026-10-17): build the link list straight from a **YouTube playlist** (paste playlist URL → Supersimple TXT / import). Note: `playlistItems.list` costs 1 quota unit per 50 videos (vs 100 per search); private playlists need OAuth, public/unlisted work with the API key.
 

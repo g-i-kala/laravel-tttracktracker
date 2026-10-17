@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\ImportItemStatus;
 use App\Models\ImportItem;
+use App\Models\YoutubeCandidate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -60,6 +61,23 @@ class ImportItemService
             'selected_youtube_title' => null,
             'selected_youtube_channel' => null,
             'youtube_score' => null,
+            'include_in_export' => true,
+        ]);
+
+        return $item;
+    }
+
+    /**
+     * Select one of the item's API candidates (the user's choice) and include the item in the export.
+     */
+    public function selectYoutubeCandidate(ImportItem $item, YoutubeCandidate $candidate): ImportItem
+    {
+        $item->update([
+            'selected_youtube_url' => $candidate->url,
+            'selected_youtube_video_id' => $candidate->video_id,
+            'selected_youtube_title' => $candidate->title,
+            'selected_youtube_channel' => $candidate->channel_title,
+            'youtube_score' => $candidate->score,
             'include_in_export' => true,
         ]);
 

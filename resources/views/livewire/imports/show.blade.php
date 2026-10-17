@@ -106,8 +106,8 @@
             <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                 @forelse ($this->rows as $item)
                     <tr
-                        wire:key="item-{{ $item->id }}"
-                        x-data="{ saved: false, savedTimer: null }"
+                        wire:key="item-{{ $item->id }}-{{ $item->status->value }}"
+                        x-data="{ saved: false, savedTimer: null, candidatesOpen: @js($item->youtubeCandidates->isNotEmpty() && ! $item->include_in_export) }"
                         x-on:item-saved.window="if ($event.detail.id === {{ $item->id }}) { saved = true; clearTimeout(savedTimer); savedTimer = setTimeout(() => saved = false, 1500) }"
                         class="align-top"
                     >
@@ -154,12 +154,50 @@
                                     @class([$inputClasses, 'border-red-400 dark:border-red-600' => $errors->has("links.{$item->id}")])
                                 >
                                 @error("links.{$item->id}") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                                <p class="mt-1 flex gap-2 text-xs">
+                                <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                                     @if ($item->selected_youtube_url)
                                         <a href="{{ $item->selected_youtube_url }}" target="_blank" rel="noopener noreferrer" class="font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Watch ↗</a>
                                     @endif
+                                    @if ($item->youtube_score !== null)
+                                        <span class="text-zinc-500 dark:text-zinc-400">score {{ $item->youtube_score }}</span>
+                                    @endif
+                                    @if ($item->youtubeCandidates->isNotEmpty())
+                                        <button type="button" x-on:click="candidatesOpen = ! candidatesOpen" x-bind:aria-expanded="candidatesOpen" class="font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white">
+                                            {{ $item->youtubeCandidates->count() }} {{ Str::plural('candidate', $item->youtubeCandidates->count()) }}
+                                            <svg class="inline size-3 transition-transform" x-bind:class="candidatesOpen && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/></svg>
+                                        </button>
+                                    @endif
                                     <span x-show="saved" x-cloak x-transition.opacity class="text-accent-600 dark:text-accent-400">Saved</span>
                                 </p>
+                                @if ($item->youtubeCandidates->isNotEmpty())
+                                    <ul x-show="candidatesOpen" x-cloak class="mt-2 flex flex-col gap-1.5">
+                                        @foreach ($item->youtubeCandidates as $candidate)
+                                            @php($isSelected = $candidate->video_id === $item->selected_youtube_video_id)
+                                            <li wire:key="candidate-{{ $candidate->id }}" class="flex items-start gap-2 text-xs">
+                                                <input
+                                                    type="radio"
+                                                    name="candidate-{{ $item->id }}"
+                                                    aria-label="Use this video"
+                                                    wire:click="selectCandidate({{ $item->id }}, {{ $candidate->id }})"
+                                                    @checked($isSelected)
+                                                    class="mt-0.5 size-3.5 shrink-0 border-zinc-300 text-accent-600 focus:ring-accent-500 dark:border-zinc-700"
+                                                >
+                                                <span @class([
+                                                    'w-8 shrink-0 rounded px-1 py-0.5 text-center font-medium tabular-nums',
+                                                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' => $candidate->score >= config('services.youtube.auto_include_threshold'),
+                                                    'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' => $candidate->score < config('services.youtube.auto_include_threshold') && $candidate->score >= config('services.youtube.preselect_threshold'),
+                                                    'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400' => $candidate->score < config('services.youtube.preselect_threshold'),
+                                                ]) title="Score">{{ $candidate->score }}</span>
+                                                <span class="min-w-0">
+                                                    <a href="{{ $candidate->url }}" target="_blank" rel="noopener noreferrer" @class(['break-words hover:underline', 'font-medium' => $isSelected])>{{ $candidate->title }} <span aria-hidden="true">↗</span></a>
+                                                    @if ($candidate->channel_title)
+                                                        <span class="block text-zinc-500 dark:text-zinc-400">{{ $candidate->channel_title }}</span>
+                                                    @endif
+                                                </span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                                 @if (in_array($item->error_message, $searchNotices, true))
                                     <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">{{ $item->error_message }}</p>
                                 @endif

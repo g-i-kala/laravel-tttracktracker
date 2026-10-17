@@ -65,6 +65,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Marks update after every edit or removal.
 - **Save & close** button (hidden while parsing / failed): validates all fields, marks the batch `reviewed` (a later status is kept), flash "Saved \"name\".", redirects to the imports list.
 - **YouTube links →** link (once searched): opens YouTube Results without searching again.
+- **Add tracks** button (hidden while parsing / failed / searching) → modal "Add tracks" (2026-10-17): textarea (any format with AI, one `Artist - Title` per line without), **Cancel** / **Add tracks** (spinner text while parsing), **Use simple parser** after an AI failure. New tracks go to the end, tracks already in the import are skipped; notice "Added N tracks. N already in this import were skipped." Also on YouTube Results (header, disabled while searching), where the new tracks are searched right away.
 - **Search YouTube** button (hidden while parsing / failed, disabled with no tracks) → `searchYoutube()`: validates all fields, generates search URLs, redirects to YouTube Results. Can be run again after edits (URLs are regenerated). With `YOUTUBE_DATA_API_KEY` (2026-10-17) it also queues the API search for tracks without a link; YouTube Results shows the preselected links in the row field after a page refresh (progress bar and candidate list: step 4). Tracks that already have a link (pasted or chosen) are not searched again; clear the field to search one again.
 
 ## YouTube Results (`/imports/{batch}`) — `Imports\Show`

@@ -71,7 +71,8 @@
 
 ## After MVP
 
-- [ ] **Add tracks to an existing import** (requested 2026-10-17): before or after the search, paste more tracks into an import (also links found earlier); the search then only looks up the new ones. Questions first (where the button lives, pasted links vs track names, duplicates).
+- [x] **Add tracks to an existing import** (requested 2026-10-17, done the same day): modal on Parse Review and YouTube Results, duplicates skipped, new tracks searched right away on YouTube Results
+- [ ] Manual test Add tracks (user): Parse Review and YouTube Results, a duplicate in the paste, AI paste from Beatport
 
 - [ ] Check feasibility (requested 2026-10-17): build the link list straight from a **YouTube playlist** (paste playlist URL → Supersimple TXT / import). Note: `playlistItems.list` costs 1 quota unit per 50 videos (vs 100 per search); private playlists need OAuth, public/unlisted work with the API key.
 

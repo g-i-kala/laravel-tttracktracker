@@ -88,6 +88,14 @@ Textarea input
 
 `App\Services\MusicalKeyService::toCamelot(?key)` (pure): store key (`E Minor`, `F♯ Major`, `Bbm`, `C# min`, note only = major) or Camelot (`09a`) → Camelot code (`9A`), null when unrecognized. Enharmonic spellings map to the same code.
 
+## Adding tracks to an import (implemented)
+
+"Add tracks" on Parse Review and YouTube Results (trait `App\Livewire\Concerns\AddsTracks`, modal partial `livewire/imports/partials/add-tracks-modal.blade.php`):
+
+- `ImportBatchService::parseAdditionalTracks()`: AI when enabled (key + budget), **synchronously in the request** (`set_time_limit(240)`, the modal shows "Parsing with AI…"), inside `Context::scope` so the usage is logged against the batch; otherwise / on "Use simple parser" the line parser. AI exceptions are reported and shown in the modal.
+- `appendParsedLines()`: new items after the highest `line_number`, `status = parsed`, batch default genre; tracks whose `normalized_key` is already in the batch (or repeated in the paste) are skipped; returns `{added, skipped}`. The batch status is not changed. Limit: 200 tracks per import (`Create::MAX_TRACKS`).
+- Parse Review reloads the rows and shows "Added N tracks. N already in this import were skipped."; YouTube Results runs `searchYoutube()` at once (API mode: only items without a link are queued, progress + summary as usual; no-key mode: search URLs). The button is disabled on YouTube Results (and hidden on Review) while the batch is `searching`.
+
 ## AI parsing (implemented)
 
 When the configured AI provider has an API key, New Import parses **any** pasted format with AI instead of the line parser.

@@ -3,6 +3,7 @@
 namespace App\Livewire\Imports;
 
 use App\Enums\ImportBatchStatus;
+use App\Livewire\Concerns\AddsTracks;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
 use App\Services\AiTrackListParserService;
@@ -22,11 +23,14 @@ use Livewire\Component;
  * once right after parsing (later: banner); similar tracks are marked in the
  * rows. Save & close marks the batch
  * as reviewed and returns to the imports list. While AI parsing runs in the
- * background, the page polls until the items are ready.
+ * background, the page polls until the items are ready. Add tracks appends
+ * more pasted tracks at the end.
  */
 #[Title('Parse Review')]
 class Review extends Component
 {
+    use AddsTracks;
+
     public ImportBatch $batch;
 
     /**
@@ -111,6 +115,13 @@ class Review extends Component
     {
         $this->showDuplicateModal = false;
         $this->duplicatesDismissed = true;
+    }
+
+    protected function tracksAdded(int $added, int $skipped): void
+    {
+        $this->notice = $this->addedTracksNotice($added, $skipped);
+        $this->refreshRows();
+        $this->loadItems();
     }
 
     private function openDuplicateModalIfNeeded(): void

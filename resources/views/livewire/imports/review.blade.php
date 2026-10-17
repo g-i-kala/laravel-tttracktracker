@@ -36,6 +36,16 @@
                 </button>
             @endunless
 
+            @unless (in_array($batch->status, [\App\Enums\ImportBatchStatus::Parsing, \App\Enums\ImportBatchStatus::Failed, \App\Enums\ImportBatchStatus::Searching], true))
+                <button
+                    type="button"
+                    x-on:click="$wire.showAddTracksModal = true"
+                    class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                    Add tracks
+                </button>
+            @endunless
+
             @if ($batch->status->hasSearchResults())
                 <a
                     href="{{ route('imports.show', $batch) }}"
@@ -232,4 +242,6 @@
             <button type="button" wire:click="removeDuplicates" class="rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white hover:bg-accent-500">Remove duplicates</button>
         </x-slot:footer>
     </x-modal>
+
+    @include('livewire.imports.partials.add-tracks-modal')
 </div>

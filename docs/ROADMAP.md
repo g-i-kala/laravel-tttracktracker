@@ -10,6 +10,7 @@
 - [x] Import parser (`Artist - Title`)
 - [x] AI parsing of any pasted format (Laravel AI SDK, OpenAI by default)
 - [x] Save & close + imports list
+- [x] Add tracks to an existing import
 - [x] AI usage logging + Settings → AI (key, model, monthly budget)
 - [x] Parse review (edit artist/title/genre, BPM/key/label)
 - [x] Duplicate detection (exact modal, similar warning)

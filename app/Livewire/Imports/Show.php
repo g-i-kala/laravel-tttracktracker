@@ -4,9 +4,11 @@ namespace App\Livewire\Imports;
 
 use App\Enums\ImportBatchStatus;
 use App\Enums\ImportItemStatus;
+use App\Livewire\Concerns\AddsTracks;
 use App\Models\ExportFile;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
+use App\Services\ImportBatchService;
 use App\Services\ImportItemService;
 use App\Services\SupersimpleTxtExportService;
 use App\Services\YoutubeSearchUrlService;
@@ -25,10 +27,13 @@ use Livewire\Component;
  * asks whether to overwrite an existing export, writes the file and starts the download.
  * While the YouTube API search runs in the background the screen polls for progress,
  * fills in each track's link as soon as it is found and ends with a summary.
+ * Add tracks appends more tracks and searches them right away.
  */
 #[Title('YouTube Results')]
 class Show extends Component
 {
+    use AddsTracks;
+
     public const string INVALID_LINK_MESSAGE = 'Paste a YouTube video link (youtube.com/watch?v=…, youtu.be/… or youtube.com/shorts/…).';
 
     public ImportBatch $batch;
@@ -64,6 +69,8 @@ class Show extends Component
      * @var array{linked: int, to_check: int, not_found: int, failed: int}|null
      */
     public ?array $searchSummary = null;
+
+    public ?string $notice = null;
 
     public function mount(ImportBatch $batch): void
     {
@@ -217,6 +224,29 @@ class Show extends Component
         }
 
         $this->confirmExport('new', app(SupersimpleTxtExportService::class));
+    }
+
+    /**
+     * New tracks are searched right away (API mode: queued, progress shown; no-key mode: search links).
+     */
+    protected function tracksAdded(int $added, int $skipped): void
+    {
+        $this->notice = $this->addedTracksNotice($added, $skipped);
+
+        if ($added > 0) {
+            app(ImportBatchService::class)->searchYoutube($this->batch);
+            $this->batch->refresh();
+        }
+
+        unset($this->rows, $this->searchUrls, $this->exportableCount);
+
+        foreach ($this->rows as $item) {
+            $this->links[$item->id] ??= (string) $item->selected_youtube_url;
+        }
+
+        $this->pendingItemIds = $this->currentPendingItemIds();
+        $this->searchedItemIds = $this->pendingItemIds;
+        $this->searchSummary = null;
     }
 
     /**

@@ -546,3 +546,19 @@
 ### Notes
 - 283 tests pass. Ran `sail npm run build`.
 - Headless Chrome on a temporary "ZZ candidates test" import (2 cached tracks, no quota; deleted afterwards): list closed for included tracks, opens with the toggle; choosing candidate #2 updated the field, moved the radio, showed "score 70", kept Export ticked. No JS errors, no horizontal scroll at 390 px.
+
+## 2026-10-17 (Add tracks to an existing import)
+
+### Added
+- Trait `App\Livewire\Concerns\AddsTracks` + partial `livewire/imports/partials/add-tracks-modal.blade.php`; **Add tracks** on Parse Review and YouTube Results.
+- `ImportBatchService::parseAdditionalTracks()`, `appendParsedLines()`.
+- `tests/Feature/Imports/AddTracksTest.php` (9 tests).
+
+### Changed
+- YouTube Results gets a `notice` banner; after adding, new tracks are searched right away.
+- Docs: API, ARCHITECTURE, UI-FLOW, DECISIONS (ADR), PRD, ROADMAP, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 292 tests pass. Ran `sail npm run build`, `sail artisan queue:restart`.
+- Headless Chrome on a temporary "ZZ add tracks test" import (deleted afterwards): pasted "Bicep - Glue (Original Mix)" (already there) + "Daft Punk - Around the World" → "Added 1 track. 1 track already in this import was skipped.", the new track was searched (cache, no quota) and the summary appeared. Real AI parse: $0.00036, 1.7 s. The AI parser added "(Original Mix)" to the Daft Punk title (existing parser behaviour, harmless for duplicates and search).
+- First version had `AI@endif` in the partial: Blade does not treat `@endif` glued to a word as a directive (syntax error). Fixed by splitting the sentence into `@if`/`@else` blocks.

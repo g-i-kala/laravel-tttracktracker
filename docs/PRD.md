@@ -42,6 +42,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - **AI parsing** (when an AI API key is set): any pasted format — plain lines, store copy-pastes (e.g. Beatport, one track over several lines), tracklists with timestamps. Extracts artist, title (with version in parentheses) and genre. Runs in the background; Parse Review shows progress and offers retry / simple parser on failure.
 - Optional genre per item; batch default genre.
 - **Save & close** on Parse Review; imports list to continue any import later.
+- Add tracks to an existing import (Parse Review / YouTube Results): paste more tracks, duplicates of tracks already in the import are skipped; on YouTube Results they are searched right away.
 - Delete imports (with their tracks and TXT files) and single export files, one by one or several at once, after a confirmation modal with a summary.
 
 ### AI settings and usage

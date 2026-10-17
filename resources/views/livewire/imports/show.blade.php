@@ -28,6 +28,15 @@
         </div>
 
         <div class="flex gap-2">
+            <button
+                type="button"
+                x-on:click="$wire.showAddTracksModal = true"
+                @disabled($isSearching)
+                title="{{ $isSearching ? 'Wait until the YouTube search is finished' : 'Paste more tracks into this import' }}"
+                class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+                Add tracks
+            </button>
             <a
                 href="{{ route('imports.review', $batch) }}"
                 wire:navigate
@@ -49,6 +58,10 @@
             </button>
         </div>
     </div>
+
+    @if ($notice)
+        <p class="rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">{{ $notice }}</p>
+    @endif
 
     @if ($isSearching)
         <div wire:poll.2s="checkSearchProgress" class="flex flex-col gap-2 rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">
@@ -255,4 +268,6 @@
             <button type="button" wire:click="confirmExport('new')" class="rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white hover:bg-accent-500">Create new version</button>
         </x-slot:footer>
     </x-modal>
+
+    @include('livewire.imports.partials.add-tracks-modal')
 </div>

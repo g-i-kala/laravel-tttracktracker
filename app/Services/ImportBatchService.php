@@ -11,6 +11,7 @@ use App\Models\ImportBatch;
 use App\Models\ImportItem;
 use App\Models\YoutubeCandidate;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,6 +27,7 @@ class ImportBatchService
         private DuplicateDetectionService $duplicates,
         private YoutubeSearchUrlService $youtubeSearchUrls,
         private YoutubeSearchService $youtubeSearch,
+        private AiTrackListParserService $aiParser,
     ) {}
 
     /**
@@ -94,6 +96,59 @@ class ImportBatchService
             ], $parsedLines));
 
             $batch->update(['status' => ImportBatchStatus::Parsed]);
+        });
+    }
+
+    /**
+     * Parse tracks to add to an existing batch: with AI when it is enabled (synchronously,
+     * the usage is logged against the batch), otherwise or on request with the line parser.
+     *
+     * @return list<array{line_number: int, raw_line: string, artist: ?string, title: string, normalized_key: string, error_message: ?string, genre?: ?string, bpm?: ?int, musical_key?: ?string, camelot_key?: ?string, label?: ?string}>
+     */
+    public function parseAdditionalTracks(ImportBatch $batch, string $rawInput, bool $useLineParser = false): array
+    {
+        if ($useLineParser || ! $this->aiParser->isEnabled()) {
+            return $this->parser->parse($rawInput);
+        }
+
+        return Context::scope(
+            fn (): array => $this->aiParser->parse($rawInput),
+            [AiUsageService::BATCH_CONTEXT_KEY => $batch->id],
+        );
+    }
+
+    /**
+     * Append parsed tracks after the batch's last line. Tracks already in the batch
+     * (same normalized key) and repeats within the new list are skipped. The batch
+     * keeps its status; new tracks have no link yet, so the next YouTube search finds them.
+     *
+     * @param  list<array{line_number: int, raw_line: string, artist: ?string, title: string, normalized_key: string, error_message: ?string, genre?: ?string, bpm?: ?int, musical_key?: ?string, camelot_key?: ?string, label?: ?string}>  $parsedLines
+     * @return array{added: int, skipped: int}
+     */
+    public function appendParsedLines(ImportBatch $batch, array $parsedLines): array
+    {
+        return DB::transaction(function () use ($batch, $parsedLines): array {
+            $knownKeys = $batch->items()->pluck('normalized_key')->flip()->all();
+            $nextLineNumber = (int) $batch->items()->max('line_number') + 1;
+            $newLines = [];
+
+            foreach ($parsedLines as $line) {
+                if (isset($knownKeys[$line['normalized_key']])) {
+                    continue;
+                }
+
+                $knownKeys[$line['normalized_key']] = true;
+                $newLines[] = [
+                    ...$line,
+                    'line_number' => $nextLineNumber++,
+                    'genre' => ($line['genre'] ?? null) ?? $batch->default_genre,
+                    'status' => ImportItemStatus::Parsed,
+                ];
+            }
+
+            $batch->items()->createMany($newLines);
+
+            return ['added' => count($newLines), 'skipped' => count($parsedLines) - count($newLines)];
         });
     }
 

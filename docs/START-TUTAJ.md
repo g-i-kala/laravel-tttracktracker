@@ -15,7 +15,7 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 
 ## Aktualny status
 
-Stan na 2026-10-13:
+Stan na 2026-10-17:
 
 - Laravel 13, PHP 8.4, Sail (`compose.yaml`): app, PostgreSQL 16 (`tttracktracker`, port 5433 na hoście), worker kolejki jako serwis `queue`. Aplikacja: http://localhost:8000.
 - Frontend: Blade + **Livewire 4.4** (full-page, class-based, jeden komponent na ekran), Tailwind 4, własny `<x-modal>`. Sidebar, motyw jasny/ciemny wg systemu, akcent z `APP_ACCENT`.
@@ -90,6 +90,8 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - **Pytamy**, gdy coś jest niejasne albo decyzji jest kilka. Opcje podajemy z rekomendacją, „tworzymy team”.
 - Commit tylko na prośbę (Conventional Commits). Docs aktualizujemy przy każdej zmianie.
 - **Nigdy nie wyświetlamy sekretów z `.env`** (`cat` / `grep` na liniach z kluczami). Patrz incydent niżej.
+- **Zmiany UI (pola, autosave, nawigacja) najpierw sprawdzamy sami w headless Chrome** (puppeteer-core w scratchpadzie sesji, `/Applications/Google Chrome.app`, tymczasowy profil), dopiero potem test ręczny użytkownika. Bez rozszerzenia Claude in Chrome (użytkownik nie chce). Dane testowe tworzymy jako „ZZ …” i usuwamy po teście.
+- Po zmianach w joby/serwisy używane przez kolejkę: `sail artisan queue:restart`. Po nowych klasach Tailwind: `sail npm run build`.
 
 ### Sesja 2026-10-11: setup i przegląd architektury
 
@@ -120,8 +122,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 16. `feat(ai)`: agent AI zwraca `bpm`, `key`, `label`; mapowanie (BPM zaokrąglany, poza 40–300 → null) + Camelot. Test na prawdziwej wklejce z Beatportu poprawny. W tym samym commicie **poprawka kosztu**: `config("services.ai_pricing.openai.gpt-4.1-mini")` traktował kropki w nazwie modelu jak zagnieżdżenie, więc koszt nigdy się nie liczył; teraz `config('services.ai_pricing.openai')[$model]` + test regresji. 3 stare logi przeliczone ręcznie (tinker) 2026-10-14.
 
-**Otwarte pytania do użytkownika:**
-- „Saved” nie mignęło po edycji pola na Parse Review (test ręczny, krok 2). Czy zmiana się zapisała po odświeżeniu? Naprawić przy kroku 3 metadanych.
+**Otwarte pytania do użytkownika:** brak. („Saved” na Parse Review: przyczyna znaleziona 2026-10-15, patrz niżej `wire:model.live.blur`.)
 
 **Wyniki testu ręcznego (2026-10-13):** Save & close, lista importów, AI Settings (klucz, Test key, fałszywy klucz, Failed w Recent calls, budżet 0 → parser linii) działają. Przycisk na New Import to „Parse” (nie „Save”).
 
@@ -129,6 +130,28 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - Save & close → status `reviewed` → `/imports`.
 - Klucz AI w bazie (szyfrowany, `APP_KEY`), ma pierwszeństwo przed `.env`; miesięczny budżet USD, ostrzeżenie od 80%, po przekroczeniu parser linii; ekran pod `/settings/ai`.
 - Metadane tracków: BPM, key (jak w źródle + Camelot), label. **Bez** daty wydania, nazwy EP i ceny. UI: szara linia pod tytułem, edycja po kliknięciu w wiersz. Wrócić do zestawu pól przy imporcie playlist z Rekordboxa/Traktora.
+
+### Sesja 2026-10-14 – 2026-10-17: od metadanych do pełnego MVP bez klucza YouTube
+
+**Zrobione (commity po kolei):**
+1. `a6ba8a2 feat(review)`: BPM / key / label na Parse Review: szara linia pod tytułem, panel po kliknięciu w wiersz, Camelot przeliczany przy zapisie.
+2. `592a904 feat(review)`: duplikaty. Dokładne (ten sam `normalized_key`): modal raz po parsowaniu (Remove zostawia pierwszy / Keep all / Review manually), potem banner i etykieta „Duplicate of #N”. Podobne (inna wersja, kolejność artystów, drobna literówka w jednej części): ostrzeżenie „Similar to #N”. Liczone na bieżąco, bez migracji.
+3. `acf927c feat(youtube)`: tryb bez klucza. Search YouTube na Parse Review → link wyszukiwania (artysta + tytuł bez „(Original Mix)”) → ekran **YouTube Results** `/imports/{batch}`.
+4. `4a5a61f feat(youtube)`: własny link w wierszu (`YoutubeUrlNormalizer`: watch, youtu.be, shorts, embed, live) z autosave; poprawny link zaznacza Export; checkbox Export. Bezpośrednie wejście: „YouTube links” na liście importów i „YouTube links →” na Parse Review.
+5. `389b2ca feat(export)`: Generate TXT: modal brakujących linków, modal wersji (nowa `_v2` / nadpisz), auto-pobieranie przez `ExportController@download`, pasek „Download again”, status `exported`.
+6. `3b48b10 feat(export)`: lista eksportów `/exports` (wszystkie wersje, „Latest”, Download), „Exports” w menu aktywne.
+7. `5e8d196 feat(dashboard)`: Needs attention (do przejrzenia, brakujące linki, nieaktualny TXT, czyli plik inny niż obecne linki), ostatnie 10 importów i eksportów.
+8. `4ead924 feat(imports)`: usuwanie importów (z trackami, eksportami, plikami) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem. Usunięcie ostatniego eksportu przywraca status `searched`.
+
+**Ważne poprawki / lekcje:**
+- **Livewire ≥ 4.1:** `wire:model.blur` tylko odkłada wartość w przeglądarce i **nie wysyła żądania**. Do autosave zawsze `wire:model.live.blur` (reguła w DECISIONS „Livewire conventions”, testy sprawdzają wyrenderowany atrybut). To była przyczyna „Saved” nie migało i wklejone linki się nie zapisywały.
+- Wklejanie: pole traci fokus po `input` z `inputType === 'insertFromPaste'` (nie w `paste`, bo wtedy tekstu jeszcze nie ma).
+- `ImportItemFactory` liczy `normalized_key` z końcowego artysty/tytułu (`ImportParserService`).
+- Testy Livewire nie łapią problemów z przeglądarką (bindingi, paste), stąd sprawdzanie w headless Chrome.
+
+**Decyzje** (szczegóły w DECISIONS.md, wpisy 2026-10-14 – 2026-10-17): duplikaty, wyszukiwanie bez klucza + link w wierszu zamiast modala, eksport (modal wersji, auto-pobieranie, plik bez końcowej nowej linii), Dashboard „Needs attention”, usuwanie.
+
+**Stan danych lokalnych (2026-10-17):** 6 importów użytkownika, 1 eksport (`exports/1`). Testowe importy „ZZ …” usunięte.
 
 **Incydent: klucz OpenAI w logu sesji**
 - 2026-10-13 pełny `OPENAI_API_KEY` wyświetlił się w wyniku polecenia, bo maskowanie `sed` nie działa na macOS (BSD sed). Nie ma go w gicie ani w plikach projektu.
@@ -139,12 +162,11 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 **Do zrobienia przez użytkownika:**
 - Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
-- Klucz YouTube Data API (na razie nie jest potrzebny, tryb bez klucza jest pierwszy).
+- Klucz YouTube Data API (`YOUTUBE_DATA_API_KEY`): potrzebny do trybu API (kandydaci, scoring). Cały flow działa bez niego.
+- Test ręczny usuwania (TODO.md): commit był na prośbę bez osobnego potwierdzenia testu.
 
 **Następne kroki (po kolei):**
-1. **Metadane, krok 3:** Parse Review: szara linia pod tytułem `128 BPM · E Minor (9A) · tszr`, edycja po kliknięciu w wiersz (BPM, key → przelicz Camelot, label), przy okazji naprawa „Saved”. Potem test ręczny nowego importu z Beatportu.
-2. **Duplikaty**: `DuplicateDetectionService`, modal dla dokładnych duplikatów (Remove duplicates / Keep all / Review manually), ostrzeżenie dla podobnych. Najpierw pytania o to, co liczy się jako „podobny”.
-3. Wyszukiwanie YouTube w trybie bez klucza (search URL), ekran YouTube Results (`Imports\Show`), custom link z normalizacją.
-4. Eksport Supersimple TXT, wersjonowanie, historia, download.
-5. Dashboard z ostatnimi importami i eksportami.
-6. Drobne: `.vscode/extensions.json`, decyzja o `database/database.sqlite`.
+1. **Drobne:** `.vscode/extensions.json`, decyzja o `database/database.sqlite` (nieużywany, Postgres w Sail).
+2. **Tryb YouTube API** (gdy będzie klucz): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. Najpierw pytania (scoring, UI kandydatów).
+3. Po MVP (TODO.md „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami.
+4. Opcjonalnie: „TXT out of date” także na YouTube Results (dziś tylko na Dashboardzie); lista eksportów sortuje po `created_at`, a Dashboard po `updated_at` (do ujednolicenia, jeśli przeszkadza).

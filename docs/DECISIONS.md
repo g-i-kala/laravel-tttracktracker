@@ -457,3 +457,13 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Decision:** Every real YouTube Data API request is logged in a new `youtube_api_calls` table (step 3a, before the queued search) with estimated quota units: 100 per `search.list`, also for failed requests (Google charges invalid requests); 0 when the quota is already exceeded or the connection failed. Cache hits are not logged. Display (today's usage / remaining of 10,000 units, reset at midnight Pacific Time) comes later with the UI.
 **Reason:** User request (2026-10-17): track the free search quota. Google does not expose the remaining quota through the API, only in Cloud Console; logging from the first real search keeps the count complete (option A).
 **Consequences:** The count is an estimate: calls made with the same key elsewhere are not seen. Like `ai_usage_logs`, the log keeps its rows when an import is deleted (`nullOnDelete`). The two manual test calls of 2026-10-17 (step 0 and step 1 check) are not in the log.
+
+## 2026-10-17 — YouTube API search: implementation details (step 3)
+
+**Decision:**
+- Search YouTube with a key searches only items **without any selected link** (not only those without a custom link): links chosen by the API earlier are kept too. To search one item again, clear its link field.
+- Failure notices go into `import_items.error_message` ("YouTube search failed — use the search link." / "YouTube API quota used up for today — use the search link."); a successful search resets it to the missing-artist notice or null. Item status is `searched` in both cases (the search URL is a valid fallback result); `failed` is not used.
+- After a daily quota error, a cache flag blocks further API requests until midnight Pacific Time, so the remaining jobs of the batch (and later searches) fall back without spending requests. Short rate limits do not set the flag.
+- The batch status after the search is derived: `exported` if it has an export file, otherwise `searched`. `searching` counts as "has search results" (Continue / YouTube links open YouTube Results).
+**Reason:** Agreed plan (2026-10-17) applied to the existing data model; skipping any linked item spends no quota on tracks that are done and never overwrites a choice.
+**Consequences:** An item whose title was edited after an API pick keeps the old link until the user clears it. A search failure replaces the missing-artist notice for that item until the next successful search or edit.

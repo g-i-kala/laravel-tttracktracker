@@ -7,6 +7,7 @@ use App\Models\YoutubeApiCall;
 use App\Models\YoutubeSearchCache;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -40,6 +41,16 @@ class YoutubeSearchService
      * Context key that links API calls to the import batch being searched.
      */
     public const string BATCH_CONTEXT_KEY = 'import_batch_id';
+
+    /**
+     * Cache flag set after a daily quota error (not a short rate limit); until the quota resets no request is sent.
+     */
+    private const string QUOTA_EXCEEDED_FLAG = 'youtube:quota_exceeded';
+
+    /**
+     * The daily quota resets at midnight Pacific Time.
+     */
+    public const string QUOTA_TIMEZONE = 'America/Los_Angeles';
 
     public function isEnabled(): bool
     {
@@ -80,6 +91,14 @@ class YoutubeSearchService
     }
 
     /**
+     * Whether a `quotaExceeded` response was received since the last quota reset.
+     */
+    public function isQuotaExceeded(): bool
+    {
+        return Cache::has(self::QUOTA_EXCEEDED_FLAG);
+    }
+
+    /**
      * Same hash for queries that differ only in case or whitespace.
      */
     public function queryHash(string $query): string
@@ -96,6 +115,10 @@ class YoutubeSearchService
     {
         if (! $this->isEnabled()) {
             throw new YoutubeSearchException('YouTube Data API key is not set.', 'missingApiKey');
+        }
+
+        if ($this->isQuotaExceeded()) {
+            throw new YoutubeSearchException('YouTube Data API quota exceeded.', 'quotaExceeded');
         }
 
         $startedAt = hrtime(true);
@@ -120,6 +143,10 @@ class YoutubeSearchService
             $exception = $this->exceptionFor($response);
 
             if ($exception->isQuotaExceeded()) {
+                if (in_array($exception->reason, ['quotaExceeded', 'dailyLimitExceeded'], true)) {
+                    Cache::put(self::QUOTA_EXCEEDED_FLAG, true, now(self::QUOTA_TIMEZONE)->addDay()->startOfDay());
+                }
+
                 $this->recordCall($query, $startedAt, YoutubeApiCallStatus::QuotaExceeded, 0, $exception->reason);
             } else {
                 $this->recordCall($query, $startedAt, YoutubeApiCallStatus::Failed, self::SEARCH_QUOTA_UNITS, $exception->reason);

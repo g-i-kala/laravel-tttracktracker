@@ -210,7 +210,7 @@ class Review extends Component
             return;
         }
 
-        $importBatches->generateYoutubeSearchUrls($this->batch);
+        $importBatches->searchYoutube($this->batch);
 
         $this->redirectRoute('imports.show', ['batch' => $this->batch], navigate: true);
     }

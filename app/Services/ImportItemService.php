@@ -2,14 +2,21 @@
 
 namespace App\Services;
 
+use App\Enums\ImportItemStatus;
 use App\Models\ImportItem;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Edits import items during Parse Review and on YouTube Results.
+ * Edits import items during Parse Review and on YouTube Results, and stores
+ * the results of the YouTube API search.
  */
 class ImportItemService
 {
+    public const string SEARCH_FAILED_NOTICE = 'YouTube search failed — use the search link.';
+
+    public const string QUOTA_EXCEEDED_NOTICE = 'YouTube API quota used up for today — use the search link.';
+
     public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys) {}
 
     /**
@@ -77,6 +84,66 @@ class ImportItemService
     }
 
     /**
+     * Replace the item's candidates with the ranked ones and preselect the best:
+     * score >= `preselect_threshold` selects it, >= `auto_include_threshold` also
+     * includes it in the export. Below that the item keeps no link (search URL only).
+     *
+     * @param  list<array{video_id: string, url: string, title: string, channel_title: ?string, description: ?string, published_at: ?string, score: int}>  $candidates  best first
+     */
+    public function storeYoutubeCandidates(ImportItem $item, array $candidates): ImportItem
+    {
+        DB::transaction(function () use ($item, $candidates): void {
+            $item->youtubeCandidates()->delete();
+
+            foreach (array_values($candidates) as $index => $candidate) {
+                $item->youtubeCandidates()->create([
+                    'video_id' => $candidate['video_id'],
+                    'url' => $candidate['url'],
+                    'title' => $candidate['title'],
+                    'channel_title' => $candidate['channel_title'],
+                    'description' => $candidate['description'],
+                    'published_at' => $candidate['published_at'],
+                    'score' => $candidate['score'],
+                    'rank' => $index + 1,
+                ]);
+            }
+
+            $best = $candidates[0] ?? null;
+            $selection = $best !== null && $best['score'] >= config('services.youtube.preselect_threshold')
+                ? [
+                    'selected_youtube_url' => $best['url'],
+                    'selected_youtube_video_id' => $best['video_id'],
+                    'selected_youtube_title' => $best['title'],
+                    'selected_youtube_channel' => $best['channel_title'],
+                    'youtube_score' => $best['score'],
+                    'include_in_export' => $best['score'] >= config('services.youtube.auto_include_threshold'),
+                ]
+                : [];
+
+            $item->update([
+                ...$selection,
+                'status' => ImportItemStatus::Searched,
+                'error_message' => $this->missingArtistNotice($item),
+            ]);
+        });
+
+        return $item;
+    }
+
+    /**
+     * API search failed: the item keeps its search URL and shows the notice.
+     */
+    public function markYoutubeSearchFailed(ImportItem $item, string $notice): ImportItem
+    {
+        $item->update([
+            'status' => ImportItemStatus::Searched,
+            'error_message' => $notice,
+        ]);
+
+        return $item;
+    }
+
+    /**
      * Flip include-in-export. Items without a selected link stay excluded.
      */
     public function toggleExport(ImportItem $item): ImportItem
@@ -86,6 +153,11 @@ class ImportItemService
         }
 
         return $item;
+    }
+
+    private function missingArtistNotice(ImportItem $item): ?string
+    {
+        return $item->artist === null ? ImportParserService::ARTIST_NOT_DETECTED : null;
     }
 
     private function nullIfBlank(?string $value): ?string

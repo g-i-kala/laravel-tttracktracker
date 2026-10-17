@@ -185,6 +185,37 @@ class YoutubeSearchServiceTest extends TestCase
         }
     }
 
+    public function test_quota_exceeded_blocks_requests_until_midnight_pacific_time(): void
+    {
+        $this->travelTo(now('America/Los_Angeles')->setTime(22, 0));
+        Http::fake(['www.googleapis.com/*' => Http::response($this->errorResponse(403, 'quotaExceeded'), 403)]);
+
+        rescue(fn () => $this->youtubeSearch->search('Bicep Glue'), report: false);
+        $this->assertTrue($this->youtubeSearch->isQuotaExceeded());
+
+        try {
+            $this->youtubeSearch->search('Daft Punk Around the World');
+            $this->fail('Expected YoutubeSearchException.');
+        } catch (YoutubeSearchException $exception) {
+            $this->assertTrue($exception->isQuotaExceeded());
+        }
+
+        Http::assertSentCount(1);
+        $this->assertDatabaseCount('youtube_api_calls', 1);
+
+        $this->travel(2)->hours();
+        $this->assertFalse($this->youtubeSearch->isQuotaExceeded());
+    }
+
+    public function test_rate_limit_does_not_block_later_requests(): void
+    {
+        Http::fake(['www.googleapis.com/*' => Http::response($this->errorResponse(403, 'rateLimitExceeded'), 403)]);
+
+        rescue(fn () => $this->youtubeSearch->search('Bicep Glue'), report: false);
+
+        $this->assertFalse($this->youtubeSearch->isQuotaExceeded());
+    }
+
     public function test_successful_call_is_recorded_with_the_batch_from_context(): void
     {
         $batch = ImportBatch::factory()->create();

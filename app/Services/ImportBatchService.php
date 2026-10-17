@@ -5,17 +5,19 @@ namespace App\Services;
 use App\Enums\ImportBatchStatus;
 use App\Enums\ImportItemStatus;
 use App\Jobs\ParseImportBatchWithAiJob;
+use App\Jobs\SearchYoutubeForImportItemJob;
 use App\Models\ExportFile;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
 use App\Models\YoutubeCandidate;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * Creates import batches and their items from pasted track lists, with the
  * line parser (synchronous) or with AI (queued), and moves batches through
- * review, duplicate removal and the no-key YouTube search.
+ * review, duplicate removal and the YouTube search (no-key or API mode).
  */
 class ImportBatchService
 {
@@ -23,6 +25,7 @@ class ImportBatchService
         private ImportParserService $parser,
         private DuplicateDetectionService $duplicates,
         private YoutubeSearchUrlService $youtubeSearchUrls,
+        private YoutubeSearchService $youtubeSearch,
     ) {}
 
     /**
@@ -118,6 +121,79 @@ class ImportBatchService
         }
 
         return $batch->items()->whereKey($duplicateIds)->delete();
+    }
+
+    /**
+     * Search YouTube: API mode when an API key is set, otherwise no-key mode.
+     */
+    public function searchYoutube(ImportBatch $batch): void
+    {
+        if ($this->youtubeSearch->isEnabled()) {
+            $this->startYoutubeSearch($batch);
+
+            return;
+        }
+
+        $this->generateYoutubeSearchUrls($batch);
+    }
+
+    /**
+     * API mode: store search URLs (the fallback) on every item, then queue one
+     * `SearchYoutubeForImportItemJob` per item without a selected link. Items that
+     * already have a link (pasted or chosen before) are skipped, so manual work is
+     * kept and no quota is spent on them. The batch is `searching` until all jobs finish.
+     */
+    public function startYoutubeSearch(ImportBatch $batch): void
+    {
+        $itemsToSearch = DB::transaction(function () use ($batch) {
+            $this->generateYoutubeSearchUrls($batch);
+
+            $itemsToSearch = $batch->items()->whereNull('selected_youtube_url')->orderBy('line_number')->get();
+
+            if ($itemsToSearch->isEmpty()) {
+                return $itemsToSearch;
+            }
+
+            $batch->items()->whereKey($itemsToSearch->modelKeys())->update(['status' => ImportItemStatus::SearchPending]);
+            $batch->update(['status' => ImportBatchStatus::Searching]);
+
+            return $batch->items()->whereKey($itemsToSearch->modelKeys())->orderBy('line_number')->get();
+        });
+
+        if ($itemsToSearch->isEmpty()) {
+            return;
+        }
+
+        $batchId = $batch->id;
+
+        Bus::batch($itemsToSearch->map(fn (ImportItem $item) => new SearchYoutubeForImportItemJob($item))->all())
+            ->name("YouTube search: import {$batchId}")
+            ->allowFailures()
+            ->finally(function () use ($batchId): void {
+                app(ImportBatchService::class)->finishYoutubeSearch($batchId);
+            })
+            ->dispatch();
+    }
+
+    /**
+     * All search jobs are done: items still pending (e.g. a job was dropped) fall back
+     * to their search URL, and the batch becomes `exported` if it has an export, otherwise `searched`.
+     */
+    public function finishYoutubeSearch(int $batchId): void
+    {
+        $batch = ImportBatch::query()->find($batchId);
+
+        if ($batch === null) {
+            return;
+        }
+
+        DB::transaction(function () use ($batch): void {
+            $batch->items()->where('status', ImportItemStatus::SearchPending)->update(['status' => ImportItemStatus::Searched]);
+
+            $batch->update([
+                'status' => $batch->exportFiles()->exists() ? ImportBatchStatus::Exported : ImportBatchStatus::Searched,
+            ]);
+        });
     }
 
     /**

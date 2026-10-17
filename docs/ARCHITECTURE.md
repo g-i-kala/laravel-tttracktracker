@@ -48,14 +48,17 @@ Textarea input
   → ImportBatch (raw_input)
   → ImportParserService → ImportItem[] (artist, title, genre, normalized_key)
   → DuplicateDetectionService (computed on render, nothing stored) → duplicate modal / banner / row marks
-  → Imports\Review::searchYoutube()
-       No-key mode (implemented, the only mode for now): ImportBatchService::generateYoutubeSearchUrls()
+  → Imports\Review::searchYoutube() → ImportBatchService::searchYoutube()
+       No-key mode (no YOUTUBE_DATA_API_KEY): generateYoutubeSearchUrls()
          → YoutubeSearchUrlService → youtube_search_url, items + batch `searched` (sync, no queue)
-         → redirect to Imports\Show (YouTube Results)
-       API mode: Bus::batch([SearchYoutubeForImportItemJob, ...])
-         → YoutubeSearchService (cache first) → YoutubeScoringService → YoutubeCandidate[]
-         → best candidate copied to import_items.selected_youtube_*
-         → on quotaExceeded / API error: fallback to youtube_search_url + notice
+       API mode (key set, implemented 2026-10-17): startYoutubeSearch()
+         → search URLs for all items (fallback), items without a selected link → `search_pending`, batch `searching`
+         → Bus::batch([SearchYoutubeForImportItemJob per item], allowFailures, finally → finishYoutubeSearch())
+         → job: YoutubeSearchService (cache first; logs real calls) → YoutubeScoringService::rank() (top 3)
+           → ImportItemService::storeYoutubeCandidates(): youtube_candidates replaced, best >= 60 → selected_youtube_*, >= 80 → include_in_export
+         → on API error: item keeps its search URL + notice in error_message (quota: all remaining items, no more requests)
+         → finishYoutubeSearch(): leftover pending items → `searched`, batch `exported` if it has an export, else `searched`
+       → redirect to Imports\Show (YouTube Results) right away (no progress UI yet: step 4)
   → user selection / custom link (YoutubeUrlNormalizer) → import_items.selected_youtube_*
   → Imports\Show::export() (sync) → SupersimpleTxtExportService + ExportFilenameService
        → storage file + ExportFile row
@@ -81,7 +84,7 @@ Textarea input
 
 `App\Services\YoutubeUrlNormalizer` (pure): `videoId(url)` / `normalize(url)` → `https://www.youtube.com/watch?v=ID` for `watch?v=` (any param order), `youtu.be/`, `shorts/`, `embed/`, `live/` on `youtube.com` / `www.` / `m.` / `music.` (scheme optional, `http`/`https` only); ID must be 11 chars `[A-Za-z0-9_-]`; anything else → null. `ImportItemService::selectCustomYoutubeLink()` stores URL + video id, clears title/channel/score (API-only) and sets `include_in_export`; `clearYoutubeLink()` clears all and excludes; `toggleExport()` only flips items with a link.
 
-`App\Services\YoutubeSearchService` (API mode, step 1 of 5): `isEnabled()` = `services.youtube.api_key` set. `search(query)` → `list<{video_id, url, title, channel_title, description, published_at}>`: first a valid `youtube_search_cache` row (`query_hash` = sha256 of the lowercased, squished query; works without a key), otherwise `search.list` (`part=snippet`, `type=video`, `maxResults=10`: quota cost is the same for 1 or 50 results, scoring picks the best 3), results stored with `expires_at` = now + `cache_ttl_days` (`updateOrCreate`, so expired rows are refreshed). Titles/channels/descriptions are HTML-decoded. The key goes in the `X-Goog-Api-Key` header, never the URL. Failures throw `YoutubeSearchException` (`reason` from the API, e.g. `quotaExceeded`, `keyInvalid`, or `connectionFailed` / `missingApiKey`; `isQuotaExceeded()` also for `dailyLimitExceeded` / rate limits); errors are never cached. Every real request (not cache hits) is recorded in `youtube_api_calls` (step 3a): 100 quota units for `search.list`, also for failed requests; 0 for `quotaExceeded` and connection failures; `import_batch_id` from `Context` key `import_batch_id` (`YoutubeSearchService::BATCH_CONTEXT_KEY`). Not wired into the UI yet (step 3).
+`App\Services\YoutubeSearchService` (API mode, step 1 of 5): `isEnabled()` = `services.youtube.api_key` set. `search(query)` → `list<{video_id, url, title, channel_title, description, published_at}>`: first a valid `youtube_search_cache` row (`query_hash` = sha256 of the lowercased, squished query; works without a key), otherwise `search.list` (`part=snippet`, `type=video`, `maxResults=10`: quota cost is the same for 1 or 50 results, scoring picks the best 3), results stored with `expires_at` = now + `cache_ttl_days` (`updateOrCreate`, so expired rows are refreshed). Titles/channels/descriptions are HTML-decoded. The key goes in the `X-Goog-Api-Key` header, never the URL. Failures throw `YoutubeSearchException` (`reason` from the API, e.g. `quotaExceeded`, `keyInvalid`, or `connectionFailed` / `missingApiKey`; `isQuotaExceeded()` also for `dailyLimitExceeded` / rate limits); errors are never cached. Every real request (not cache hits) is recorded in `youtube_api_calls` (step 3a): 100 quota units for `search.list`, also for failed requests; 0 for `quotaExceeded` and connection failures; `import_batch_id` from `Context` key `import_batch_id` (`YoutubeSearchService::BATCH_CONTEXT_KEY`). After a daily quota error (`quotaExceeded` / `dailyLimitExceeded`, not short rate limits) a cache flag (`youtube:quota_exceeded`, `isQuotaExceeded()`) blocks further requests until midnight Pacific Time (`QUOTA_TIMEZONE`); blocked searches throw the quota exception without a request or a log row. Cache hits still work.
 
 `App\Services\MusicalKeyService::toCamelot(?key)` (pure): store key (`E Minor`, `F♯ Major`, `Bbm`, `C# min`, note only = major) or Camelot (`09a`) → Camelot code (`9A`), null when unrecognized. Enharmonic spellings map to the same code.
 
@@ -106,7 +109,8 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 ## Queue strategy
 
 - `QUEUE_CONNECTION=database`.
-- YouTube API search: `Bus::batch()` with one `SearchYoutubeForImportItemJob` per item (`job_batches` table). The `Imports\Show` component polls batch progress with `wire:poll` while the batch is running (e.g. 12/30).
+- YouTube API search (implemented): `Bus::batch()` with one `SearchYoutubeForImportItemJob` per item without a selected link (`job_batches` table), `allowFailures()`, `finally` → `ImportBatchService::finishYoutubeSearch()`. Job: `Batchable`, `#[DeleteWhenMissingModels]`, `tries = 1`, `timeout = 60`; skips items not in `search_pending` and cancelled batches; runs the search inside `Context::scope([import_batch_id => …])` so API calls are linked to the batch; `failed()` falls back like an API error. One worker → jobs run one after another (~0.3–0.5 s per API call, cache hits instant).
+- Progress (step 4): count of the batch's `search_pending` items; `Imports\Show` will poll with `wire:poll` while the batch is `searching` (e.g. 12/30).
 - No-key mode needs no queue: generating URLs is synchronous.
 - AI parsing: one `ParseImportBatchWithAiJob` per batch (not retried automatically; the user retries from Parse Review). Requires `DB_QUEUE_RETRY_AFTER` (300) > job timeout (240).
 - Exports are synchronous (no job). Writing ~30 lines is instant and the modal flow needs an immediate result.

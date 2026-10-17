@@ -501,3 +501,21 @@
 
 ### Notes
 - Ran `sail artisan migrate`. 262 tests pass.
+
+## 2026-10-17 (YouTube API mode, step 3: queued search)
+
+### Added
+- `SearchYoutubeForImportItemJob` (batchable, one per item).
+- `ImportBatchService::searchYoutube()` (API or no-key mode), `startYoutubeSearch()`, `finishYoutubeSearch()`; `ImportItemService::storeYoutubeCandidates()`, `markYoutubeSearchFailed()` + notices.
+- `YoutubeSearchService::isQuotaExceeded()` + quota flag until midnight Pacific Time.
+- `tests/Feature/Youtube/YoutubeApiSearchTest.php` (12 tests), 2 quota-flag tests in `YoutubeSearchServiceTest`.
+
+### Changed
+- Parse Review **Search YouTube** calls `ImportBatchService::searchYoutube()`.
+- `ImportBatchStatus::hasSearchResults()` includes `searching`.
+- Docs: ARCHITECTURE, UI-FLOW, DECISIONS (ADR), TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 276 tests pass. Ran `sail artisan queue:restart`.
+- Real end-to-end check on a temporary "ZZ API search test" import (3 tracks, deleted afterwards; 2 API calls = 200 units, Daft Punk from cache): Bicep – Glue → "BICEP | GLUE (Official Video)" 90, included; Midas Field, Marijn Jansen – What We Got (Extended Mix) → Runnin' Music "WHAT WE GOT (Extended Mix)" 80, included (the label channel "Three Six Zero Recordings" scored 70: the import had no label); Daft Punk → official video 90. `job_batches`: 3/3 done, 0 failed.
+- For tuning (step 5): "Bicep - Glue & Apricots | Glastonbury 2022" (BBC Music, a live performance) scored 70, because "Glastonbury" is not a keyword.

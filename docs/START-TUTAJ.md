@@ -27,9 +27,9 @@ Stan na 2026-10-17:
 - **Eksport Supersimple TXT** na YouTube Results: modal brakujących linków, modal wersji (nowa / nadpisz), auto-pobieranie, „Download again”.
 - **Lista eksportów** (`/exports`): wszystkie wersje, „Latest”, pobieranie.
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
-- **Jeszcze nie ma:** trybu YouTube API (czeka na klucz).
+- **Tryb YouTube API (w trakcie):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Brak jeszcze paska postępu i listy kandydatów w UI (krok 4) oraz wyświetlania zużycia limitu.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 262, wszystkie przechodzą.
+- Testy: 276, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -164,7 +164,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 - Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
 
 **Następne kroki (po kolei):**
-1. **Tryb YouTube API** (klucz już jest w `.env`, 2026-10-17): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. 5 atomowych kroków: 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) UI kandydatów + postęp, 5) test na prawdziwym API i strojenie wag. Kroki 0–2 i 3a zrobione (klucz działa, `YoutubeSearchService` + cache, `YoutubeScoringService`, log zapytań `youtube_api_calls` do liczenia limitu, 2026-10-17). Decyzje: DECISIONS „YouTube API mode: behaviour” (API automatycznie z kluczem, postęp z itemów, bez miniatur, ręczne linki pomijane). **Następny: krok 3 (job + `Bus::batch()` + fallback), potem przerwa na test użytkownika przed krokiem 4.** Plan kroku 3 opisany w DECISIONS „YouTube API mode: behaviour” + ARCHITECTURE „Data flow”.
+1. **Tryb YouTube API** (klucz już jest w `.env`, 2026-10-17): `YoutubeSearchService` (search.list, cache `youtube_search_cache`, fallback przy quota), `SearchYoutubeForImportItemJob` przez `Bus::batch()`, `YoutubeScoringService` (progi 80/60), wybór kandydata na YouTube Results, postęp `wire:poll`. 5 atomowych kroków: 1) `YoutubeSearchService` + cache, 2) scoring, 3) job + `Bus::batch()` + fallback, 4) UI kandydatów + postęp, 5) test na prawdziwym API i strojenie wag. Kroki 0–3 zrobione (klucz działa, `YoutubeSearchService` + cache, `YoutubeScoringService`, log zapytań `youtube_api_calls`, wyszukiwanie w kolejce `Bus::batch()` z Search YouTube, 2026-10-17). Decyzje: DECISIONS „YouTube API mode: behaviour” (API automatycznie z kluczem, postęp z itemów, bez miniatur, ręczne linki pomijane). **Teraz: test ręczny kroku 3 przez użytkownika** (Search YouTube z kluczem → odświeżyć YouTube Results → wpisane linki / Export). **Potem krok 4** (pasek postępu `wire:poll`, lista kandydatów, wybór) i krok 5 (strojenie wag). Szczegóły kroku 3: DECISIONS „YouTube API search: implementation details”.
 2. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
 3. Drobne: `.vscode/extensions.json`.
 4. Po MVP (TODO.md „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami.

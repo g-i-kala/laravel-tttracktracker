@@ -36,7 +36,7 @@ enum ImportBatchStatus: string
      */
     public function hasSearchResults(): bool
     {
-        return in_array($this, [self::Searched, self::Exported], true);
+        return in_array($this, [self::Searching, self::Searched, self::Exported], true);
     }
 
     /**

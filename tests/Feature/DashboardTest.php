@@ -17,12 +17,19 @@ class DashboardTest extends TestCase
             ->assertSee('data-accent="'.config('app.accent').'"', false);
     }
 
-    public function test_navigation_marks_screens_without_routes_as_coming_soon(): void
+    public function test_navigation_links_to_every_screen(): void
     {
         $this->get('/')
             ->assertSee('href="'.route('dashboard').'"', false)
             ->assertSee('href="'.route('imports.index').'"', false)
-            ->assertSee('title="Coming soon">Exports</span>', false);
+            ->assertSee('href="'.route('exports.index').'"', false)
+            ->assertDontSee('title="Coming soon"', false);
+    }
+
+    public function test_nav_link_without_a_route_is_shown_as_coming_soon(): void
+    {
+        $this->blade('<x-nav-link route="not.built.yet">Later</x-nav-link>')
+            ->assertSee('title="Coming soon">Later</span>', false);
     }
 
     public function test_accent_comes_from_config(): void

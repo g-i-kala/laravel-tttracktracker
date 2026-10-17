@@ -20,7 +20,7 @@
 - [x] Include-in-export toggle
 - [x] Supersimple TXT export + missing-link modal
 - [x] Export versioning + overwrite modal
-- [ ] Export history (`/exports`) — download implemented
+- [x] Export history (`/exports`) + download
 
 ## Milestone 2 — Beatport integration / import helper
 

@@ -84,7 +84,11 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Exports (`/exports`) — `Exports\Index`
 
-- Export history with download links (`/exports/{export}/download`).
+> Status: implemented (2026-10-17).
+
+- Table of all export files (every version), newest first, 25 per page: filename (mono) + **Latest** badge on the highest version of each import, import name (link to YouTube Results), version (`v2`), link count, exported date (`updated_at`, so an overwrite shows its new date), **Download** (`/exports/{export}/download`).
+- Empty state "No exports yet".
+- Sidebar **Exports** is now active (the `<x-nav-link>` shows "Coming soon" only for routes that do not exist).
 
 ## Modals summary
 

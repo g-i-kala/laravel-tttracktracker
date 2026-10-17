@@ -97,7 +97,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - [x] User can toggle `include_in_export`.
 - [x] Export creates TXT with only URLs.
 - [x] Missing links are skipped after warning.
-- [ ] Export is stored in history. (rows stored; history screen `/exports` is the next step)
+- [x] Export is stored in history.
 - [x] Re-export can create `_v2`, `_v3`, etc.
 - [x] User can download TXT.
 

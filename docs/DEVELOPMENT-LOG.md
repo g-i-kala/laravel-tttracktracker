@@ -396,3 +396,17 @@
 
 ### Notes
 - 203 tests pass. Headless Chrome check on a temporary batch (removed afterwards with its files): Generate disabled without links → paste → missing links modal → Export anyway → `…_youtube_links.txt` downloaded with only the URL; second export → missing links → version modal → new version → `…_v2.txt`. The green bar needed `npm run build` (new Tailwind classes).
+
+## 2026-10-17 (Export step 2: exports list)
+
+### Added
+- `Exports\Index` (`/exports`, `exports.index`): all export files newest first, Latest badge per import, import link, version, link count, date, Download; pagination; empty state. Sidebar "Exports" is active.
+- `ExportsIndexTest` (3).
+
+### Changed
+- `DashboardTest`: the navigation test now expects links to every screen; the "Coming soon" state is tested on `<x-nav-link>` directly.
+- Removed redundant `->timezone(config('app.timezone'))` in export dates (the app timezone is already `Europe/Warsaw`).
+- Docs: UI-FLOW, API, PRD, ROADMAP, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 207 tests pass. Headless Chrome on the user's data (read-only): sidebar → `/exports`, row with Latest, Download → file with 2 lines, import link → YouTube Results.

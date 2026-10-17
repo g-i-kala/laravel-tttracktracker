@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ExportController;
 use App\Livewire\Dashboard;
+use App\Livewire\Exports;
 use App\Livewire\Imports;
 use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
@@ -12,4 +13,5 @@ Route::livewire('/imports/create', Imports\Create::class)->name('imports.create'
 Route::livewire('/imports/{batch}', Imports\Show::class)->whereNumber('batch')->name('imports.show');
 Route::livewire('/imports/{batch}/review', Imports\Review::class)->name('imports.review');
 Route::livewire('/settings/ai', Settings\Ai::class)->name('settings.ai');
+Route::livewire('/exports', Exports\Index::class)->name('exports.index');
 Route::get('/exports/{export}/download', [ExportController::class, 'download'])->name('exports.download');

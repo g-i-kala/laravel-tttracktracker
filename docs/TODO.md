@@ -55,7 +55,8 @@
 - [ ] Candidate selection (API mode)
 - [x] Supersimple TXT export (sync) + versioning + download (export step 1, 2026-10-16)
 - [x] Manual test export step 1: Generate TXT → missing links modal → file downloads; second export → version modal (new / overwrite); Download again (2026-10-17)
-- [ ] Export step 2: Exports list `/exports` (history, download older versions) + enable "Exports" in the sidebar
+- [x] Export step 2: Exports list `/exports` (history, download older versions) + enable "Exports" in the sidebar (2026-10-17)
+- [x] Manual test export step 2: sidebar Exports → list, Latest badge, Download, import link (2026-10-17)
 
 ## After MVP
 

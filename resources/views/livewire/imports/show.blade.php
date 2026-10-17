@@ -51,7 +51,7 @@
             <span>
                 Exported {{ $latestExport->items_count }} {{ Str::plural('link', $latestExport->items_count) }}
                 · <span class="font-mono text-xs">{{ $latestExport->filename }}</span>
-                · {{ $latestExport->updated_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }}
+                · {{ $latestExport->updated_at->format('Y-m-d H:i') }}
             </span>
             <a href="{{ route('exports.download', $latestExport) }}" class="self-start font-medium underline hover:no-underline sm:self-auto">Download again</a>
         </div>
@@ -168,7 +168,7 @@
         @if ($latestExport)
             <p>
                 <span class="font-mono text-xs">{{ $latestExport->filename }}</span> was exported on
-                {{ $latestExport->updated_at->timezone(config('app.timezone'))->format('Y-m-d H:i') }} with {{ $latestExport->items_count }} {{ Str::plural('link', $latestExport->items_count) }}.
+                {{ $latestExport->updated_at->format('Y-m-d H:i') }} with {{ $latestExport->items_count }} {{ Str::plural('link', $latestExport->items_count) }}.
             </p>
             <p class="mt-2">Create a new version (the old file stays) or overwrite the latest one?</p>
         @endif

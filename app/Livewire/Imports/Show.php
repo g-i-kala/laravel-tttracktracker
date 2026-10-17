@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Imports;
 
+use App\Enums\ImportBatchStatus;
+use App\Enums\ImportItemStatus;
 use App\Models\ExportFile;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
@@ -21,6 +23,8 @@ use Livewire\Component;
  * or blur; a valid link includes the track in the export) and an
  * include-in-export checkbox. Generate TXT warns about tracks without a link,
  * asks whether to overwrite an existing export, writes the file and starts the download.
+ * While the YouTube API search runs in the background the screen polls for progress,
+ * fills in each track's link as soon as it is found and ends with a summary.
  */
 #[Title('YouTube Results')]
 class Show extends Component
@@ -40,6 +44,27 @@ class Show extends Component
 
     public bool $showVersionModal = false;
 
+    /**
+     * Items waiting for the API search, as of the last poll.
+     *
+     * @var list<int>
+     */
+    public array $pendingItemIds = [];
+
+    /**
+     * Items searched while this screen was open, for the summary.
+     *
+     * @var list<int>
+     */
+    public array $searchedItemIds = [];
+
+    /**
+     * Result of the search watched on this screen; null hides the summary.
+     *
+     * @var array{linked: int, to_check: int, not_found: int, failed: int}|null
+     */
+    public ?array $searchSummary = null;
+
     public function mount(ImportBatch $batch): void
     {
         $this->batch = $batch;
@@ -47,6 +72,39 @@ class Show extends Component
         $this->links = $this->rows->mapWithKeys(fn (ImportItem $item): array => [
             $item->id => (string) $item->selected_youtube_url,
         ])->all();
+
+        $this->pendingItemIds = $this->currentPendingItemIds();
+        $this->searchedItemIds = $this->pendingItemIds;
+    }
+
+    /**
+     * Polled while the batch is `searching`: copies the links of tracks finished since
+     * the last poll into their fields (other fields are left alone, so typing is not
+     * interrupted) and shows the summary once the whole search is done.
+     */
+    public function checkSearchProgress(): void
+    {
+        $this->batch->refresh();
+        unset($this->rows, $this->searchUrls, $this->exportableCount);
+
+        $stillPending = $this->currentPendingItemIds();
+
+        foreach (array_diff($this->pendingItemIds, $stillPending) as $finishedId) {
+            $this->links[$finishedId] = (string) $this->rows->find($finishedId)?->selected_youtube_url;
+        }
+
+        $this->searchedItemIds = array_values(array_unique([...$this->searchedItemIds, ...$stillPending]));
+        $this->pendingItemIds = $stillPending;
+
+        if ($this->batch->status !== ImportBatchStatus::Searching && $this->searchedItemIds !== []) {
+            $this->searchSummary = $this->summarize($this->searchedItemIds);
+            $this->searchedItemIds = [];
+        }
+    }
+
+    public function dismissSearchSummary(): void
+    {
+        $this->searchSummary = null;
     }
 
     /**
@@ -144,6 +202,32 @@ class Show extends Component
         }
 
         $this->confirmExport('new', app(SupersimpleTxtExportService::class));
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function currentPendingItemIds(): array
+    {
+        return $this->rows->where('status', ImportItemStatus::SearchPending)->pluck('id')->values()->all();
+    }
+
+    /**
+     * @param  list<int>  $itemIds
+     * @return array{linked: int, to_check: int, not_found: int, failed: int}
+     */
+    private function summarize(array $itemIds): array
+    {
+        $items = $this->rows->whereIn('id', $itemIds);
+        $failed = $items->whereIn('error_message', [ImportItemService::SEARCH_FAILED_NOTICE, ImportItemService::QUOTA_EXCEEDED_NOTICE]);
+        $withLink = $items->whereNotNull('selected_youtube_url');
+
+        return [
+            'linked' => $withLink->where('include_in_export', true)->count(),
+            'to_check' => $withLink->where('include_in_export', false)->count(),
+            'not_found' => $items->whereNull('selected_youtube_url')->diff($failed)->count(),
+            'failed' => $failed->count(),
+        ];
     }
 
     #[Computed]

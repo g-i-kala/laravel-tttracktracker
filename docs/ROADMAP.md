@@ -42,6 +42,9 @@ Not started. Rekordbox XML export.
 
 ## Known future enhancements
 
+- Live updates over websockets (Laravel Reverb) instead of polling, if long background jobs appear (e.g. music folder scan). See DECISIONS 2026-10-17.
+- Build the link list from a YouTube playlist (to check, see TODO).
+
 - RabbitMQ queue.
 - Spotify / SoundCloud sync.
 - BPM/key detection, fingerprinting.

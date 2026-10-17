@@ -519,3 +519,16 @@
 - 276 tests pass. Ran `sail artisan queue:restart`.
 - Real end-to-end check on a temporary "ZZ API search test" import (3 tracks, deleted afterwards; 2 API calls = 200 units, Daft Punk from cache): Bicep – Glue → "BICEP | GLUE (Official Video)" 90, included; Midas Field, Marijn Jansen – What We Got (Extended Mix) → Runnin' Music "WHAT WE GOT (Extended Mix)" 80, included (the label channel "Three Six Zero Recordings" scored 70: the import had no label); Daft Punk → official video 90. `job_batches`: 3/3 done, 0 failed.
 - For tuning (step 5): "Bicep - Glue & Apricots | Glastonbury 2022" (BBC Music, a live performance) scored 70, because "Glastonbury" is not a keyword.
+
+## 2026-10-17 (YouTube API mode, step 4a: search progress)
+
+### Added
+- YouTube Results: progress banner + bar while `searching` (`wire:poll.2s="checkSearchProgress"`), "Searching…" in pending rows, live filling of finished rows, end summary (dismissible), search failure notices under the link field.
+- 4 tests in `YoutubeApiSearchTest`.
+
+### Changed
+- Docs: UI-FLOW, ARCHITECTURE, DECISIONS (ADR: polling vs websockets), ROADMAP (websockets, YouTube playlist idea), TESTING, TODO (playlist feasibility, step 4a), START-TUTAJ.
+
+### Notes
+- 280 tests pass. Ran `sail npm run build`.
+- Headless Chrome on a temporary "ZZ progress test" import (3 cached tracks, no quota used; deleted afterwards): with the queue worker stopped the page showed "0 of 3 tracks ready" and 3 × "Searching…"; after `sail start queue` the rows filled in and the summary "3 linked and included · 0 to check · 0 not found" appeared without a reload. No JS errors, no horizontal scroll at 390 px.

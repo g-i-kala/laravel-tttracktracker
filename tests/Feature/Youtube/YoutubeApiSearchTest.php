@@ -6,6 +6,7 @@ use App\Enums\ImportBatchStatus;
 use App\Enums\ImportItemStatus;
 use App\Jobs\SearchYoutubeForImportItemJob;
 use App\Livewire\Imports\Review;
+use App\Livewire\Imports\Show;
 use App\Models\ExportFile;
 use App\Models\ImportBatch;
 use App\Models\ImportItem;
@@ -248,6 +249,83 @@ class YoutubeApiSearchTest extends TestCase
     {
         $this->assertTrue(ImportBatchStatus::Searching->hasSearchResults());
         $this->assertSame('imports.show', ImportBatchStatus::Searching->screenRouteName());
+    }
+
+    public function test_results_screen_shows_progress_while_searching(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searching]);
+        ImportItem::factory()->for($batch)->create(['line_number' => 1, 'status' => ImportItemStatus::SearchPending]);
+        ImportItem::factory()->for($batch)->withSelectedYoutubeLink()->create(['line_number' => 2]);
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->assertSeeHtml('wire:poll.2s="checkSearchProgress"')
+            ->assertSee('1 of 2')
+            ->assertSee('Searching…');
+    }
+
+    public function test_results_screen_does_not_poll_when_not_searching(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searched]);
+        ImportItem::factory()->for($batch)->create([
+            'status' => ImportItemStatus::Searched,
+            'error_message' => ImportItemService::QUOTA_EXCEEDED_NOTICE,
+        ]);
+
+        Livewire::test(Show::class, ['batch' => $batch])
+            ->assertDontSeeHtml('checkSearchProgress')
+            ->assertSee(ImportItemService::QUOTA_EXCEEDED_NOTICE);
+    }
+
+    public function test_progress_poll_fills_finished_rows_and_keeps_other_fields(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searching]);
+        $finished = ImportItem::factory()->for($batch)->create(['line_number' => 1, 'status' => ImportItemStatus::SearchPending]);
+        $pending = ImportItem::factory()->for($batch)->create(['line_number' => 2, 'status' => ImportItemStatus::SearchPending]);
+        $typing = ImportItem::factory()->for($batch)->create(['line_number' => 3, 'status' => ImportItemStatus::Searched]);
+
+        $component = Livewire::test(Show::class, ['batch' => $batch])
+            ->assertSet('pendingItemIds', [$finished->id, $pending->id])
+            ->set("links.{$typing->id}", 'https://youtu.be/')
+            ->assertHasErrors("links.{$typing->id}");
+
+        $finished->update([
+            'status' => ImportItemStatus::Searched,
+            'selected_youtube_url' => 'https://www.youtube.com/watch?v=glueOfficial',
+            'selected_youtube_video_id' => 'glueOfficial',
+            'youtube_score' => 90,
+            'include_in_export' => true,
+        ]);
+
+        $component->call('checkSearchProgress')
+            ->assertSet("links.{$finished->id}", 'https://www.youtube.com/watch?v=glueOfficial')
+            ->assertSet("links.{$typing->id}", 'https://youtu.be/')
+            ->assertSet('pendingItemIds', [$pending->id])
+            ->assertSet('searchSummary', null)
+            ->assertSee('2 of 3');
+    }
+
+    public function test_progress_poll_shows_summary_when_the_search_is_done(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Searching]);
+        $items = ImportItem::factory()->for($batch)->count(4)->sequence(fn ($sequence) => [
+            'line_number' => $sequence->index + 1,
+            'status' => ImportItemStatus::SearchPending,
+        ])->create();
+        $component = Livewire::test(Show::class, ['batch' => $batch]);
+
+        $items[0]->update(['status' => ImportItemStatus::Searched, 'selected_youtube_url' => 'https://www.youtube.com/watch?v=aaaaaaaaaaa', 'include_in_export' => true]);
+        $items[1]->update(['status' => ImportItemStatus::Searched, 'selected_youtube_url' => 'https://www.youtube.com/watch?v=bbbbbbbbbbb', 'include_in_export' => false]);
+        $items[2]->update(['status' => ImportItemStatus::Searched]);
+        $items[3]->update(['status' => ImportItemStatus::Searched, 'error_message' => ImportItemService::SEARCH_FAILED_NOTICE]);
+        $batch->update(['status' => ImportBatchStatus::Searched]);
+
+        $component->call('checkSearchProgress')
+            ->assertSet('searchSummary', ['linked' => 1, 'to_check' => 1, 'not_found' => 1, 'failed' => 1])
+            ->assertSee('YouTube search finished:')
+            ->assertDontSeeHtml('checkSearchProgress')
+            ->call('dismissSearchSummary')
+            ->assertSet('searchSummary', null)
+            ->assertDontSee('YouTube search finished:');
     }
 
     private function customLinkItem(ImportBatch $batch, int $lineNumber): ImportItem

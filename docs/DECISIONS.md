@@ -467,3 +467,9 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 - The batch status after the search is derived: `exported` if it has an export file, otherwise `searched`. `searching` counts as "has search results" (Continue / YouTube links open YouTube Results).
 **Reason:** Agreed plan (2026-10-17) applied to the existing data model; skipping any linked item spends no quota on tracks that are done and never overwrites a choice.
 **Consequences:** An item whose title was edited after an API pick keeps the old link until the user clears it. A search failure replaces the missing-artist notice for that item until the next successful search or edit.
+
+## 2026-10-17 — Search progress: polling now, websockets maybe later
+
+**Decision:** YouTube Results shows the API search progress by polling (`wire:poll.2s`, option A of three): progress bar, rows fill in as they are found, summary at the end. Rejected for now: B) a blocking "Searching…" modal on Parse Review with a redirect when done (makes the user wait); C) push updates over websockets (Laravel Reverb + Echo).
+**Reason:** User's choice (2026-10-17). Polling needs no new packages or containers and is effectively instant for a local single-user app.
+**Consequences:** Websockets (Reverb as an extra Sail service, events broadcast from jobs, Echo in the browser) can be reconsidered for long background work, e.g. scanning the music folder in the Library milestone. Noted in ROADMAP.

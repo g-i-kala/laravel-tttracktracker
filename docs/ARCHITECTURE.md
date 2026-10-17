@@ -110,7 +110,7 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 
 - `QUEUE_CONNECTION=database`.
 - YouTube API search (implemented): `Bus::batch()` with one `SearchYoutubeForImportItemJob` per item without a selected link (`job_batches` table), `allowFailures()`, `finally` → `ImportBatchService::finishYoutubeSearch()`. Job: `Batchable`, `#[DeleteWhenMissingModels]`, `tries = 1`, `timeout = 60`; skips items not in `search_pending` and cancelled batches; runs the search inside `Context::scope([import_batch_id => …])` so API calls are linked to the batch; `failed()` falls back like an API error. One worker → jobs run one after another (~0.3–0.5 s per API call, cache hits instant).
-- Progress (step 4): count of the batch's `search_pending` items; `Imports\Show` will poll with `wire:poll` while the batch is `searching` (e.g. 12/30).
+- Progress (implemented, step 4a): `Imports\Show` keeps `pendingItemIds` / `searchedItemIds`; while the batch is `searching` it polls `checkSearchProgress()` every 2 s (ready = items not `search_pending`), copies the links of newly finished items into `links[id]` and, once the batch is no longer `searching`, sets `searchSummary` (linked / to check / not found / failed). No websockets: polling is enough for a local single-user app (DECISIONS 2026-10-17).
 - No-key mode needs no queue: generating URLs is synchronous.
 - AI parsing: one `ParseImportBatchWithAiJob` per batch (not retried automatically; the user retries from Parse Review). Requires `DB_QUEUE_RETRY_AFTER` (300) > job timeout (240).
 - Exports are synchronous (no job). Writing ~30 lines is instant and the modal flow needs an immediate result.

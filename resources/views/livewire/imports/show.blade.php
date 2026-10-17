@@ -4,6 +4,10 @@
     $included = $this->exportableCount;
     $missingLinks = $this->rows->whereNull('selected_youtube_url');
     $latestExport = $this->latestExport;
+    $isSearching = $batch->status === \App\Enums\ImportBatchStatus::Searching;
+    $readyCount = $this->rows->count() - count($pendingItemIds);
+    $searchNotices = [\App\Services\ImportItemService::SEARCH_FAILED_NOTICE, \App\Services\ImportItemService::QUOTA_EXCEEDED_NOTICE];
+    $spinner = '<svg class="size-4 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
 @endphp
 
 <div class="flex flex-col gap-6" x-on:download-export.window="window.location.href = $event.detail.url">
@@ -45,6 +49,33 @@
             </button>
         </div>
     </div>
+
+    @if ($isSearching)
+        <div wire:poll.2s="checkSearchProgress" class="flex flex-col gap-2 rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">
+            <div class="flex items-center gap-3">
+                {!! $spinner !!}
+                <span>Searching YouTube… <span class="font-medium tabular-nums">{{ $readyCount }} of {{ $this->rows->count() }}</span> tracks ready. Links appear in the rows as they are found.</span>
+            </div>
+            <div class="h-1.5 overflow-hidden rounded-full bg-accent-200 dark:bg-accent-900" role="progressbar" aria-valuemin="0" aria-valuemax="{{ $this->rows->count() }}" aria-valuenow="{{ $readyCount }}">
+                <div class="h-full rounded-full bg-accent-600 transition-all dark:bg-accent-400" style="width: {{ $this->rows->count() > 0 ? round($readyCount / $this->rows->count() * 100) : 0 }}%"></div>
+            </div>
+        </div>
+    @endif
+
+    @if ($searchSummary)
+        <div class="flex items-start justify-between gap-4 rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">
+            <p>
+                <span class="font-medium">YouTube search finished:</span>
+                {{ $searchSummary['linked'] }} linked and included
+                · {{ $searchSummary['to_check'] }} to check (link found, not included)
+                · {{ $searchSummary['not_found'] }} not found
+                @if ($searchSummary['failed'] > 0)
+                    · <span class="text-amber-700 dark:text-amber-300">{{ $searchSummary['failed'] }} failed (use the search link)</span>
+                @endif
+            </p>
+            <button type="button" wire:click="dismissSearchSummary" class="shrink-0 rounded px-1 text-accent-700 hover:bg-accent-100 dark:text-accent-300 dark:hover:bg-accent-900" aria-label="Dismiss">✕</button>
+        </div>
+    @endif
 
     @if ($latestExport)
         <div class="flex flex-col gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:flex-row sm:items-center sm:justify-between dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
@@ -110,22 +141,29 @@
                             </a>
                         </td>
                         <td class="px-3 py-2">
-                            <input
-                                type="url"
-                                inputmode="url"
-                                placeholder="Paste YouTube link"
-                                aria-label="YouTube link"
-                                wire:model.live.blur="links.{{ $item->id }}"
-                                x-on:input="if ($event.inputType === 'insertFromPaste') $el.blur()"
-                                @class([$inputClasses, 'border-red-400 dark:border-red-600' => $errors->has("links.{$item->id}")])
-                            >
-                            @error("links.{$item->id}") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
-                            <p class="mt-1 flex gap-2 text-xs">
-                                @if ($item->selected_youtube_url)
-                                    <a href="{{ $item->selected_youtube_url }}" target="_blank" rel="noopener noreferrer" class="font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Watch ↗</a>
+                            @if ($item->status === \App\Enums\ImportItemStatus::SearchPending)
+                                <p class="flex items-center gap-2 py-1.5 text-sm text-zinc-500 dark:text-zinc-400">{!! $spinner !!} Searching…</p>
+                            @else
+                                <input
+                                    type="url"
+                                    inputmode="url"
+                                    placeholder="Paste YouTube link"
+                                    aria-label="YouTube link"
+                                    wire:model.live.blur="links.{{ $item->id }}"
+                                    x-on:input="if ($event.inputType === 'insertFromPaste') $el.blur()"
+                                    @class([$inputClasses, 'border-red-400 dark:border-red-600' => $errors->has("links.{$item->id}")])
+                                >
+                                @error("links.{$item->id}") <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+                                <p class="mt-1 flex gap-2 text-xs">
+                                    @if ($item->selected_youtube_url)
+                                        <a href="{{ $item->selected_youtube_url }}" target="_blank" rel="noopener noreferrer" class="font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Watch ↗</a>
+                                    @endif
+                                    <span x-show="saved" x-cloak x-transition.opacity class="text-accent-600 dark:text-accent-400">Saved</span>
+                                </p>
+                                @if (in_array($item->error_message, $searchNotices, true))
+                                    <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">{{ $item->error_message }}</p>
                                 @endif
-                                <span x-show="saved" x-cloak x-transition.opacity class="text-accent-600 dark:text-accent-400">Saved</span>
-                            </p>
+                            @endif
                         </td>
                         <td class="px-3 py-2.5 text-center">
                             <input
@@ -134,7 +172,7 @@
                                 title="{{ $item->selected_youtube_url ? 'Include in export' : 'Paste a link first' }}"
                                 wire:click="toggleExport({{ $item->id }})"
                                 @checked($item->include_in_export && $item->selected_youtube_url)
-                                @disabled(! $item->selected_youtube_url)
+                                @disabled(! $item->selected_youtube_url || $item->status === \App\Enums\ImportItemStatus::SearchPending)
                                 class="size-4 rounded border-zinc-300 text-accent-600 focus:ring-accent-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700"
                             >
                         </td>

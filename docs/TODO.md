@@ -57,8 +57,9 @@
   - [x] Step 0: real-key smoke test (2026-10-17)
   - [x] Step 1: `YoutubeSearchService` + cache + error/quota detection (2026-10-17)
   - [x] Step 3: job + `Bus::batch()` + per-item fallback + quota flag (2026-10-17)
-  - [ ] Manual test step 3 (user): Search YouTube with key → refresh YouTube Results → preselected links / Export ticks
-  - [ ] Step 4: progress (`wire:poll`) + candidate list on YouTube Results
+  - [x] Manual test step 3 (user, 2026-10-17: works; asked for progress info instead of refreshing)
+  - [x] Step 4a: progress bar + rows fill in live + summary (`wire:poll`, 2026-10-17)
+  - [ ] Step 4b: candidate list (top 3 with scores) + choosing another candidate
   - [ ] Step 5: real-import test + scoring weight tuning
 - [x] Scoring service (title-based) — step 2, 2026-10-17; tune weights in step 5
 - [ ] Candidate selection (API mode)
@@ -69,6 +70,8 @@
 - [x] Manual test export step 2: sidebar Exports → list, Latest badge, Download, import link (2026-10-17)
 
 ## After MVP
+
+- [ ] Check feasibility (requested 2026-10-17): build the link list straight from a **YouTube playlist** (paste playlist URL → Supersimple TXT / import). Note: `playlistItems.list` costs 1 quota unit per 50 videos (vs 100 per search); private playlists need OAuth, public/unlisted work with the API key.
 
 - [ ] Settings screen (accent color picker; now `APP_ACCENT`)
 - [ ] Light/dark toggle (now follows the OS)

@@ -83,7 +83,7 @@ No stored counters (`items_count`, `exportable_count`, `missing_links_count` rem
 | import_batch_id        | FK → import_batches, restrict |                               |
 | type                   | string                        | e.g. `supersimple_txt`        |
 | filename               | string                        |                               |
-| path                   | string                        | path on the local disk        |
+| path                   | string                        | path on the `local` disk: `exports/{batch id}/{filename}` |
 | version                | unsigned int                  | 1, 2, 3…                      |
 | items_count            | unsigned int                  | URLs written (snapshot at export time) |
 | options                | jsonb, nullable               | cast to `array`               |

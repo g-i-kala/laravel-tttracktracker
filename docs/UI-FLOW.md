@@ -75,10 +75,12 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Export (on YouTube Results)
 
-- **Generate Supersimple TXT** button → `export()`.
-- **Missing links modal**: Add custom links / Export anyway and skip missing / Cancel.
-- **Export version modal** (export already exists): Create new version / Overwrite latest / Cancel.
-- After export: download link.
+> Status: implemented (2026-10-16).
+
+- **Generate TXT** button (header; disabled with "Paste at least one link first" until a track is included with a link) → `export()`.
+- **Missing links modal** "Some tracks have no link": "N tracks have no YouTube link and will be skipped. The TXT will contain N links.", list of those tracks; **Add links first** (closes) / **Export anyway**. Close (×, Escape, backdrop) = cancel.
+- **Export version modal** "Export already exists" (filename, date, link count): **Cancel** / **Overwrite latest** / **Create new version**.
+- After export: the file downloads automatically, and a green bar shows "Exported N links · filename · date · **Download again**" (latest export of the batch, also on later visits).
 
 ## Exports (`/exports`) — `Exports\Index`
 
@@ -101,7 +103,7 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | -------------------- | --------------- | -------------------------------- |
 | How it works         | Dashboard       | "How it works" button          |
 | Duplicate modal      | Parse Review    | Exact duplicates right after parse; "Review duplicates" in the banner |
-| Missing links modal  | YouTube Results | Export with missing links        |
+| Missing links modal  | YouTube Results | Generate TXT with tracks without a link |
 | Export version modal | YouTube Results | Export already exists for batch  |
 
 ## Settings → AI (`/settings/ai`) — `Settings\Ai`

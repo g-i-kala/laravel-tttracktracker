@@ -36,7 +36,7 @@ Stack: PHPUnit 12, Mockery, Faker. Code style: `./vendor/bin/sail bin pint`.
 - `ImportItemFactory` computes `normalized_key` from the final artist/title with `ImportParserService`, so overriding artist/title in a test gives a realistic key.
 - YouTube URL normalizer: `watch?v=`, `youtu.be/`, `shorts/`, `embed/`, `live/`, m/music hosts, no scheme, extra query params; rejected: other sites, look-alike hosts, search/channel/playlist pages, bad IDs, `javascript:` (`YoutubeUrlNormalizerTest`). Feature (`YoutubeResultsTest`): paste → normalized + included, custom link clears API title/channel/score, invalid keeps the saved link, empty clears + excludes, toggle only with a link, foreign items 404.
 - YouTube search URL generator: proper encoding, `(Original Mix)` removed, versions/remixes/feat. kept (`YoutubeSearchUrlServiceTest`). Feature: `YoutubeResultsTest` (Search YouTube stores URLs + statuses, blocked by invalid field, re-run keeps exported, results page links in new tab, numeric route, imports list Review / YouTube links, Review → YouTube links).
-- Supersimple TXT export: only included items with URLs; no empty lines/metadata.
+- Supersimple TXT export: only included items with URLs, line order, no trailing newline/empty lines/metadata (`SupersimpleTxtExportTest` with `Storage::fake('local')`: missing links modal + export anyway, version modal new/overwrite, statuses, disabled without links, download route headers + 404). Filenames: `ExportFilenameServiceTest`.
 - Export filename versioning: base, `_v2`, `_v3`, overwrite latest.
 - YouTube scoring: penalties (live set, podcast, lyrics, sped up, slowed, cover, reaction, tutorial), thresholds 80/60.
 

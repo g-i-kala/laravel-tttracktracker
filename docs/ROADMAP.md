@@ -18,9 +18,9 @@
 - [ ] Candidate selection (API mode)
 - [x] Custom link (inline field, validation + normalization)
 - [x] Include-in-export toggle
-- [ ] Supersimple TXT export + missing-link modal
-- [ ] Export versioning + overwrite modal
-- [ ] Export history + download
+- [x] Supersimple TXT export + missing-link modal
+- [x] Export versioning + overwrite modal
+- [ ] Export history (`/exports`) — download implemented
 
 ## Milestone 2 — Beatport integration / import helper
 

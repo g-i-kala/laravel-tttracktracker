@@ -138,11 +138,13 @@ Title-based only (no duration lookup):
 
 ## Export generation
 
-- Select items where `include_in_export = true` and `selected_youtube_url IS NOT NULL`.
-- Write URLs joined by newline, nothing else.
+- Implemented in `SupersimpleTxtExportService` (sync, `DB::transaction`), filenames by `ExportFilenameService`, download by `ExportController@download`.
+- Select items where `include_in_export = true` and `selected_youtube_url IS NOT NULL`, in line order.
+- Write URLs joined by newline, nothing else (no trailing newline, no empty lines).
 - Filename from slugged batch name; versioning `_v2`, `_v3` via `ExportFilenameService`.
 - Overwrite-latest or create-new-version chosen by the user in a modal.
-- Stored on local disk; an `ExportFile` row records path, version, items count, options.
+- Stored on the `local` disk (`storage/app/private`) under `exports/{batch id}/{filename}`; an `ExportFile` row (`type = supersimple_txt`) records path, version, items count, options. Overwrite keeps the latest row's filename/version, updates `items_count` and `updated_at`.
+- After export: exported items → `ImportItemStatus::Exported`, batch → `ImportBatchStatus::Exported`.
 
 ## Frontend
 

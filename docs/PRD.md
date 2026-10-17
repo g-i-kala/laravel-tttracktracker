@@ -72,7 +72,8 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - TXT includes an item only if `include_in_export = true` and `selected_youtube_url` is not null.
 - No comments, titles, metadata, empty lines, or placeholders.
 - Filename: `{slug}_youtube_links.txt`, then `_v2`, `_v3`, …
-- Export history stored; files downloadable.
+- Export history stored; files downloadable. Generate TXT downloads the file right away and leaves a "Download again" bar.
+- Re-export: modal "Create new version" (`_v2`, old file kept) / "Overwrite latest" / Cancel.
 
 ## Acceptance criteria
 
@@ -93,12 +94,12 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - [ ] User can select candidate.
 - [x] User can paste custom YouTube link.
 - [x] Custom link is validated and normalized.
-- [ ] User can toggle `include_in_export`.
-- [ ] Export creates TXT with only URLs.
-- [ ] Missing links are skipped after warning.
-- [ ] Export is stored in history.
-- [ ] Re-export can create `_v2`, `_v3`, etc.
-- [ ] User can download TXT.
+- [x] User can toggle `include_in_export`.
+- [x] Export creates TXT with only URLs.
+- [x] Missing links are skipped after warning.
+- [ ] Export is stored in history. (rows stored; history screen `/exports` is the next step)
+- [x] Re-export can create `_v2`, `_v3`, etc.
+- [x] User can download TXT.
 
 ## Out of scope (MVP)
 

@@ -1,6 +1,6 @@
 # API / Routes
 
-> Status: `/` (Dashboard placeholder), `/imports`, `/imports/create`, `/imports/{batch}/review`, `/imports/{batch}` (YouTube Results, no-key mode) and `/settings/ai` implemented; other routes planned.
+> Status: `/` (Dashboard placeholder), `/imports`, `/imports/create`, `/imports/{batch}/review`, `/imports/{batch}` (YouTube Results, no-key mode), `/exports/{export}/download` and `/settings/ai` implemented; `/exports` planned.
 
 The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTURE.md#frontend)). There is no JSON API: user actions are Livewire component methods, called over Livewire's own endpoint (session + CSRF handled by Livewire).
 
@@ -39,8 +39,12 @@ These replace the POST/PATCH routes from the original plan.
 | `Imports\Show`    | `selectCandidate($itemId, $candidateId)` | `POST /items/{item}/youtube/select`          | Copy candidate to `selected_youtube_*`                              |
 | `Imports\Show`    | `updatedLinks()` hook **(implemented)** | `POST /items/{item}/youtube/custom`           | Autosave the pasted link (`wire:model.live.blur="links.{id}"`, blur on paste): empty → `ImportItemService::clearYoutubeLink()` (excluded); invalid → error, nothing saved; valid → `YoutubeUrlNormalizer` + `selectCustomYoutubeLink()` (included); dispatches `item-saved` |
 | `Imports\Show`    | `toggleExport($itemId)` **(implemented)** | `POST /items/{item}/toggle-export`          | Flip `include_in_export`; no-op without a selected link             |
-| `Imports\Show`    | `export()` / `confirmExport($mode)`    | `POST /imports/{batch}/exports/supersimple-txt`| Check missing links / existing export (modals), generate TXT sync   |
+| `Imports\Show`    | `export()` / `exportAnyway()` / `confirmExport($mode)` **(implemented)** | `POST /imports/{batch}/exports/supersimple-txt` | `export()`: no-op without exportable links; tracks without a link → missing links modal (`exportAnyway()` continues); existing export → version modal; `confirmExport('new'|'overwrite')` → `SupersimpleTxtExportService::export()`, dispatches `download-export` |
 
 Item actions always check that the item belongs to the page's batch.
 
 To be filled in with details as components are implemented.
+
+### `ExportController@download` (implemented)
+
+`GET /exports/{export}/download` → `Storage::disk('local')->download($export->path, $export->filename)` with `Content-Type: text/plain; charset=UTF-8`; 404 when the file is missing on disk. Used by the automatic download after Generate TXT (`download-export` browser event → `window.location`) and by "Download again".

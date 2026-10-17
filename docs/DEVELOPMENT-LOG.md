@@ -383,3 +383,16 @@
 - Direct entry to YouTube Results (user feedback: only reachable via Search YouTube). Imports list actions: **Review** + **YouTube links** (once searched); Parse Review: **YouTube links →** (once searched). In step A only the batch name had been pointed to results; the Continue link still went to review, and the test only checked that the href existed somewhere on the page. Tests now assert the exact links.
 - Docs: UI-FLOW, DECISIONS, TESTING.
 - 194 tests pass.
+
+## 2026-10-16 (Export step 1: Supersimple TXT)
+
+### Added
+- `ExportFilenameService` (`{slug}_youtube_links[_vN].txt`, falls back to `import-{id}`), `SupersimpleTxtExportService` (`exportableItems()`, `content()`, `latestExport()`, `export()`), `ExportController@download` + route `exports.download`.
+- YouTube Results: **Generate TXT** (enabled with at least one exportable link), missing links modal, version modal, automatic download, "Exported … · Download again" bar.
+- Tests: `ExportFilenameServiceTest`, `SupersimpleTxtExportTest` (7).
+
+### Changed
+- Docs: DECISIONS (ADR), API, ARCHITECTURE, UI-FLOW, DATABASE, PRD, ROADMAP, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 203 tests pass. Headless Chrome check on a temporary batch (removed afterwards with its files): Generate disabled without links → paste → missing links modal → Export anyway → `…_youtube_links.txt` downloaded with only the URL; second export → missing links → version modal → new version → `…_v2.txt`. The green bar needed `npm run build` (new Tailwind classes).

@@ -387,3 +387,16 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-14). The inline field is the fastest flow for ~30 tracks: open the search, copy the video URL, paste it in the row.
 
 **Consequences:** The "Custom link modal" is dropped from UI-FLOW. For `searched` / `exported` batches (`ImportBatchStatus::hasSearchResults()`), YouTube Results is reachable directly: **YouTube links** on the imports list and **YouTube links →** on Parse Review (user feedback 2026-10-15: entering only through Search YouTube was not OK). Search YouTube is only needed to (re)generate the search URLs.
+
+## 2026-10-16 — Supersimple TXT export flow
+
+**Decision:**
+- Generate TXT on YouTube Results. Tracks without a link → missing links modal (Add links first / Export anyway). Existing export → version modal (Create new version / Overwrite latest / Cancel), as planned.
+- The file **downloads automatically** after generation (`download-export` event → `window.location` to `exports.download`), and a "Download again" bar stays on the screen.
+- File content: URLs joined by `\n`, no trailing newline.
+- Overwrite keeps the latest version's filename and number. Exported items and the batch get the `exported` status.
+- Work in two steps: 1) export + download, 2) Exports list `/exports`.
+
+**Reason:** User's answers (2026-10-16). The planned `ExportController@download` stays the only controller, so the same download link works on YouTube Results now and on the exports list later.
+
+**Consequences:** Files live in `storage/app/private/exports/{batch id}/`. A future "delete batch" must delete these files too.

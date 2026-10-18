@@ -205,6 +205,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 1. `3e192a9 feat(youtube)`: `YoutubePlaylistService` (ID playlisty z linku, `playlistItems.list` po 50, limit, pominięte usunięte/prywatne, log 1 jednostka/strona, wspólna flaga limitu przez `YoutubeSearchService::markQuotaExceeded()`), `YoutubePlaylistException::userMessage()`.
 2. `f5e345a feat(imports)`: `PlaylistTrackService` (Topic, czyszczenie „(Official Video)” itp., `Artist - Title`, link + Export), agent AI `PlaylistTitleParser` (numer → artysta/tytuł), job `ParsePlaylistTitlesWithAiJob` (poprawia na miejscu; przy błędzie zostaje prosty wynik), `ImportBatchService::createFromPlaylist()`, `source_type = youtube_playlist`.
 3. `2b1e755 feat(imports)`: zakładki **Paste list / YouTube playlist** na New Import (`?source=playlist`), komunikaty (pominięte, ponad 200, błędy pod polem), komunikat AI na Parse Review. Sprawdzone w headless Chrome (bez prawdziwej playlisty z filmami).
+4. `26c7442 fix(youtube)`: **YouTube Mix i powtórki.** Użytkownik wkleił link z miksem (`watch?v=…&list=RD…&start_radio=1`) i dostał 200 tracków z masą duplikatów. Miks nie ma końca, API w kółko zwraca te same ~50 filmów. Teraz każdy film trafia raz (komunikat „Skipped N repeated videos.”), a miks (`RD…`, oprócz `RDCLAK…`) pobiera się tylko z 1. strony (≤ 50) z komunikatem. Test ręczny użytkownika OK.
 - Potwierdzone przez użytkownika: ceny `gpt-4.1-mini` zgodne z configiem; pełna wklejka z Beatportu działa (2026-10-17).
 
 **Decyzje** (DECISIONS 2026-10-18): import z playlisty (zakładka, tylko z kluczem, public/unlisted, link z playlisty = wybrany, pierwsze 200 + komunikat); osobny agent AI w tle, bez AI tytuł bez myślnika → brak artysty; **Export track list** (TXT `Artist - Title` lub CSV ze wszystkimi polami, modal wyboru, na Parse Review u góry + YouTube Results + lista importów, tylko pobranie, bez historii).
@@ -216,8 +217,8 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 **Stan danych lokalnych (2026-10-18):** 4 importy, 2 eksporty (dane użytkownika), limit YouTube dziś 1 jednostka.
 
 **Następne kroki (po kolei):**
-0. **Test ręczny użytkownika: import playlisty z lat 80** (z AI): komunikat, artyści/tytuły (też polskie), duplikaty, YouTube links (wszystko z linkiem + Export), Generate TXT. Po teście ewentualne poprawki czyszczenia tytułów/instrukcji agenta.
-1. **Export track list** (decyzje już podjęte, TODO „After MVP”): modal TXT/CSV, Parse Review (u góry), YouTube Results, lista importów; tylko pobranie.
+0. **Test ręczny użytkownika: import playlisty z lat 80** (z AI): import z miksu działa (2026-10-18). Do sprawdzenia przy okazji: artyści/tytuły (też polskie) i Generate TXT. Po teście ewentualne poprawki czyszczenia tytułów/instrukcji agenta.
+1. **Export track list** (następny, użytkownik chce od razu) (decyzje już podjęte, TODO „After MVP”): modal TXT/CSV, Parse Review (u góry), YouTube Results, lista importów; tylko pobranie.
 2. **Porównanie playlist / duplikaty między importami / biblioteka** pod bazę lat 80: zacząć od Q&A (łączyć importy w jeden? biblioteka Milestone 2?).
 
 **Wcześniejsza lista kroków (2026-10-17):**

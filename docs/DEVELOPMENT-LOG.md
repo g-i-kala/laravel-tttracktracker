@@ -653,3 +653,8 @@
 ### Notes
 - Bug report: a Mix link (`list=RD8_fbfTOOfSk`) fetched 5 pages of mostly the same ~50 videos and filled the 200 limit with duplicates (`youtube_api_calls` #13–17).
 - 362 tests pass.
+
+## 2026-10-18 (Session handoff)
+
+### Changed
+- START-TUTAJ: session notes (Mix/duplicates fix `26c7442`, user's manual test OK), next step: Export track list.

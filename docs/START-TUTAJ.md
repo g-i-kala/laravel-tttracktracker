@@ -15,7 +15,7 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 
 ## Aktualny status
 
-Stan na 2026-10-17:
+Stan na 2026-10-18:
 
 - Laravel 13, PHP 8.4, Sail (`compose.yaml`): app, PostgreSQL 16 (`tttracktracker`, port 5433 na hoście), worker kolejki jako serwis `queue`. Aplikacja: http://localhost:8000.
 - Frontend: Blade + **Livewire 4.4** (full-page, class-based, jeden komponent na ekran), Tailwind 4, własny `<x-modal>`. Sidebar, motyw jasny/ciemny wg systemu, akcent z `APP_ACCENT`.
@@ -23,6 +23,7 @@ Stan na 2026-10-17:
 - **Działa:** **Dashboard** (Needs attention, ostatnie importy i eksporty), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, BPM/tonacja/label po kliknięciu w wiersz, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle, także BPM, tonacja (+ Camelot) i label; bez klucza parser linii `Artist - Title`.
 - **Duplikaty** w obrębie importu: modal raz po parsowaniu + banner, oznaczenia podobnych (inna wersja, kolejność artystów, drobna literówka).
+- **Import z playlisty YouTube** (zakładka „YouTube playlist” na New Import, wymaga klucza YouTube): każdy film = track z linkiem i zaznaczonym Export, bez wyszukiwania; Topic → artysta z kanału; AI (osobny agent) poprawia artystę/tytuł w tle. Do 200 filmów, pominięte usunięte/prywatne.
 - **YouTube bez klucza API (fallback):** Search YouTube na Parse Review → ekran **YouTube Results** (`/imports/{batch}`) z linkami wyszukiwania, polem na własny link (normalizacja, autosave) i checkboxem Export.
 - **Eksport Supersimple TXT** na YouTube Results: modal brakujących linków, modal wersji (nowa / nadpisz), auto-pobieranie, „Download again”.
 - **Lista eksportów** (`/exports`): wszystkie wersje, „Latest”, pobieranie.
@@ -30,7 +31,7 @@ Stan na 2026-10-17:
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
 - **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. **Licznik limitu** (linia na Dashboard, Parse Review, YouTube Results + ekran **YouTube Settings** `/settings/youtube`). Strojenie wag (krok 5) odłożone.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 302, wszystkie przechodzą.
+- Testy: 353, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -185,7 +186,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 **Lekcja:** porównując `created_at` z momentem w innej strefie (np. północ PT), najpierw `setTimezone(config('app.timezone'))`: Eloquent zapisuje Carbon bez konwersji strefy.
 
-**Na start następnej sesji:** propozycja: punkt 3 niżej (playlista YouTube → TXT), zaczynając od pytań. Użytkownik jeszcze nie wybrał.
+**Na start następnej sesji:** patrz sesja 2026-10-18 niżej.
 
 **Incydent: klucz OpenAI w logu sesji**
 - 2026-10-13 pełny `OPENAI_API_KEY` wyświetlił się w wyniku polecenia, bo maskowanie `sed` nie działa na macOS (BSD sed). Nie ma go w gicie ani w plikach projektu.
@@ -195,11 +196,33 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 **Lokalny `.env` (poza gitem):** `APP_ACCENT=navy`, `APP_TIMEZONE=Europe/Warsaw`, `OPENAI_API_KEY` ustawiony, `AI_PARSER_MODEL=gpt-4.1-mini`, `DB_QUEUE_RETRY_AFTER=300`, `YOUTUBE_DATA_API_KEY` ustawiony (2026-10-17, działa). Po zmianach `.env` uruchom `sail artisan config:clear` i `sail artisan queue:restart`.
 
 **Do zrobienia przez użytkownika:**
+- **Test ręczny importu z playlisty** (patrz sesja 2026-10-18).
 - ~~Sprawdzić ceny `gpt-4.1-mini`~~ potwierdzone 2026-10-18 ($0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`), zgodne z configiem.
 
+### Sesja 2026-10-18: import z playlisty YouTube
+
+**Zrobione (commity po kolei):**
+1. `3e192a9 feat(youtube)`: `YoutubePlaylistService` (ID playlisty z linku, `playlistItems.list` po 50, limit, pominięte usunięte/prywatne, log 1 jednostka/strona, wspólna flaga limitu przez `YoutubeSearchService::markQuotaExceeded()`), `YoutubePlaylistException::userMessage()`.
+2. `f5e345a feat(imports)`: `PlaylistTrackService` (Topic, czyszczenie „(Official Video)” itp., `Artist - Title`, link + Export), agent AI `PlaylistTitleParser` (numer → artysta/tytuł), job `ParsePlaylistTitlesWithAiJob` (poprawia na miejscu; przy błędzie zostaje prosty wynik), `ImportBatchService::createFromPlaylist()`, `source_type = youtube_playlist`.
+3. `2b1e755 feat(imports)`: zakładki **Paste list / YouTube playlist** na New Import (`?source=playlist`), komunikaty (pominięte, ponad 200, błędy pod polem), komunikat AI na Parse Review. Sprawdzone w headless Chrome (bez prawdziwej playlisty z filmami).
+- Potwierdzone przez użytkownika: ceny `gpt-4.1-mini` zgodne z configiem; pełna wklejka z Beatportu działa (2026-10-17).
+
+**Decyzje** (DECISIONS 2026-10-18): import z playlisty (zakładka, tylko z kluczem, public/unlisted, link z playlisty = wybrany, pierwsze 200 + komunikat); osobny agent AI w tle, bez AI tytuł bez myślnika → brak artysty; **Export track list** (TXT `Artist - Title` lub CSV ze wszystkimi polami, modal wyboru, na Parse Review u góry + YouTube Results + lista importów, tylko pobranie, bez historii).
+
+**Cel użytkownika (ważny kontekst):** baza na **imprezę lat 80 (PL i zagraniczne)** z wielu playlist i źródeł, z której ma powstać jedna wspólna lista. Potrzebne: eksport listy bez linków, porównanie playlist/importów, usuwanie duplikatów między nimi, dodanie do biblioteki. Zapisane w TODO (Library).
+
+**Lekcja:** `Queue::fake()` przechwytuje też `dispatchSync()`: w testach jobów nie fake'ować kolejki.
+
+**Stan danych lokalnych (2026-10-18):** 4 importy, 2 eksporty (dane użytkownika), limit YouTube dziś 1 jednostka.
+
 **Następne kroki (po kolei):**
+0. **Test ręczny użytkownika: import playlisty z lat 80** (z AI): komunikat, artyści/tytuły (też polskie), duplikaty, YouTube links (wszystko z linkiem + Export), Generate TXT. Po teście ewentualne poprawki czyszczenia tytułów/instrukcji agenta.
+1. **Export track list** (decyzje już podjęte, TODO „After MVP”): modal TXT/CSV, Parse Review (u góry), YouTube Results, lista importów; tylko pobranie.
+2. **Porównanie playlist / duplikaty między importami / biblioteka** pod bazę lat 80: zacząć od Q&A (łączyć importy w jeden? biblioteka Milestone 2?).
+
+**Wcześniejsza lista kroków (2026-10-17):**
 1. **Krok 5 trybu API (odłożony, użytkownik: „na dziś działa super”):** przegląd prawdziwego importu zrobiony 2026-10-17, plan poprawek z decyzjami użytkownika w [TODO.md](TODO.md) pod „Step 5” (artyści z opisu kanałów Topic, „NOT official”, lista znaczników mashup/medley/festiwal −30, wersja przed oficjalnym kanałem, bez powtórek kandydatów). Wagi to stałe w `YoutubeScoringService`.
 2. ~~Licznik limitu YouTube~~ zrobiony 2026-10-17 (decyzje w DECISIONS „YouTube quota counter”). Test ręczny użytkownika OK (2026-10-17).
-3. **Do sprawdzenia:** lista linków z playlisty YouTube (TODO „After MVP”; `playlistItems.list` = 1 jednostka / 50 filmów).
+3. ~~Lista linków z playlisty YouTube~~ zrobione 2026-10-18 (import z playlisty).
 4. **Biblioteka muzyki (Milestone 2, po MVP):** zamiast arkuszy (Numbers), z playlistami, import przez skan folderu z muzyką. Najpierw Q&A (model danych, montowanie folderu w Sail, czytnik tagów). Patrz DECISIONS 2026-10-17.
 5. Drobne: `.vscode/extensions.json`; po MVP (TODO „After MVP”): ustawienia akcentu, przełącznik jasny/ciemny, ostrzeżenie o duplikatach między importami; opcjonalnie „TXT out of date” na YouTube Results, ujednolicenie sortowania eksportów.

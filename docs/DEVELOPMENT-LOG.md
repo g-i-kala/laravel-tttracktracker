@@ -633,3 +633,8 @@
 ### Notes
 - 353 tests pass. Ran `sail npm run build`.
 - Headless Chrome: tabs switch (URL `?source=playlist`), video link rejected, a non-existent playlist returns "Playlist not found…" from the real API (1 quota unit), switching back clears the error, no JS errors.
+
+## 2026-10-18 (Session handoff)
+
+### Changed
+- START-TUTAJ: status (playlist import, 353 tests), session notes 2026-10-18, user's goal (80s party set from many sources), next steps (manual playlist test, Export track list, compare/merge Q&A).

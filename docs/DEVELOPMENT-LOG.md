@@ -619,3 +619,17 @@
 
 ### Notes
 - 345 tests pass. Not yet reachable from the UI (step 3); the AI agent has not been tried on the real API.
+
+## 2026-10-18 (YouTube playlist import, step 3)
+
+### Added
+- New Import tabs **Paste list** / **YouTube playlist** (`?source=playlist`), playlist link field, no-key hint, **Import playlist** with errors on the field and a flash with imported / skipped / left-out counts.
+- Parse Review: "Cleaning up the video titles with AI…" for playlist imports while AI runs.
+- 8 Livewire tests in `tests/Feature/Imports/PlaylistImportTest.php`.
+
+### Changed
+- Docs: UI-FLOW, ARCHITECTURE, TESTING, TODO.
+
+### Notes
+- 353 tests pass. Ran `sail npm run build`.
+- Headless Chrome: tabs switch (URL `?source=playlist`), video link rejected, a non-existent playlist returns "Playlist not found…" from the real API (1 quota unit), switching back clears the error, no JS errors.

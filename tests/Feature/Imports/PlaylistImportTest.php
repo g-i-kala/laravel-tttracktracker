@@ -5,13 +5,17 @@ namespace Tests\Feature\Imports;
 use App\Ai\Agents\PlaylistTitleParser;
 use App\Enums\ImportBatchStatus;
 use App\Jobs\ParsePlaylistTitlesWithAiJob;
+use App\Livewire\Imports\Create;
+use App\Livewire\Imports\Review;
 use App\Models\ImportBatch;
 use App\Services\ImportBatchService;
 use App\Services\ImportParserService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Laravel\Ai\Prompts\AgentPrompt;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -136,6 +140,160 @@ class PlaylistImportTest extends TestCase
         Bus::assertNothingBatched();
         $this->assertSame(ImportBatchStatus::Searched, $batch->refresh()->status);
         $this->assertSame(3, $batch->items()->where('include_in_export', true)->count());
+    }
+
+    public function test_new_import_shows_the_playlist_tab(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+
+        Livewire::test(Create::class)
+            ->assertSee('Paste list')
+            ->assertSee('YouTube playlist')
+            ->assertDontSee('Playlist link')
+            ->call('showSource', 'playlist')
+            ->assertSet('source', 'playlist')
+            ->assertSee('Playlist link')
+            ->assertSee('Import playlist')
+            ->assertSeeHtml('data-testid="playlist-hint"')
+            ->assertDontSee('Track list');
+
+        Livewire::withQueryParams(['source' => 'playlist'])->test(Create::class)->assertSet('source', 'playlist');
+        Livewire::withQueryParams(['source' => 'nope'])->test(Create::class)->assertSet('source', 'paste');
+    }
+
+    public function test_playlist_tab_without_youtube_key_explains_and_blocks_the_import(): void
+    {
+        Http::fake();
+
+        Livewire::test(Create::class)
+            ->call('showSource', 'playlist')
+            ->assertSeeHtml('data-testid="playlist-no-key"')
+            ->set('playlistUrl', 'https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')
+            ->call('save')
+            ->assertHasErrors('playlistUrl');
+
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('import_batches', 0);
+    }
+
+    public function test_playlist_link_is_validated_before_calling_the_api(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+        Http::fake();
+
+        Livewire::test(Create::class)
+            ->set('source', 'playlist')
+            ->set('playlistUrl', 'https://www.youtube.com/watch?v=djV11Xbc914')
+            ->call('save')
+            ->assertHasErrors('playlistUrl')
+            ->assertSee('This is not a YouTube playlist link.');
+
+        Http::assertNothingSent();
+    }
+
+    public function test_playlist_import_creates_the_batch_and_reports_skipped_videos(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+        Queue::fake();
+        Http::fake(['www.googleapis.com/youtube/v3/playlistItems*' => Http::response([
+            'pageInfo' => ['totalResults' => 3],
+            'items' => [
+                $this->apiItem('djV11Xbc914', 'a-ha - Take On Me (Official Video)', 'a-ha', 'public'),
+                $this->apiItem('xxxxxxxxxx1', 'Deleted video', null, 'privacyStatusUnspecified'),
+                $this->apiItem('kombi000001', 'Black and White', 'Kombi - Topic', 'unlisted'),
+            ],
+        ])]);
+
+        Livewire::test(Create::class)
+            ->set('name', '80s party')
+            ->set('defaultGenre', '80s')
+            ->set('source', 'playlist')
+            ->set('playlistUrl', 'https://www.youtube.com/playlist?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('imports.review', ImportBatch::sole()));
+
+        $batch = ImportBatch::sole();
+        $this->assertSame('80s party', $batch->name);
+        $this->assertSame(ImportBatchService::SOURCE_YOUTUBE_PLAYLIST, $batch->source_type);
+        $this->assertSame(['a-ha', 'Kombi'], $batch->items()->orderBy('line_number')->pluck('artist')->all());
+        $this->assertSame('Imported 2 tracks from the playlist, each with its video as the link. Skipped 1 deleted or private video.', session('status'));
+        $this->assertTrue(session('check_duplicates'));
+    }
+
+    public function test_playlist_import_mentions_videos_over_the_limit(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+        Queue::fake();
+        Http::fake(['www.googleapis.com/*' => Http::response([
+            'pageInfo' => ['totalResults' => 260],
+            'nextPageToken' => 'NEXT',
+            'items' => collect(range(1, 50))->map(fn (int $number): array => $this->apiItem(sprintf('video%06d', $number), "Artist {$number} - Title {$number}", 'Channel', 'public'))->all(),
+        ])]);
+
+        Livewire::test(Create::class)
+            ->set('source', 'playlist')
+            ->set('playlistUrl', 'PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(200, ImportBatch::sole()->items()->count());
+        $this->assertStringContainsString('Only the first 200 videos are imported; 60 more were left out.', session('status'));
+    }
+
+    public function test_playlist_errors_are_shown_on_the_field(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+        Http::fake(['www.googleapis.com/*' => Http::response(['error' => ['code' => 404, 'errors' => [['reason' => 'playlistNotFound']]]], 404)]);
+
+        Livewire::test(Create::class)
+            ->set('source', 'playlist')
+            ->set('playlistUrl', 'PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')
+            ->call('save')
+            ->assertHasErrors('playlistUrl')
+            ->assertSee('Playlist not found');
+
+        $this->assertDatabaseCount('import_batches', 0);
+    }
+
+    public function test_playlist_without_playable_videos_is_not_imported(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+        Http::fake(['www.googleapis.com/*' => Http::response(['pageInfo' => ['totalResults' => 1], 'items' => [
+            $this->apiItem('xxxxxxxxxx1', 'Private video', null, 'private'),
+        ]])]);
+
+        Livewire::test(Create::class)
+            ->set('source', 'playlist')
+            ->set('playlistUrl', 'PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG')
+            ->call('save')
+            ->assertHasErrors('playlistUrl')
+            ->assertSee('This playlist has no playable videos.');
+
+        $this->assertDatabaseCount('import_batches', 0);
+    }
+
+    public function test_review_explains_ai_title_cleanup_for_playlist_imports(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportBatchStatus::Parsing, 'source_type' => ImportBatchService::SOURCE_YOUTUBE_PLAYLIST]);
+
+        Livewire::test(Review::class, ['batch' => $batch])
+            ->assertSee('Cleaning up the video titles with AI');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function apiItem(string $videoId, string $title, ?string $channel, string $privacyStatus): array
+    {
+        return [
+            'snippet' => array_filter([
+                'title' => $title,
+                'videoOwnerChannelTitle' => $channel,
+                'resourceId' => ['videoId' => $videoId],
+            ]),
+            'status' => ['privacyStatus' => $privacyStatus],
+        ];
     }
 
     /**

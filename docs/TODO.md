@@ -86,7 +86,8 @@
 - [ ] **Import from a YouTube playlist** (requested 2026-10-17, decisions 2026-10-18 in DECISIONS "Import from a YouTube playlist"): "YouTube playlist" tab on New Import, `playlistItems.list` (1 unit / 50 videos), API key required, public/unlisted only, AI or line parser for titles (Topic channels: artist = channel), playlist video = selected link + Export, first 200 videos + notice.
   - [x] Step 1: `YoutubePlaylistService` (playlist ID from link, `playlistItems.list` pages, limit, skipped videos, call log, quota flag) (2026-10-18)
   - [x] Step 2: videos → tracks (Topic channels, title noise, AI agent `PlaylistTitleParser` in the background / line parser, playlist video as selected link + Export) (2026-10-18)
-  - [ ] Step 3: New Import tabs + notices, headless Chrome check, manual test
+  - [x] Step 3: New Import tabs + notices, headless Chrome check (2026-10-18)
+  - [ ] Manual test on a real playlist (user; e.g. an 80s playlist, with AI)
 
 - [ ] **Export track list** (requested 2026-10-18, decisions in DECISIONS "Export track list"; after the playlist import): modal TXT (`Artist - Title`) or CSV (all fields + YouTube URL), on Parse Review (top), YouTube Results and the imports list; download only, no history.
 

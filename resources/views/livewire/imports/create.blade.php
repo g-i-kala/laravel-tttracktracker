@@ -8,7 +8,9 @@
     <div>
         <h1 class="text-2xl font-semibold">New YouTube Export</h1>
         <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            @if ($this->aiEnabled)
+            @if ($source === 'playlist')
+                Paste a link to a public or unlisted YouTube playlist; each video becomes a track with its link.
+            @elseif ($this->aiEnabled)
                 Paste your track list in any format.
             @else
                 Paste your track list, one track per line, as <code>Artist - Title</code>.
@@ -27,6 +29,23 @@
             <a href="{{ route('settings.ai') }}" wire:navigate class="font-medium underline">See usage</a>
         </div>
     @endif
+
+    <div class="flex gap-1 border-b border-zinc-200 dark:border-zinc-800" role="tablist">
+        @foreach (['paste' => 'Paste list', 'playlist' => 'YouTube playlist'] as $tab => $tabLabel)
+            <button
+                type="button"
+                role="tab"
+                wire:key="source-{{ $tab }}"
+                wire:click="showSource('{{ $tab }}')"
+                aria-selected="{{ $source === $tab ? 'true' : 'false' }}"
+                @class([
+                    '-mb-px border-b-2 px-4 py-2 text-sm font-medium',
+                    'border-accent-600 text-accent-700 dark:border-accent-400 dark:text-accent-300' => $source === $tab,
+                    'border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100' => $source !== $tab,
+                ])
+            >{{ $tabLabel }}</button>
+        @endforeach
+    </div>
 
     <form wire:submit="save" class="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
         <div>
@@ -60,6 +79,34 @@
             </div>
         </div>
 
+        @if ($source === 'playlist')
+        <div>
+            <label for="playlistUrl" class="{{ $labelClasses }}">Playlist link</label>
+            <input
+                id="playlistUrl"
+                type="url"
+                wire:model="playlistUrl"
+                placeholder="https://www.youtube.com/playlist?list=PL…"
+                @disabled(! $this->playlistEnabled)
+                class="{{ $inputClasses }} font-mono disabled:opacity-50"
+            >
+            @error('playlistUrl') <p class="{{ $errorClasses }}">{{ $message }}</p> @enderror
+
+            @if ($this->playlistEnabled)
+                <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400" data-testid="playlist-hint">
+                    Up to {{ \App\Livewire\Imports\Create::MAX_TRACKS }} videos · about 1 YouTube quota unit per 50 videos · no YouTube search needed afterwards.
+                    @if ($this->aiEnabled)
+                        AI cleans up the video titles after the import.
+                    @endif
+                </p>
+            @else
+                <p class="mt-2 text-sm text-amber-700 dark:text-amber-400" data-testid="playlist-no-key">
+                    Importing a playlist needs a YouTube Data API key (<code>YOUTUBE_DATA_API_KEY</code> in <code>.env</code>).
+                    <a href="{{ route('settings.youtube') }}" wire:navigate class="font-medium underline">YouTube Settings</a>
+                </p>
+            @endif
+        </div>
+        @else
         <div>
             <label for="rawInput" class="{{ $labelClasses }}">Track list</label>
             <textarea
@@ -85,16 +132,18 @@
                 </p>
             @endif
         </div>
+        @endif
 
         <div class="flex justify-end">
             <button
                 type="submit"
                 wire:loading.attr="disabled"
                 wire:target="save"
+                @disabled($source === 'playlist' && ! $this->playlistEnabled)
                 class="rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-500 disabled:opacity-50"
             >
-                <span wire:loading.remove wire:target="save">Parse</span>
-                <span wire:loading wire:target="save">Parsing…</span>
+                <span wire:loading.remove wire:target="save">{{ $source === 'playlist' ? 'Import playlist' : 'Parse' }}</span>
+                <span wire:loading wire:target="save">{{ $source === 'playlist' ? 'Importing…' : 'Parsing…' }}</span>
             </button>
         </div>
     </form>

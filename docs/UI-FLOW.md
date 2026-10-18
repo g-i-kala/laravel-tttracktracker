@@ -33,7 +33,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## New Import (`/imports/create`) — `Imports\Create`
 
-> Status: implemented (2026-10-13).
+> Status: implemented (2026-10-13); YouTube playlist tab (2026-10-18).
 
 - Name (auto-generated in `Europe/Warsaw` time, e.g. `YouTube Export 2026-10-13 18:30`, editable, required, max 255).
 - Optional year (2000–2100), month (select January–December), default genre (free text). Empty by default.
@@ -41,6 +41,8 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Validation: at least 1 and at most 200 detected tracks.
 - **AI mode** (AI key set): subtitle "Paste your track list in any format"; instead of the counter: "AI parsing on · paste any format…"; validation only max 100,000 characters; Parse queues AI parsing and redirects to Parse Review immediately.
 - **Parse** button (shows "Parsing…" while saving) → `save()` → items get the default genre → redirect to Parse Review with flash "Imported N tracks. Review them before searching YouTube."
+- **Tabs** (2026-10-18): **Paste list** (above) and **YouTube playlist**, kept in the URL (`?source=playlist`); name, year, month and default genre are shared. Switching tabs clears the field errors.
+- **YouTube playlist tab:** "Playlist link" field (playlist link, watch link with `list=`, or a bare ID) with the hint "Up to 200 videos · about 1 YouTube quota unit per 50 videos · no YouTube search needed afterwards" (+ "AI cleans up the video titles after the import" with AI). Without a YouTube API key the field and button are disabled and an amber hint links to YouTube Settings. **Import playlist** ("Importing…") reads the videos in the request; errors show under the field (not a playlist link, not found / private, quota used up, no playable videos, connection). Success → Parse Review with flash "Imported N tracks from the playlist, each with its video as the link." + "Skipped N deleted or private videos." + "Only the first 200 videos are imported; N more were left out." when relevant. With AI, Parse Review shows "Cleaning up the video titles with AI… The links are already in place" while the job runs.
 
 ## Parse Review (`/imports/{batch}/review`) — `Imports\Review`
 

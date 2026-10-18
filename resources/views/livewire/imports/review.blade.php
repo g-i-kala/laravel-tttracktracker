@@ -75,7 +75,11 @@
     @if ($batch->status === \App\Enums\ImportBatchStatus::Parsing)
         <div wire:poll.2s="checkParsing" class="flex items-center gap-3 rounded-lg border border-accent-200 bg-accent-50 px-4 py-6 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">
             <svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-            <span>Parsing your track list with AI… This can take up to a few minutes for long lists.</span>
+            @if ($batch->source_type === \App\Services\ImportBatchService::SOURCE_YOUTUBE_PLAYLIST)
+                <span>Cleaning up the video titles with AI… The links are already in place; this can take up to a few minutes for long playlists.</span>
+            @else
+                <span>Parsing your track list with AI… This can take up to a few minutes for long lists.</span>
+            @endif
         </div>
     @elseif ($batch->status === \App\Enums\ImportBatchStatus::Failed)
         <div class="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between dark:border-red-900 dark:bg-red-950 dark:text-red-200">

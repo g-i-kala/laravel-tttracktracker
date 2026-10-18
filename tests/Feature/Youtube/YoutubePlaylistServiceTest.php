@@ -136,6 +136,60 @@ class YoutubePlaylistServiceTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_repeated_videos_are_imported_once(): void
+    {
+        Http::fake(['www.googleapis.com/*' => Http::sequence()
+            ->push($this->page([
+                $this->item('aaaaaaaaaa1', 'A - One', 'A', 0),
+                $this->item('aaaaaaaaaa2', 'B - Two', 'B', 1),
+                $this->item('aaaaaaaaaa1', 'A - One', 'A', 2),
+            ], total: 4, nextPageToken: 'PAGE2'))
+            ->push($this->page([$this->item('aaaaaaaaaa2', 'B - Two', 'B', 3)], total: 4))]);
+
+        $result = $this->youtubePlaylist->videos(self::PLAYLIST_URL, 200);
+
+        $this->assertSame(['aaaaaaaaaa1', 'aaaaaaaaaa2'], array_column($result['videos'], 'video_id'));
+        $this->assertSame([0, 1], array_column($result['videos'], 'position'));
+        $this->assertSame(2, $result['duplicates']);
+        $this->assertFalse($result['isMix']);
+    }
+
+    public function test_mix_is_read_from_its_first_page_only(): void
+    {
+        Http::fake(['www.googleapis.com/*' => Http::response($this->page([
+            $this->item('8_fbfTOOfSk', 'A - One', 'A', 0),
+            $this->item('aaaaaaaaaa2', 'B - Two', 'B', 1),
+        ], total: 1000, nextPageToken: 'PAGE2'))]);
+
+        $result = $this->youtubePlaylist->videos('https://www.youtube.com/watch?v=8_fbfTOOfSk&list=RD8_fbfTOOfSk&start_radio=1', 200);
+
+        $this->assertSame(['8_fbfTOOfSk', 'aaaaaaaaaa2'], array_column($result['videos'], 'video_id'));
+        $this->assertTrue($result['isMix']);
+        $this->assertSame(0, $result['notImported']);
+        Http::assertSentCount(1);
+    }
+
+    /**
+     * @return array<string, array{string, bool}>
+     */
+    public static function mixIds(): array
+    {
+        return [
+            'video mix' => ['RD8_fbfTOOfSk', true],
+            'my mix' => ['RDMM', true],
+            'YouTube Music radio' => ['RDAMVM8_fbfTOOfSk', true],
+            'curated YouTube Music playlist' => ['RDCLAK5uy_kXyZ12345abcdefGHIJ', false],
+            'user playlist' => [self::PLAYLIST_ID, false],
+            'album' => ['OLAK5uy_kXyZ12345abcdefGHIJ', false],
+        ];
+    }
+
+    #[DataProvider('mixIds')]
+    public function test_mix_ids_are_recognised(string $playlistId, bool $expected): void
+    {
+        $this->assertSame($expected, $this->youtubePlaylist->isMix($playlistId));
+    }
+
     public function test_successful_call_is_recorded(): void
     {
         Http::fake(['www.googleapis.com/*' => Http::response($this->page([$this->item('aaaaaaaaaa1', 'A - One', 'A', 0)], total: 1))]);

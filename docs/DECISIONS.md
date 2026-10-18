@@ -501,6 +501,14 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 
 **Consequences:** Playlist imports always need the API key. The import-time limit (200) stays the same for both tabs.
 
+## 2026-10-18 — Playlist import: repeated videos and YouTube Mixes
+
+**Decision:** A playlist import keeps each video once (by `video_id`) and counts the repeats in the notice ("Skipped N repeated videos."). A YouTube Mix link (`list=RD…`, except curated `RDCLAK…` playlists) is read from its first page only (up to 50 videos), with a notice that it is a Mix.
+
+**Reason:** User report (2026-10-18): a Mix link (`watch?v=…&list=RD…&start_radio=1`) produced 200 tracks full of duplicates. Mixes are auto-generated and endless: the API keeps returning a next page with mostly the same ~50 videos, so the import ran up to the 200 limit. User chose options 1 + 2 (dedupe + one page for Mixes) over rejecting Mixes.
+
+**Consequences:** A Mix import gives at most 50 tracks and costs 1 quota unit. A normal playlist that contains the same video twice gets it once.
+
 ## 2026-10-18 — Playlist import: titles parsed by a dedicated AI agent in the background
 
 **Decision:**

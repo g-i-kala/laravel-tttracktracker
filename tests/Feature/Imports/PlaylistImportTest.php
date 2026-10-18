@@ -225,11 +225,17 @@ class PlaylistImportTest extends TestCase
     {
         config(['services.youtube.api_key' => 'test-youtube-key']);
         Queue::fake();
-        Http::fake(['www.googleapis.com/*' => Http::response([
-            'pageInfo' => ['totalResults' => 260],
-            'nextPageToken' => 'NEXT',
-            'items' => collect(range(1, 50))->map(fn (int $number): array => $this->apiItem(sprintf('video%06d', $number), "Artist {$number} - Title {$number}", 'Channel', 'public'))->all(),
-        ])]);
+        $pages = Http::sequence();
+
+        foreach (range(0, 3) as $page) {
+            $pages->push([
+                'pageInfo' => ['totalResults' => 260],
+                'nextPageToken' => 'NEXT',
+                'items' => collect(range($page * 50 + 1, $page * 50 + 50))->map(fn (int $number): array => $this->apiItem(sprintf('video%06d', $number), "Artist {$number} - Title {$number}", 'Channel', 'public'))->all(),
+            ]);
+        }
+
+        Http::fake(['www.googleapis.com/*' => $pages]);
 
         Livewire::test(Create::class)
             ->set('source', 'playlist')
@@ -239,6 +245,34 @@ class PlaylistImportTest extends TestCase
 
         $this->assertSame(200, ImportBatch::sole()->items()->count());
         $this->assertStringContainsString('Only the first 200 videos are imported; 60 more were left out.', session('status'));
+    }
+
+    public function test_mix_import_reads_one_page_and_reports_repeated_videos(): void
+    {
+        config(['services.youtube.api_key' => 'test-youtube-key']);
+        Queue::fake();
+        Http::fake(['www.googleapis.com/*' => Http::response([
+            'pageInfo' => ['totalResults' => 1000],
+            'nextPageToken' => 'NEXT',
+            'items' => [
+                $this->apiItem('8_fbfTOOfSk', 'Artist 1 - Title 1', 'Channel', 'public'),
+                $this->apiItem('video000002', 'Artist 2 - Title 2', 'Channel', 'public'),
+                $this->apiItem('8_fbfTOOfSk', 'Artist 1 - Title 1', 'Channel', 'public'),
+            ],
+        ])]);
+
+        Livewire::test(Create::class)
+            ->set('source', 'playlist')
+            ->set('playlistUrl', 'https://www.youtube.com/watch?v=8_fbfTOOfSk&list=RD8_fbfTOOfSk&start_radio=1')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        Http::assertSentCount(1);
+        $this->assertSame(2, ImportBatch::sole()->items()->count());
+        $this->assertSame(
+            'Imported 2 tracks from the playlist, each with its video as the link. This link is a YouTube Mix (auto-generated and endless), so only its first page of videos is imported. Skipped 1 repeated video.',
+            session('status'),
+        );
     }
 
     public function test_playlist_errors_are_shown_on_the_field(): void

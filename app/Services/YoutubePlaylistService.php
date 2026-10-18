@@ -36,6 +36,12 @@ class YoutubePlaylistService
     private const string PLAYLIST_ID_PATTERN = '/^[A-Za-z0-9_-]{12,64}$/';
 
     /**
+     * YouTube Mix IDs start with `RD` (`RD<videoId>`, `RDMM`, `RDEM…`). Mixes are generated and
+     * endless: every page repeats mostly the same videos. `RDCLAK…` are curated, finite playlists.
+     */
+    private const string MIX_ID_PATTERN = '/^RD(?!CLAK)/';
+
+    /**
      * @var list<string>
      */
     private const array YOUTUBE_HOSTS = ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtu.be'];
@@ -80,10 +86,20 @@ class YoutubePlaylistService
     }
 
     /**
-     * Fetch playable videos in playlist order, at most `$limit`. Pages are requested only until the limit is reached.
-     * `unavailable`: deleted or private videos skipped; `notImported`: videos left out because of the limit.
+     * Whether the playlist ID is an auto-generated YouTube Mix. Pure: no network access.
+     */
+    public function isMix(string $playlistId): bool
+    {
+        return (bool) preg_match(self::MIX_ID_PATTERN, $playlistId);
+    }
+
+    /**
+     * Fetch playable videos in playlist order, each video once, at most `$limit`. Pages are requested
+     * only until the limit is reached; a Mix is read from its first page only.
+     * `unavailable`: deleted or private videos skipped; `duplicates`: repeated videos skipped;
+     * `notImported`: videos left out because of the limit (always 0 for a Mix); `isMix`: the link is a YouTube Mix.
      *
-     * @return array{videos: list<array{video_id: string, url: string, title: string, channel_title: ?string, description: ?string, position: int}>, unavailable: int, notImported: int}
+     * @return array{videos: list<array{video_id: string, url: string, title: string, channel_title: ?string, description: ?string, position: int}>, unavailable: int, duplicates: int, notImported: int, isMix: bool}
      *
      * @throws YoutubePlaylistException
      */
@@ -103,8 +119,10 @@ class YoutubePlaylistService
             throw new YoutubePlaylistException('YouTube Data API quota exceeded.', 'quotaExceeded');
         }
 
+        $isMix = $this->isMix($playlistId);
         $videos = [];
         $unavailable = 0;
+        $duplicates = 0;
         $processed = 0;
         $total = 0;
         $pageToken = null;
@@ -127,16 +145,24 @@ class YoutubePlaylistService
                     continue;
                 }
 
-                $videos[] = $video;
+                if (isset($videos[$video['video_id']])) {
+                    $duplicates++;
+
+                    continue;
+                }
+
+                $videos[$video['video_id']] = $video;
             }
 
-            $pageToken = $response->json('nextPageToken');
+            $pageToken = $isMix ? null : $response->json('nextPageToken');
         } while (filled($pageToken) && count($videos) < $limit);
 
         return [
-            'videos' => $videos,
+            'videos' => array_values($videos),
             'unavailable' => $unavailable,
-            'notImported' => count($videos) >= $limit ? max(0, $total - $processed) : 0,
+            'duplicates' => $duplicates,
+            'notImported' => ! $isMix && count($videos) >= $limit ? max(0, $total - $processed) : 0,
+            'isMix' => $isMix,
         ];
     }
 

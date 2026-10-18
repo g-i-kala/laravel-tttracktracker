@@ -638,3 +638,18 @@
 
 ### Changed
 - START-TUTAJ: status (playlist import, 353 tests), session notes 2026-10-18, user's goal (80s party set from many sources), next steps (manual playlist test, Export track list, compare/merge Q&A).
+
+## 2026-10-18 (Playlist import: repeated videos and YouTube Mixes)
+
+### Changed
+- `YoutubePlaylistService::videos()` keeps each video once (`duplicates` count) and reads a YouTube Mix (`RD…`, not `RDCLAK…`) from its first page only (`isMix`); new `isMix()`.
+- New Import playlist flash: Mix note and "Skipped N repeated videos.".
+- Over-the-limit Livewire test now serves distinct videos per page.
+- Docs: ARCHITECTURE, UI-FLOW, TESTING, DECISIONS, START-TUTAJ.
+
+### Added
+- Tests: repeated videos, Mix first page only, Mix ID detection (data provider), Mix import notice.
+
+### Notes
+- Bug report: a Mix link (`list=RD8_fbfTOOfSk`) fetched 5 pages of mostly the same ~50 videos and filled the 200 limit with duplicates (`youtube_api_calls` #13–17).
+- 362 tests pass.

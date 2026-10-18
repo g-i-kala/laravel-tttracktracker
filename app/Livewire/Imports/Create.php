@@ -215,18 +215,32 @@ class Create extends Component
 
         $batch = $importBatches->createFromPlaylist($this->batchAttributes($validated), $playlist['videos']);
 
-        session()->flash('status', $this->playlistNotice(count($playlist['videos']), $playlist['unavailable'], $playlist['notImported']));
+        session()->flash('status', $this->playlistNotice($playlist));
         session()->flash('check_duplicates', true);
 
         $this->redirectRoute('imports.review', ['batch' => $batch], navigate: true);
     }
 
-    private function playlistNotice(int $imported, int $unavailable, int $notImported): string
+    /**
+     * @param  array{videos: list<array<string, mixed>>, unavailable: int, duplicates: int, notImported: int, isMix: bool}  $playlist
+     */
+    private function playlistNotice(array $playlist): string
     {
+        $imported = count($playlist['videos']);
+        ['unavailable' => $unavailable, 'duplicates' => $duplicates, 'notImported' => $notImported] = $playlist;
+
         $notice = "Imported {$imported} ".Str::plural('track', $imported).' from the playlist, each with its video as the link.';
+
+        if ($playlist['isMix']) {
+            $notice .= ' This link is a YouTube Mix (auto-generated and endless), so only its first page of videos is imported.';
+        }
 
         if ($unavailable > 0) {
             $notice .= " Skipped {$unavailable} deleted or private ".Str::plural('video', $unavailable).'.';
+        }
+
+        if ($duplicates > 0) {
+            $notice .= " Skipped {$duplicates} repeated ".Str::plural('video', $duplicates).'.';
         }
 
         if ($notImported > 0) {

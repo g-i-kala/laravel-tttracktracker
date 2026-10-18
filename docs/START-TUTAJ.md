@@ -23,7 +23,7 @@ Stan na 2026-10-18:
 - **Działa:** **Dashboard** (Needs attention, ostatnie importy i eksporty), **New Import** (`/imports/create`), **Parse Review** (`/imports/{batch}/review`: edycja z autosave, BPM/tonacja/label po kliknięciu w wiersz, usuwanie wierszy, **Save & close**), **lista importów** (`/imports`).
 - **Parsowanie:** z kluczem AI (OpenAI, `gpt-4.1-mini`, Laravel AI SDK) dowolny format w tle, także BPM, tonacja (+ Camelot) i label; bez klucza parser linii `Artist - Title`.
 - **Duplikaty** w obrębie importu: modal raz po parsowaniu + banner, oznaczenia podobnych (inna wersja, kolejność artystów, drobna literówka).
-- **Import z playlisty YouTube** (zakładka „YouTube playlist” na New Import, wymaga klucza YouTube): każdy film = track z linkiem i zaznaczonym Export, bez wyszukiwania; Topic → artysta z kanału; AI (osobny agent) poprawia artystę/tytuł w tle. Do 200 filmów, pominięte usunięte/prywatne.
+- **Import z playlisty YouTube** (zakładka „YouTube playlist” na New Import, wymaga klucza YouTube): każdy film = track z linkiem i zaznaczonym Export, bez wyszukiwania; Topic → artysta z kanału; AI (osobny agent) poprawia artystę/tytuł w tle. Do 200 filmów, pominięte usunięte/prywatne i powtórzone; YouTube Mix (`list=RD…`) tylko pierwsza strona (≤ 50).
 - **YouTube bez klucza API (fallback):** Search YouTube na Parse Review → ekran **YouTube Results** (`/imports/{batch}`) z linkami wyszukiwania, polem na własny link (normalizacja, autosave) i checkboxem Export.
 - **Eksport Supersimple TXT** na YouTube Results: modal brakujących linków, modal wersji (nowa / nadpisz), auto-pobieranie, „Download again”.
 - **Lista eksportów** (`/exports`): wszystkie wersje, „Latest”, pobieranie.
@@ -31,7 +31,7 @@ Stan na 2026-10-18:
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
 - **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. **Licznik limitu** (linia na Dashboard, Parse Review, YouTube Results + ekran **YouTube Settings** `/settings/youtube`). Strojenie wag (krok 5) odłożone.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 353, wszystkie przechodzą.
+- Testy: 362, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 

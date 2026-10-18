@@ -23,7 +23,7 @@ app/
                  Dashboard, Imports/Index, Imports/Create, Imports/Review,
                  Imports/Show (YouTube results + export), Exports/Index
   Http/Controllers/
-                 ExportController (file download only)
+                 ExportController, TrackListController (file downloads only)
   Services/      ImportParserService, AiTrackListParserService, ImportBatchService (create batch + items),
                  ImportItemService (edit track details during review),
                  DuplicateDetectionService, YoutubeSearchService,
@@ -181,6 +181,12 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - After export: exported items → `ImportItemStatus::Exported`, batch → `ImportBatchStatus::Exported`.
 - `isLatestExportOutdated(batch)`: compares `content(batch)` with the latest file (missing file = outdated; no export = not outdated). Edits that do not change the exported links (title, BPM…) keep it up to date. Used by the Dashboard.
 
+## Track list export
+
+- `TrackListExportService` (2026-10-18): `txt(batch)` = `Artist - Title` per line (title only without an artist, no trailing newline); `csv(batch)` = header `Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL` + one row per track (`fputcsv`, comma, empty cells for nulls, `selected_youtube_url`), prefixed with a UTF-8 BOM for Excel. Every item in line order, ignoring `include_in_export`. Generated on request, nothing stored, no `ExportFile` row, statuses untouched.
+- `TrackListController@download` streams it; filename `ExportFilenameService::trackList()` → `{slug}_tracks.{txt|csv}`.
+- UI: `<x-track-list-button :batch :count>` (data attributes with the name, count and both URLs; disabled without tracks) opens `imports/partials/track-list-modal` (Alpine only: `trackList` + `trackListOpen` in the page root's x-data; the options are plain download links). Used on Parse Review, YouTube Results and per row on the imports list.
+
 ## Frontend
 
 - Blade + **Livewire 4** (with Alpine.js, bundled with Livewire). No Inertia, no SPA, no Vue. UI language: English.
@@ -191,7 +197,7 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - **Modals**: our own `<x-modal>` Blade component, shown/hidden by Alpine and bound to a component property. No modal packages.
 - **Layout** (`layouts::app`, implemented): left sidebar (Dashboard, Imports, Exports, "+ New YouTube Export"), collapsible on mobile; `wire:navigate` links with `data-current` active state; flash area for `session('status')`. Page title from the component's `#[Title]`.
 - **Theme**: light/dark follows the OS (`prefers-color-scheme`, Tailwind `dark:`). Neutral `zinc` + an accent palette: `config('app.accent')` (`APP_ACCENT`) → `data-accent` on `<html>` → CSS variables → `accent-*` Tailwind colors (`resources/css/app.css`). Unknown values fall back to red. `navy` is adaptive: dark navy (shifted `blue` scale) in light mode, `sky` in dark mode.
-- The only classic controller is `ExportController@download`, which streams the TXT file.
+- The only classic controllers are `ExportController@download` (Supersimple TXT) and `TrackListController@download` (track list TXT/CSV), both file downloads.
 - See [UI-FLOW.md](UI-FLOW.md) and [API.md](API.md).
 
 ## Deleting

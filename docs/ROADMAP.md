@@ -23,6 +23,8 @@
 - [x] Supersimple TXT export + missing-link modal
 - [x] Export versioning + overwrite modal
 - [x] Export history (`/exports`) + download
+- [x] Import from a YouTube playlist (Mixes: first page only, repeated videos skipped)
+- [x] Export track list (TXT `Artist - Title` / CSV with all fields), download only
 
 ## Milestone 2 — Music library (planned, after MVP)
 
@@ -44,7 +46,6 @@ Not started. Rekordbox XML export.
 ## Known future enhancements
 
 - Live updates over websockets (Laravel Reverb) instead of polling, if long background jobs appear (e.g. music folder scan). See DECISIONS 2026-10-17.
-- Build the link list from a YouTube playlist (to check, see TODO).
 
 - RabbitMQ queue.
 - Spotify / SoundCloud sync.

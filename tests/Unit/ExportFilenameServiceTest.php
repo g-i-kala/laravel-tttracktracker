@@ -18,6 +18,16 @@ class ExportFilenameServiceTest extends TestCase
         $this->assertSame('youtube-export-2026-10-14-0849_youtube_links_v3.txt', $filenames->supersimpleTxt($batch, 3));
     }
 
+    public function test_track_list_filename_uses_the_slug_and_extension(): void
+    {
+        $batch = (new ImportBatch)->forceFill(['id' => 7, 'name' => '80s Party']);
+        $filenames = new ExportFilenameService;
+
+        $this->assertSame('80s-party_tracks.txt', $filenames->trackList($batch, 'txt'));
+        $this->assertSame('80s-party_tracks.csv', $filenames->trackList($batch, 'csv'));
+        $this->assertSame('import-7_tracks.csv', $filenames->trackList((new ImportBatch)->forceFill(['id' => 7, 'name' => '🎧']), 'csv'));
+    }
+
     public function test_name_without_sluggable_characters_falls_back_to_the_batch_id(): void
     {
         $batch = (new ImportBatch)->forceFill(['id' => 7, 'name' => '🎧🎧']);

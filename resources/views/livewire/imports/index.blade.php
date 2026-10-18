@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6" x-data="{ trackList: null, trackListOpen: false }">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold">Imports</h1>
@@ -70,6 +70,7 @@
                                 @if ($batch->status->hasSearchResults())
                                     <a href="{{ route('imports.show', $batch) }}" wire:navigate class="ml-3 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">YouTube links</a>
                                 @endif
+                                <x-track-list-button :batch="$batch" :count="$batch->items_count" class="ml-3 text-xs font-medium text-accent-600 hover:text-accent-500 dark:text-accent-400">Track list</x-track-list-button>
                                 <button type="button" wire:click="confirmDelete({{ $batch->id }})" class="ml-3 text-xs font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">Delete</button>
                             </td>
                         </tr>
@@ -97,4 +98,5 @@
             <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500">Delete</button>
         </x-slot:footer>
     </x-modal>
+    @include('livewire.imports.partials.track-list-modal')
 </div>

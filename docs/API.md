@@ -17,6 +17,7 @@ The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTU
 | GET    | `/settings/youtube`            | `App\Livewire\Settings\Youtube`           | `settings.youtube` |
 | GET    | `/exports`                     | `App\Livewire\Exports\Index`              | `exports.index`    |
 | GET    | `/exports/{export}/download`   | `ExportController@download`               | `exports.download` |
+| GET    | `/imports/{batch}/track-list/{format}` | `TrackListController@download` (`format`: `txt` / `csv`) | `imports.track-list` |
 
 Page routes are registered with `Route::livewire()`. Route-model binding: `{batch}` → ImportBatch, `{export}` → ExportFile.
 
@@ -49,6 +50,10 @@ These replace the POST/PATCH routes from the original plan.
 Item actions always check that the item belongs to the page's batch.
 
 To be filled in with details as components are implemented.
+
+### `TrackListController@download` (implemented 2026-10-18)
+
+`GET /imports/{batch}/track-list/{txt|csv}` → `TrackListExportService::content()` streamed as a download (`{slug}_tracks.{format}`, `text/plain` / `text/csv; charset=UTF-8`). Other formats and unknown imports → 404. Nothing is stored. Linked from the Export track list modal.
 
 ### `ExportController@download` (implemented)
 

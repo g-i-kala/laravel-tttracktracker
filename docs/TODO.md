@@ -89,7 +89,7 @@
   - [x] Step 3: New Import tabs + notices, headless Chrome check (2026-10-18)
   - [ ] Manual test on a real playlist (user; e.g. an 80s playlist, with AI)
 
-- [ ] **Export track list** (requested 2026-10-18, decisions in DECISIONS "Export track list"; after the playlist import): modal TXT (`Artist - Title`) or CSV (all fields + YouTube URL), on Parse Review (top), YouTube Results and the imports list; download only, no history.
+- [x] **Export track list** (done 2026-10-18; requested 2026-10-18, decisions in DECISIONS "Export track list"; after the playlist import): modal TXT (`Artist - Title`) or CSV (all fields + YouTube URL), on Parse Review (top), YouTube Results and the imports list; download only, no history.
 
 - [ ] Settings screen (accent color picker; now `APP_ACCENT`)
 - [ ] Light/dark toggle (now follows the OS)

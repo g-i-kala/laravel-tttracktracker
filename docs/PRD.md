@@ -77,6 +77,11 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - Export history stored; files downloadable. Generate TXT downloads the file right away and leaves a "Download again" bar.
 - Re-export: modal "Create new version" (`_v2`, old file kept) / "Overwrite latest" / Cancel.
 
+### Export track list
+- **Export track list** (Parse Review, YouTube Results, imports list): modal to choose **TXT** (`Artist - Title` per line, only the title without an artist, like a paste) or **CSV** (header `Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL`, comma-separated, UTF-8 with BOM).
+- Every track of the import in line order, regardless of Export ticks or links. Generated on request and downloaded right away: no history, not listed on `/exports`.
+- Filename: `{slug}_tracks.txt` / `{slug}_tracks.csv`.
+
 ## Acceptance criteria
 
 - [ ] App runs locally via Sail.

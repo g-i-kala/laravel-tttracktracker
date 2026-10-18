@@ -527,3 +527,5 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User request (2026-10-18): the list is needed even without YouTube links, e.g. to merge many playlists and sources into one set for an 80s party (Polish and international). Answers: playlist import first, both formats, all three places, download only.
 
 **Consequences:** The file always reflects the current state of the import. A stored history can be added later if needed.
+
+**Details (2026-10-18, user's answers):** every track of the import goes into the file, regardless of Export ticks or links. CSV is comma-separated UTF-8 with a BOM (Numbers, Google Sheets and Excel read Polish characters). Filenames `{slug}_tracks.txt` / `.csv`.

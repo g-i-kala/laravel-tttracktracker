@@ -29,6 +29,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Table of all batches, newest first, 25 per page: name (link), created, track count, status badge (`To review` amber, `Failed` red, others accent), actions.
 - **Delete** (2026-10-17): checkbox per row + select-all on the page (selection kept across pages) → bar "N selected · **Delete selected** · Clear selection"; **Delete** per row. Both open the **Delete imports** modal: "Delete “name”?" / "Delete N imports?" + "This removes N tracks and N export files (TXT)." + "This cannot be undone." → **Cancel** / red **Delete**. Afterwards: notice "Deleted N imports."
 - Actions: **Review** (Parse Review) always; **YouTube links** (YouTube Results, no new search) once the batch is `searched` / `exported`. The name links to YouTube Results when searched, otherwise to Parse Review.
+- **Track list** per row (2026-10-18, disabled without tracks): opens the **Export track list** modal (see below).
 - Empty state "No imports yet" + **New YouTube Export** button.
 
 ## New Import (`/imports/create`) — `Imports\Create`
@@ -94,6 +95,14 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - **Export version modal** "Export already exists" (filename, date, link count): **Cancel** / **Overwrite latest** / **Create new version**.
 - After export: the file downloads automatically, and a green bar shows "Exported N links · filename · date · **Download again**" (latest export of the batch, also on later visits).
 
+## Export track list (Parse Review, YouTube Results, imports list)
+
+> Status: implemented (2026-10-18).
+
+- **Export track list** button: first in the Parse Review header, after "Back to review" on YouTube Results; **Track list** as a row action on the imports list. Disabled when the import has no tracks.
+- Modal "Export track list" (Alpine only, no request): "Download all N tracks of “name”, with or without YouTube links." + two options: **TXT** (`Artist - Title`, one per line, like a paste) and **CSV** (Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL; opens in Numbers, Excel or Google Sheets) → the file downloads and the modal closes. **Cancel**.
+- Not listed on `/exports`; the file always reflects the current state of the import.
+
 ## Exports (`/exports`) — `Exports\Index`
 
 > Status: implemented (2026-10-17).
@@ -124,6 +133,7 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | Delete export files  | Exports         | Delete (row) / Delete selected   |
 | Missing links modal  | YouTube Results | Generate TXT with tracks without a link |
 | Export version modal | YouTube Results | Export already exists for batch  |
+| Export track list    | Parse Review, YouTube Results, Imports | Export track list / Track list (bound with `x-model` to Alpine state, not a Livewire property) |
 
 ## YouTube quota line (`<x-youtube-quota>`)
 

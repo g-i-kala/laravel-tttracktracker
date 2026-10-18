@@ -658,3 +658,18 @@
 
 ### Changed
 - START-TUTAJ: session notes (Mix/duplicates fix `26c7442`, user's manual test OK), next step: Export track list.
+
+## 2026-10-18 (Export track list)
+
+### Added
+- `TrackListExportService` (TXT `Artist - Title` / CSV with header, BOM, all fields + YouTube URL; every track in line order), `ExportFilenameService::trackList()`.
+- `TrackListController@download`, route `imports.track-list` (`/imports/{batch}/track-list/{txt|csv}`).
+- `<x-track-list-button>` and `imports/partials/track-list-modal` (Alpine only) on Parse Review, YouTube Results and the imports list (row action "Track list").
+- `tests/Feature/Imports/TrackListExportTest.php` (4), filename unit test.
+
+### Changed
+- DECISIONS "Export track list": details (all tracks, CSV comma + UTF-8 BOM). Docs: PRD, ROADMAP, API, ARCHITECTURE, UI-FLOW, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 367 tests pass. Ran `sail npm run build`.
+- Headless Chrome: modal opens on Parse Review and the imports list with the right name/count/links; CSV download headers and content checked; no JS errors.

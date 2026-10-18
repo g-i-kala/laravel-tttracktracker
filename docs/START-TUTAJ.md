@@ -31,7 +31,8 @@ Stan na 2026-10-18:
 - **Usuwanie** importów (z trackami i plikami TXT) i pojedynczych eksportów: wiersz albo zaznaczenie wielu, modal z podsumowaniem.
 - **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. **Licznik limitu** (linia na Dashboard, Parse Review, YouTube Results + ekran **YouTube Settings** `/settings/youtube`). Strojenie wag (krok 5) odłożone.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
-- Testy: 362, wszystkie przechodzą.
+- **Export track list** (Parse Review, YouTube Results, lista importów): modal TXT (`Artist - Title`) albo CSV (wszystkie pola + link YouTube), wszystkie tracki, tylko pobranie.
+- Testy: 367, wszystkie przechodzą.
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 

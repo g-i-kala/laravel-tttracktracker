@@ -6,7 +6,7 @@
     $similarItems = $this->similarItems;
 @endphp
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-6" x-data="{ trackList: null, trackListOpen: false }">
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
             <p class="text-sm text-zinc-500 dark:text-zinc-400">Parse Review</p>
@@ -29,6 +29,8 @@
         </div>
 
         <div class="flex gap-2">
+            <x-track-list-button :batch="$batch" :count="$this->rows->count()" class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800" />
+
             @unless (in_array($batch->status, [\App\Enums\ImportBatchStatus::Parsing, \App\Enums\ImportBatchStatus::Failed], true))
                 <button
                     type="button"
@@ -251,4 +253,5 @@
     </x-modal>
 
     @include('livewire.imports.partials.add-tracks-modal')
+    @include('livewire.imports.partials.track-list-modal')
 </div>

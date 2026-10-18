@@ -29,8 +29,8 @@ app/
                  DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService
-  Ai/Agents/     TrackListParser (Laravel AI SDK agent, structured output)
-  Jobs/          ParseImportBatchWithAiJob (implemented), SearchYoutubeForImportItemJob (dispatched via Bus::batch())
+  Ai/Agents/     TrackListParser, PlaylistTitleParser (Laravel AI SDK agents, structured output)
+  Jobs/          ParseImportBatchWithAiJob, ParsePlaylistTitlesWithAiJob, SearchYoutubeForImportItemJob (dispatched via Bus::batch())
 
 resources/views/
   layouts/app.blade.php          Livewire page layout (`layouts::app`)
@@ -104,6 +104,12 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 
 - Agent `App\Ai\Agents\TrackListParser` (Laravel AI SDK, `HasStructuredOutput`): returns `tracks[]` of `{artist|null, title, genre|null, bpm|null (number), key|null (as written), label|null, source}`. BPM/key/label/genre only when listed in the source (no guessing). Instructions cover plain lines, store copy-pastes (Beatport: title + mix, artists, label, genre, BPM/key, date, price per track), timestamps/numbering, store badges ("Exclusive"), release names vs track titles. Version goes into the title in parentheses.
 - `AiTrackListParserService`: `isEnabled()` (key present for `config('services.track_list_ai.provider')`), `parse()` maps tracks to the same shape as the line parser (`line_number` = position, `raw_line` = `source`, `normalized_key`, missing-artist notice) plus `genre`, `bpm` (rounded; outside 40–300 → null), `musical_key`, `camelot_key` (`MusicalKeyService`), `label`.
+
+**Playlist import (step 2 of 3):**
+- `PlaylistTrackService` (pure): `isTopicChannel()` (`X - Topic`), `cleanTitle()` (drops a leading "Premiere" and bracketed noise: official/music video, audio, lyric(s) video, visualiser/visualizer, clip, HD/HQ/4K, remastered + year; versions and remixes stay), `parsedLines(videos)` → line-parser shape (`line_number` = playlist order, `raw_line` = original video title) plus `selected_youtube_url` / `_video_id` / `_title` / `_channel` and `include_in_export = true`. Topic: artist = X, title = cleaned video title; otherwise `Artist - Title` split of the cleaned title, no separator → artist null + "Artist not detected" (the channel is not used, it is often a label).
+- `ImportBatchService::createFromPlaylist(attributes, videos)`: batch with `source_type = youtube_playlist`, `raw_input` = video titles one per line, items stored right away (default genre fallback). When AI is enabled and at least one video is not from a Topic channel: status `parsing` + `ParsePlaylistTitlesWithAiJob`; otherwise `parsed`.
+- `ParsePlaylistTitlesWithAiJob` (1 try, 240 s, AI usage logged with the batch) → `ImportBatchService::applyAiPlaylistTitles()`: sends non-Topic items as `N. <original title> [channel: <channel>]` (N = `line_number`) to `AiTrackListParserService::parsePlaylistTitles()` → agent `PlaylistTitleParser` (`tracks[]` of `{number, artist|null, title}`; channel name as artist only for the artist's own channel). Answers with unknown numbers or empty titles are dropped; matched items get new artist/title/`normalized_key`/notice in place; links are never touched; batch → `parsed`. `failed()` sets `parsed` and keeps the simple-parser result (no `failed` status, so no retry/simple-parser buttons).
+- Search YouTube on such a batch spends no `search.list` calls: every item already has a selected link.
 - Config `config('services.track_list_ai.*')`: `provider` (`AI_PARSER_PROVIDER`, default `openai`), `model` (`AI_PARSER_MODEL`, project default `gpt-4.1-mini`; empty = provider default, for OpenAI in laravel/ai 1.2: `gpt-6.1-sol`), `timeout` (`AI_PARSER_TIMEOUT`, 180 s). Provider keys live in `config/ai.php` (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, …).
 - Flow: `Imports\Create::save()` → `ImportBatchService::createForAiParsing()` (batch `parsing`, no items) → `ParseImportBatchWithAiJob` (queue, `tries = 1`, `timeout = 240`) → `storeParsedLines()` (items, item genre = AI genre ?? batch default genre, batch `parsed`). On failure `failed()` logs and sets the batch `failed`.
 - Parse Review autosave: `updatedItems()` → `ImportItemService::updateTrackDetails()` (artist, title, genre, bpm, musical_key, label; recomputes `normalized_key` and `camelot_key` via `MusicalKeyService`) → dispatches `item-saved` (Alpine flashes "Saved" in the row).

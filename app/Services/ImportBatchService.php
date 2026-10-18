@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ImportBatchStatus;
 use App\Enums\ImportItemStatus;
 use App\Jobs\ParseImportBatchWithAiJob;
+use App\Jobs\ParsePlaylistTitlesWithAiJob;
 use App\Jobs\SearchYoutubeForImportItemJob;
 use App\Models\ExportFile;
 use App\Models\ImportBatch;
@@ -22,12 +23,17 @@ use Illuminate\Support\Facades\Storage;
  */
 class ImportBatchService
 {
+    public const string SOURCE_MANUAL = 'manual';
+
+    public const string SOURCE_YOUTUBE_PLAYLIST = 'youtube_playlist';
+
     public function __construct(
         private ImportParserService $parser,
         private DuplicateDetectionService $duplicates,
         private YoutubeSearchUrlService $youtubeSearchUrls,
         private YoutubeSearchService $youtubeSearch,
         private AiTrackListParserService $aiParser,
+        private PlaylistTrackService $playlistTracks,
     ) {}
 
     /**
@@ -58,6 +64,72 @@ class ImportBatchService
         ParseImportBatchWithAiJob::dispatch($batch);
 
         return $batch;
+    }
+
+    /**
+     * Create a batch from YouTube playlist videos: one item per video with the video as its
+     * selected, exported link, parsed without AI. When AI is enabled and some videos are not
+     * from Topic channels, the batch is `parsing` and AI improves artist/title in the background.
+     * The raw input keeps the video titles, one per line.
+     *
+     * @param  array{name: string, year: ?int, month: ?int, default_genre: ?string}  $attributes
+     * @param  list<array{video_id: string, url: string, title: string, channel_title: ?string, description: ?string, position: int}>  $videos
+     */
+    public function createFromPlaylist(array $attributes, array $videos): ImportBatch
+    {
+        $needsAi = $this->aiParser->isEnabled()
+            && collect($videos)->contains(fn (array $video): bool => ! $this->playlistTracks->isTopicChannel($video['channel_title']));
+
+        $batch = DB::transaction(function () use ($attributes, $videos, $needsAi): ImportBatch {
+            $batch = $this->createBatch([
+                ...$attributes,
+                'raw_input' => collect($videos)->pluck('title')->implode("\n"),
+            ], ImportBatchStatus::Parsing, self::SOURCE_YOUTUBE_PLAYLIST);
+
+            $this->storeParsedLines($batch, $this->playlistTracks->parsedLines($videos));
+
+            if ($needsAi) {
+                $batch->update(['status' => ImportBatchStatus::Parsing]);
+            }
+
+            return $batch;
+        });
+
+        if ($needsAi) {
+            ParsePlaylistTitlesWithAiJob::dispatch($batch);
+        }
+
+        return $batch;
+    }
+
+    /**
+     * AI step of a playlist import: send the original titles of non-Topic videos and update
+     * artist/title of the items the AI answered for. Other items keep the simple-parser result.
+     */
+    public function applyAiPlaylistTitles(ImportBatch $batch): void
+    {
+        $items = $batch->items()
+            ->orderBy('line_number')
+            ->get()
+            ->reject(fn (ImportItem $item): bool => $this->playlistTracks->isTopicChannel($item->selected_youtube_channel))
+            ->keyBy('line_number');
+
+        $parsed = $items->isEmpty() ? [] : $this->aiParser->parsePlaylistTitles(
+            $items->map(fn (ImportItem $item): array => ['title' => $item->raw_line, 'channel_title' => $item->selected_youtube_channel])->all(),
+        );
+
+        DB::transaction(function () use ($batch, $items, $parsed): void {
+            foreach ($parsed as $lineNumber => $track) {
+                $items[$lineNumber]->update([
+                    'artist' => $track['artist'],
+                    'title' => $track['title'],
+                    'normalized_key' => $this->parser->normalizedKey($track['artist'], $track['title']),
+                    'error_message' => $track['artist'] === null ? ImportParserService::ARTIST_NOT_DETECTED : null,
+                ]);
+            }
+
+            $batch->update(['status' => ImportBatchStatus::Parsed]);
+        });
     }
 
     /**
@@ -331,11 +403,11 @@ class ImportBatchService
     /**
      * @param  array{name: string, year: ?int, month: ?int, default_genre: ?string, raw_input: string}  $attributes
      */
-    private function createBatch(array $attributes, ImportBatchStatus $status): ImportBatch
+    private function createBatch(array $attributes, ImportBatchStatus $status, string $sourceType = self::SOURCE_MANUAL): ImportBatch
     {
         return ImportBatch::create([
             ...$attributes,
-            'source_type' => 'manual',
+            'source_type' => $sourceType,
             'status' => $status,
         ]);
     }

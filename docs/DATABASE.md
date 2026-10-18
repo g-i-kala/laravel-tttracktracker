@@ -18,7 +18,7 @@ Conventions:
 | ---------------------- | --------------------------- | -------------------------------------------- |
 | id                     | bigint PK                   |                                              |
 | name                   | string                      | auto-generated, editable                     |
-| source_type            | string, default `manual`    |                                              |
+| source_type            | string, default `manual`    | `manual` (pasted list) or `youtube_playlist` (`ImportBatchService::SOURCE_*`) |
 | default_genre          | string, nullable            |                                              |
 | year                   | unsigned smallint, nullable | filtering/organizing                         |
 | month                  | unsigned tinyint, nullable  | 1–12                                         |

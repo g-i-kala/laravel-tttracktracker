@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Ai\Agents\PlaylistTitleParser;
 use App\Ai\Agents\TrackListParser;
 use Illuminate\Support\Str;
 
@@ -64,6 +65,36 @@ class AiTrackListParserService
             'normalized_key' => $this->lineParser->normalizedKey($track['artist'], $track['title']),
             'error_message' => $track['artist'] === null ? ImportParserService::ARTIST_NOT_DETECTED : null,
         ])->all();
+    }
+
+    /**
+     * Parse YouTube video titles keyed by number. Results with unknown numbers or empty
+     * titles are dropped, so the caller keeps its own value for those videos.
+     *
+     * @param  array<int, array{title: string, channel_title: ?string}>  $videos
+     * @return array<int, array{artist: ?string, title: string}>
+     */
+    public function parsePlaylistTitles(array $videos): array
+    {
+        $prompt = collect($videos)
+            ->map(fn (array $video, int $number): string => "{$number}. {$video['title']} [channel: ".($video['channel_title'] ?? 'unknown').']')
+            ->implode("\n");
+
+        $response = $this->aiSettings->withApiKey(fn () => PlaylistTitleParser::make()->prompt(
+            $prompt,
+            provider: $this->aiSettings->provider(),
+            model: $this->aiSettings->model(),
+            timeout: config('services.track_list_ai.timeout'),
+        ));
+
+        return collect($response['tracks'] ?? [])
+            ->filter(fn (array $track): bool => is_int($track['number'] ?? null) && isset($videos[$track['number']]))
+            ->mapWithKeys(fn (array $track): array => [$track['number'] => [
+                'artist' => $this->nullIfBlank($track['artist'] ?? null),
+                'title' => Str::squish((string) ($track['title'] ?? '')),
+            ]])
+            ->filter(fn (array $track): bool => $track['title'] !== '')
+            ->all();
     }
 
     private function bpm(mixed $value): ?int

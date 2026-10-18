@@ -604,3 +604,18 @@
 
 ### Notes
 - 324 tests pass. Not tried against the real API yet (step 3 / manual test).
+
+## 2026-10-18 (YouTube playlist import, step 2)
+
+### Added
+- `App\Services\PlaylistTrackService`: videos → import items without AI (Topic channels, title noise, `Artist - Title`), each with its video as the selected, exported link.
+- Agent `App\Ai\Agents\PlaylistTitleParser` (numbered titles + channels → `{number, artist, title}`), `AiTrackListParserService::parsePlaylistTitles()`.
+- `ImportBatchService::createFromPlaylist()` / `applyAiPlaylistTitles()`, `SOURCE_MANUAL` / `SOURCE_YOUTUBE_PLAYLIST`; job `ParsePlaylistTitlesWithAiJob`.
+- `tests/Unit/PlaylistTrackServiceTest.php`, `tests/Feature/Imports/PlaylistImportTest.php` (21 incl. data provider cases).
+
+### Changed
+- DECISIONS: "Playlist import: titles parsed by a dedicated AI agent in the background", "Export track list (without YouTube search)". TODO: Export track list, 80s party use case for the Library milestone.
+- Docs: ARCHITECTURE, DATABASE (`source_type` values), TESTING, TODO.
+
+### Notes
+- 345 tests pass. Not yet reachable from the UI (step 3); the AI agent has not been tried on the real API.

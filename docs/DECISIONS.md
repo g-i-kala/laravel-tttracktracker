@@ -500,3 +500,22 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-18), all recommended options. A playlist already contains the chosen videos, so searching again would only spend quota.
 
 **Consequences:** Playlist imports always need the API key. The import-time limit (200) stays the same for both tabs.
+
+## 2026-10-18 — Playlist import: titles parsed by a dedicated AI agent in the background
+
+**Decision:**
+- A separate agent `PlaylistTitleParser` gets numbered video titles with channel names and returns `{number, artist, title}`, so each result maps to exactly one video (and its link). `X - Topic` videos are not sent to AI (artist = X, title = video title).
+- Tracks with their links are stored right away with the simple parser (Topic rule + `Artist - Title` + title noise removed). When AI is enabled and some videos are not Topic, the batch is `parsing` and a queued job updates artist/title in place; Parse Review shows "Parsing…" as for pasted lists. If the job fails, the simple-parser result stays and the batch becomes `parsed` (nothing is lost, no retry needed).
+- Without AI, a title without a separator gets no artist and the "Artist not detected" notice (the channel is often a label, so it is not used as the artist).
+
+**Reason:** User's answers (2026-10-18), all recommended. Matching by number keeps links on the right tracks; the existing `TrackListParser` returns tracks without a link to the input lines.
+
+**Consequences:** Two AI agents to maintain. AI usage is logged for the batch as for pasted lists.
+
+## 2026-10-18 — Export track list (without YouTube search)
+
+**Decision:** An **Export track list** button opens a modal to choose **TXT** (`Artist - Title`, one per line, like a paste) or **CSV** (Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL when there is one). On Parse Review (top), YouTube Results and as a row action on the imports list. The file is generated on request and downloaded right away: no versions, no rows on `/exports` (Supersimple TXT keeps its history). Built after the YouTube playlist import.
+
+**Reason:** User request (2026-10-18): the list is needed even without YouTube links, e.g. to merge many playlists and sources into one set for an 80s party (Polish and international). Answers: playlist import first, both formats, all three places, download only.
+
+**Consequences:** The file always reflects the current state of the import. A stored history can be added later if needed.

@@ -85,8 +85,10 @@
 
 - [ ] **Import from a YouTube playlist** (requested 2026-10-17, decisions 2026-10-18 in DECISIONS "Import from a YouTube playlist"): "YouTube playlist" tab on New Import, `playlistItems.list` (1 unit / 50 videos), API key required, public/unlisted only, AI or line parser for titles (Topic channels: artist = channel), playlist video = selected link + Export, first 200 videos + notice.
   - [x] Step 1: `YoutubePlaylistService` (playlist ID from link, `playlistItems.list` pages, limit, skipped videos, call log, quota flag) (2026-10-18)
-  - [ ] Step 2: videos → tracks (Topic channels, title noise, AI / line parser, playlist video as selected link + Export)
+  - [x] Step 2: videos → tracks (Topic channels, title noise, AI agent `PlaylistTitleParser` in the background / line parser, playlist video as selected link + Export) (2026-10-18)
   - [ ] Step 3: New Import tabs + notices, headless Chrome check, manual test
+
+- [ ] **Export track list** (requested 2026-10-18, decisions in DECISIONS "Export track list"; after the playlist import): modal TXT (`Artist - Title`) or CSV (all fields + YouTube URL), on Parse Review (top), YouTube Results and the imports list; download only, no history.
 
 - [ ] Settings screen (accent color picker; now `APP_ACCENT`)
 - [ ] Light/dark toggle (now follows the OS)
@@ -94,6 +96,7 @@
 
 ## Library (Milestone 2, after MVP)
 
+- Use case to test on (user, 2026-10-18): an **80s party set** (Polish and international) built from many playlists and sources into one shared list. Needs: compare playlists/imports, remove duplicates across them, add to the library.
 - [ ] Questions first: data model (`tracks` vs import items), playlists, folder scan (Docker mount, tag reader package)
 - [ ] Library of unique tracks + import items linked to it
 - [ ] Library screen: search + filters (genre, BPM, Camelot, label, year/month)

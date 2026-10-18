@@ -99,6 +99,14 @@ class YoutubeSearchService
     }
 
     /**
+     * Block further API requests until the daily quota resets (midnight Pacific Time).
+     */
+    public function markQuotaExceeded(): void
+    {
+        Cache::put(self::QUOTA_EXCEEDED_FLAG, true, now(self::QUOTA_TIMEZONE)->addDay()->startOfDay());
+    }
+
+    /**
      * Same hash for queries that differ only in case or whitespace.
      */
     public function queryHash(string $query): string
@@ -144,7 +152,7 @@ class YoutubeSearchService
 
             if ($exception->isQuotaExceeded()) {
                 if (in_array($exception->reason, ['quotaExceeded', 'dailyLimitExceeded'], true)) {
-                    Cache::put(self::QUOTA_EXCEEDED_FLAG, true, now(self::QUOTA_TIMEZONE)->addDay()->startOfDay());
+                    $this->markQuotaExceeded();
                 }
 
                 $this->recordCall($query, $startedAt, YoutubeApiCallStatus::QuotaExceeded, 0, $exception->reason);

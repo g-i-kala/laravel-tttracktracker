@@ -36,7 +36,8 @@
 - [x] Set `OPENAI_API_KEY` in `.env` (smoke test OK with `gpt-4.1-mini`)
 - [x] ~~Rotate the OpenAI key~~ — not rotating: key is capped at $4 (user decision, 2026-10-13)
 - [ ] (optional) Scrub the key from Claude Code transcripts in `~/.claude/projects/...`
-- [ ] Try a full real Beatport paste in the UI (user)
+- [x] Try a full real Beatport paste in the UI (user, 2026-10-17)
+- [x] Confirm `gpt-4.1-mini` prices on the OpenAI site: $0.40 in / $0.10 cached / $1.60 out per 1M tokens, matches `config/services.php` (user, 2026-10-18)
 - [x] Parse review page (edit + autosave + remove + duplicates + Search YouTube)
 - [x] Save & close on Parse Review (`reviewed` status) + imports list `/imports`
 - [x] AI usage logging (`ai_usage_logs`, `AgentPrompted` listener, cost from config prices)
@@ -82,7 +83,10 @@
 - [x] **Add tracks to an existing import** (requested 2026-10-17, done the same day): modal on Parse Review and YouTube Results, duplicates skipped, new tracks searched right away on YouTube Results
 - [x] Manual test Add tracks (user, 2026-10-17)
 
-- [ ] Check feasibility (requested 2026-10-17): build the link list straight from a **YouTube playlist** (paste playlist URL → Supersimple TXT / import). Note: `playlistItems.list` costs 1 quota unit per 50 videos (vs 100 per search); private playlists need OAuth, public/unlisted work with the API key.
+- [ ] **Import from a YouTube playlist** (requested 2026-10-17, decisions 2026-10-18 in DECISIONS "Import from a YouTube playlist"): "YouTube playlist" tab on New Import, `playlistItems.list` (1 unit / 50 videos), API key required, public/unlisted only, AI or line parser for titles (Topic channels: artist = channel), playlist video = selected link + Export, first 200 videos + notice.
+  - [x] Step 1: `YoutubePlaylistService` (playlist ID from link, `playlistItems.list` pages, limit, skipped videos, call log, quota flag) (2026-10-18)
+  - [ ] Step 2: videos → tracks (Topic channels, title noise, AI / line parser, playlist video as selected link + Export)
+  - [ ] Step 3: New Import tabs + notices, headless Chrome check, manual test
 
 - [ ] Settings screen (accent color picker; now `APP_ACCENT`)
 - [ ] Light/dark toggle (now follows the OS)

@@ -589,3 +589,18 @@
 
 ### Changed
 - START-TUTAJ: session notes (scoring review postponed, quota counter), lesson about timezones in queries, suggested start for the next session.
+
+## 2026-10-18 (YouTube playlist import, step 1)
+
+### Added
+- `App\Services\YoutubePlaylistService`: playlist ID from a link or bare ID, `videos(url, limit)` via `playlistItems.list` (pages of 50, stops at the limit, skips deleted/private videos, counts videos left out), logs each request (1 unit) in `youtube_api_calls`.
+- `App\Services\YoutubePlaylistException` (extends `YoutubeSearchException`) with `userMessage()`.
+- `tests/Feature/Youtube/YoutubePlaylistServiceTest.php` (22 incl. data provider cases).
+
+### Changed
+- `YoutubeSearchService::markQuotaExceeded()` made public (shared quota flag for search and playlists).
+- DECISIONS: "Import from a YouTube playlist" (user's answers). TODO: Beatport paste test and `gpt-4.1-mini` prices confirmed by the user; playlist import plan in 3 steps.
+- Docs: ARCHITECTURE, TESTING, TODO, START-TUTAJ.
+
+### Notes
+- 324 tests pass. Not tried against the real API yet (step 3 / manual test).

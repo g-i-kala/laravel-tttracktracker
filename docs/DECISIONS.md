@@ -487,3 +487,16 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User choice (2026-10-17): see the remaining searches before and during a search; a fuller screen (7 days, recent calls, key in the database) is not needed now. The limit is configurable in case Google raises it.
 
 **Consequences:** The count is an estimate from this app's own `youtube_api_calls` rows (other apps using the same key are not counted). The day starts at midnight Pacific Time, so `created_at` is compared after converting that moment to the app timezone. A stored YouTube key and call history can be added to Settings → YouTube later.
+
+## 2026-10-18 — Import from a YouTube playlist
+
+**Decision:**
+- New Import gets two tabs: **Paste list** (as now) and **YouTube playlist** (a playlist URL field). Same import name and the same flow afterwards (Parse Review → YouTube Results). Adding a playlist to an existing import (Add tracks) is not part of this step.
+- Videos are read with `playlistItems.list` (1 quota unit per 50 videos, logged in `youtube_api_calls`). Needs the YouTube API key; without it the tab is disabled with a hint (no scraping). Only public and unlisted playlists (private ones need OAuth). Deleted and private videos are skipped and counted in a notice.
+- Artist/Title: video titles (with the channel name) go through the existing parser: AI when enabled, otherwise the line parser. For `X - Topic` channels the artist is X and the title is the video title. Noise like "(Official Video)" is removed.
+- Each track gets its playlist video as the selected link with Export checked, so YouTube Results needs no search (0 search units). The link can be changed by hand.
+- Playlists longer than 200 videos: the first 200 are imported, with a notice saying how many were skipped.
+
+**Reason:** User's answers (2026-10-18), all recommended options. A playlist already contains the chosen videos, so searching again would only spend quota.
+
+**Consequences:** Playlist imports always need the API key. The import-time limit (200) stays the same for both tabs.

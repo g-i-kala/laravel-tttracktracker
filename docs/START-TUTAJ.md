@@ -195,7 +195,7 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 **Lokalny `.env` (poza gitem):** `APP_ACCENT=navy`, `APP_TIMEZONE=Europe/Warsaw`, `OPENAI_API_KEY` ustawiony, `AI_PARSER_MODEL=gpt-4.1-mini`, `DB_QUEUE_RETRY_AFTER=300`, `YOUTUBE_DATA_API_KEY` ustawiony (2026-10-17, działa). Po zmianach `.env` uruchom `sail artisan config:clear` i `sail artisan queue:restart`.
 
 **Do zrobienia przez użytkownika:**
-- Sprawdzić ceny `gpt-4.1-mini` na stronie OpenAI (wpisane z pamięci: $0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`).
+- ~~Sprawdzić ceny `gpt-4.1-mini`~~ potwierdzone 2026-10-18 ($0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`), zgodne z configiem.
 
 **Następne kroki (po kolei):**
 1. **Krok 5 trybu API (odłożony, użytkownik: „na dziś działa super”):** przegląd prawdziwego importu zrobiony 2026-10-17, plan poprawek z decyzjami użytkownika w [TODO.md](TODO.md) pod „Step 5” (artyści z opisu kanałów Topic, „NOT official”, lista znaczników mashup/medley/festiwal −30, wersja przed oficjalnym kanałem, bez powtórek kandydatów). Wagi to stałe w `YoutubeScoringService`.

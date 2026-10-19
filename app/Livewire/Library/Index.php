@@ -22,7 +22,8 @@ use Livewire\WithPagination;
  * filters (availability, genre, Camelot, BPM and year ranges) and sortable
  * columns. Filters and sorting live in the URL. POF can be switched per row
  * or for the ticked tracks. Clicking a row expands it to edit the track
- * (autosaved on blur) and shows the imports it came from. Tracks can be
+ * (autosaved on blur) and shows the imports it came from. An artist/title
+ * that matches another library track opens a merge modal. Tracks can be
  * removed one by one or the ticked ones, after a confirmation modal.
  */
 #[Title('Library')]
@@ -75,6 +76,20 @@ class Index extends Component
     public array $pendingDeleteIds = [];
 
     public bool $showDeleteModal = false;
+
+    public bool $showMergeModal = false;
+
+    /**
+     * The existing track the expanded track collides with.
+     */
+    public ?int $mergeTargetId = null;
+
+    /**
+     * Conflicting field => `current` (the edited track) or `existing`.
+     *
+     * @var array<string, string>
+     */
+    public array $mergeChoices = [];
 
     /**
      * Editable values of the expanded track.
@@ -209,7 +224,7 @@ class Index extends Component
             $conflict = $library->conflictingTrack($track, $this->edit['artist'], $this->edit['title']);
 
             if ($conflict !== null) {
-                $this->addError("edit.{$key}", 'Already in the library as “'.($conflict->artist ? $conflict->artist.' - ' : '').$conflict->title.'”. Merging tracks comes in a later step.');
+                $this->openMergeModal($track, $conflict);
 
                 return;
             }
@@ -225,6 +240,102 @@ class Index extends Component
 
         $this->dispatch('track-saved', id: $track->id);
         unset($this->tracks, $this->genres, $this->camelotKeys, $this->expandedTrack);
+    }
+
+    /**
+     * "Merge": the expanded track is merged into the existing track, which
+     * stays and opens in its place.
+     */
+    public function confirmMerge(LibraryService $library): void
+    {
+        $current = Track::query()->find($this->expandedTrackId);
+        $existing = Track::query()->find($this->mergeTargetId);
+
+        if ($current === null || $existing === null) {
+            $this->cancelMerge();
+
+            return;
+        }
+
+        $moved = $current->importItems()->count();
+        $choices = collect($this->mergeChoices)->only(array_keys(LibraryService::MERGE_FIELDS))->all();
+        $merged = $library->mergeTracks($current, $existing, $this->mergeOverrides(), $choices);
+
+        $this->selected = array_values(array_diff(array_map('intval', $this->selected), [$current->id]));
+        $this->reset('showMergeModal', 'mergeTargetId', 'mergeChoices', 'expandedTrackId', 'edit');
+        $this->toggleTrack($merged->id);
+        $this->notice = 'Merged into “'.($merged->artist ? $merged->artist.' - ' : '').$merged->title.'”. '
+            .$moved.' import '.str('track')->plural($moved).' moved to it.';
+
+        unset($this->tracks, $this->totalTracks, $this->genres, $this->camelotKeys, $this->expandedTrack);
+    }
+
+    /**
+     * "Cancel" (also Escape / backdrop): the artist/title edit is not saved.
+     */
+    public function cancelMerge(): void
+    {
+        $track = $this->expandedTrackId === null ? null : Track::query()->find($this->expandedTrackId);
+
+        if ($track !== null) {
+            $this->edit['artist'] = (string) $track->artist;
+            $this->edit['title'] = $track->title;
+        }
+
+        $this->reset('showMergeModal', 'mergeTargetId', 'mergeChoices');
+    }
+
+    public function updatedShowMergeModal(bool $value): void
+    {
+        if (! $value) {
+            $this->cancelMerge();
+        }
+    }
+
+    /**
+     * Side-by-side values of the expanded track and the merge target.
+     *
+     * @return array<string, array{current: string|int|null, existing: string|int|null, conflict: bool}>
+     */
+    #[Computed]
+    public function mergeComparison(): array
+    {
+        $current = $this->expandedTrackId === null ? null : Track::query()->find($this->expandedTrackId);
+        $existing = $this->mergeTargetId === null ? null : Track::query()->find($this->mergeTargetId);
+
+        return $current === null || $existing === null
+            ? []
+            : app(LibraryService::class)->mergeComparison($current, $existing, $this->mergeOverrides());
+    }
+
+    #[Computed]
+    public function mergeTarget(): ?Track
+    {
+        return $this->mergeTargetId === null ? null : Track::query()->withCount('importItems')->find($this->mergeTargetId);
+    }
+
+    /**
+     * Conflicting fields default to the existing track, except artist and
+     * title, which default to what was just typed.
+     */
+    private function openMergeModal(Track $current, Track $existing): void
+    {
+        $this->mergeTargetId = $existing->id;
+        unset($this->mergeComparison, $this->mergeTarget);
+
+        $this->mergeChoices = collect($this->mergeComparison)
+            ->filter(fn (array $values): bool => $values['conflict'])
+            ->map(fn (array $values, string $field): string => in_array($field, ['artist', 'title'], true) ? 'current' : 'existing')
+            ->all();
+        $this->showMergeModal = true;
+    }
+
+    /**
+     * @return array{artist: ?string, title: string}
+     */
+    private function mergeOverrides(): array
+    {
+        return ['artist' => $this->edit['artist'] ?? null, 'title' => $this->edit['title'] ?? ''];
     }
 
     /**

@@ -597,3 +597,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** Implementation choices within DECISIONS "Library screen (step 1c)"; the unique `normalized_key` cannot hold two tracks with the same key.
 
 **Consequences:** 1c-iv replaces the collision error with the merge modal.
+
+## 2026-10-19 — Merge on an edit collision (step 1c-iv): details
+
+**Decision:** The existing track is always the one kept (it already had the key); the edited track is removed and its import items move. Conflicting fields default to the existing track's value, except artist and title, which default to what was just typed. Rating: existing ?? edited. Closing the modal any way other than **Merge** cancels the edit.
+
+**Reason:** Implementation choices within DECISIONS "Library screen (step 1c)" (user chose "show differences" for conflicts). Defaulting artist/title to the new text respects the edit that triggered the merge.
+
+**Consequences:** Playlists (step 2) must move `playlist_track` rows in `mergeTracks()`. A separate "Merge into…" action stays in TODO.

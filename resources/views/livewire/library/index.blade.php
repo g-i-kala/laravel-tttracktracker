@@ -228,4 +228,64 @@
             <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500">Remove</button>
         </x-slot:footer>
     </x-modal>
+
+    <x-modal wire:model.live="showMergeModal" title="Already in the library" max-width="2xl">
+        @php
+            $mergeTarget = $this->mergeTarget;
+            $comparison = $this->mergeComparison;
+            $currentTrack = $this->expandedTrack;
+            $display = fn ($value) => $value === null ? '—' : $value;
+        @endphp
+        @if ($mergeTarget && $currentTrack && $comparison !== [])
+            <p>
+                This artist and title make it the same track as
+                <span class="font-medium">“{{ $mergeTarget->artist ? $mergeTarget->artist.' - ' : '' }}{{ $mergeTarget->title }}”</span>.
+                Merge them into one track?
+            </p>
+            <p class="mt-1 text-zinc-600 dark:text-zinc-400">Choose the value to keep where they differ. Empty fields are filled from the other track.</p>
+
+            <div class="mt-3 overflow-x-auto rounded-md border border-zinc-200 dark:border-zinc-800">
+                <table class="w-full text-left text-sm">
+                    <thead class="border-b border-zinc-200 text-xs font-medium tracking-wide text-zinc-500 uppercase dark:border-zinc-800 dark:text-zinc-400">
+                        <tr>
+                            <th class="px-3 py-2"><span class="sr-only">Field</span></th>
+                            <th class="px-3 py-2">This track (edited)</th>
+                            <th class="px-3 py-2">Already in the library</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
+                        @foreach (\App\Services\LibraryService::MERGE_FIELDS as $field => $label)
+                            @php $values = $comparison[$field]; @endphp
+                            <tr wire:key="merge-{{ $field }}" @class(['bg-amber-50/60 dark:bg-amber-950/30' => $values['conflict']])>
+                                <th scope="row" class="px-3 py-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">{{ $label }}</th>
+                                @if ($values['conflict'])
+                                    @foreach (['current', 'existing'] as $side)
+                                        <td class="px-3 py-2">
+                                            <label class="flex items-start gap-2">
+                                                <input type="radio" value="{{ $side }}" wire:model="mergeChoices.{{ $field }}" class="mt-0.5 size-4 border-zinc-300 text-accent-600 focus:ring-accent-500 dark:border-zinc-700">
+                                                <span class="break-all">{{ $values[$side] }}</span>
+                                            </label>
+                                        </td>
+                                    @endforeach
+                                @else
+                                    <td class="px-3 py-2 break-all text-zinc-600 dark:text-zinc-400">{{ $display($values['current']) }}</td>
+                                    <td class="px-3 py-2 break-all text-zinc-600 dark:text-zinc-400">{{ $display($values['existing']) }}</td>
+                                @endif
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="mt-3 list-disc pl-5 text-xs text-zinc-600 dark:text-zinc-400">
+                <li>POF and Wanted are kept if either track has them (Wanted stays off when POF); notes are joined.</li>
+                <li>{{ $currentTrack->importItems->count() }} import {{ Str::plural('track', $currentTrack->importItems->count()) }} of this track {{ $currentTrack->importItems->count() === 1 ? 'moves' : 'move' }} to the existing one ({{ $mergeTarget->import_items_count }} already there); this track is removed.</li>
+            </ul>
+        @endif
+
+        <x-slot:footer>
+            <button type="button" wire:click="cancelMerge" class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">Cancel</button>
+            <button type="button" wire:click="confirmMerge" wire:loading.attr="disabled" wire:target="confirmMerge" class="rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white hover:bg-accent-500 disabled:opacity-50">Merge</button>
+        </x-slot:footer>
+    </x-modal>
 </div>

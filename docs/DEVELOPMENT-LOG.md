@@ -784,3 +784,16 @@
 ### Notes
 - 415 tests pass. Ran `sail npm run build`.
 - Headless Chrome on "ZZQ" tracks: single remove (modal text, notice), bulk remove with Cancel first; the user's 8 tracks untouched. Test data deleted.
+
+## 2026-10-19 (Library step 1c-iv)
+
+### Added
+- Library: merge modal when an artist/title edit matches another track (side-by-side differences, radio choice per conflict, Cancel / Escape restores the edit). `LibraryService::MERGE_FIELDS`, `mergeComparison()`, `mergeTracks()`. Tests: 4 in `LibraryTrackEditTest` (replace the collision-error test), 2 in `LibraryServiceTest`.
+- DECISIONS "Merge on an edit collision (step 1c-iv): details".
+
+### Changed
+- Docs: UI-FLOW, API, ARCHITECTURE, PRD, TODO, START-TUTAJ.
+
+### Notes
+- 420 tests pass. Ran `sail npm run build`.
+- Headless Chrome on "ZZQ" tracks found a bug: Escape closed the modal without telling the server (deferred `wire:model`), so the title stayed edited; fixed with `wire:model.live` on the merge modal. Then Escape restored the title and Merge kept the chosen values, POF and the source. Test data deleted; the user's tracks untouched.

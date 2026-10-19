@@ -31,6 +31,22 @@ class LibraryService
         'youtube_url' => 'selected_youtube_url',
     ];
 
+    /**
+     * Fields compared in the merge modal, as column => label.
+     *
+     * @var array<string, string>
+     */
+    public const array MERGE_FIELDS = [
+        'artist' => 'Artist',
+        'title' => 'Title',
+        'genre' => 'Genre',
+        'bpm' => 'BPM',
+        'musical_key' => 'Key',
+        'label' => 'Label',
+        'release_year' => 'Year',
+        'youtube_url' => 'YouTube link',
+    ];
+
     public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys) {}
 
     /**
@@ -186,6 +202,70 @@ class LibraryService
     }
 
     /**
+     * Compare the edited track with the existing track it collides with. A
+     * field conflicts when both tracks have a different value; otherwise the
+     * merged track gets the value that is there. `$currentOverrides` holds the
+     * unsaved edits of the current track (artist, title).
+     *
+     * @param  array<string, mixed>  $currentOverrides
+     * @return array<string, array{current: string|int|null, existing: string|int|null, conflict: bool}>
+     */
+    public function mergeComparison(Track $current, Track $existing, array $currentOverrides = []): array
+    {
+        $comparison = [];
+
+        foreach (array_keys(self::MERGE_FIELDS) as $field) {
+            $currentValue = $this->blankToNull(array_key_exists($field, $currentOverrides) ? $currentOverrides[$field] : $current->{$field});
+            $existingValue = $this->blankToNull($existing->{$field});
+
+            $comparison[$field] = [
+                'current' => $currentValue,
+                'existing' => $existingValue,
+                'conflict' => $currentValue !== null && $existingValue !== null && (string) $currentValue !== (string) $existingValue,
+            ];
+        }
+
+        return $comparison;
+    }
+
+    /**
+     * Merge the current (edited) track into the existing one: conflicting
+     * fields take the chosen side (`current` or `existing`, default existing),
+     * empty fields are filled from the other track, POF and Wanted are kept if
+     * either track has them (Wanted stays off when POF), notes are joined and
+     * the import items move to the existing track. The current track is deleted.
+     *
+     * @param  array<string, mixed>  $currentOverrides
+     * @param  array<string, string>  $choices  field => `current` | `existing`
+     */
+    public function mergeTracks(Track $current, Track $existing, array $currentOverrides = [], array $choices = []): Track
+    {
+        DB::transaction(function () use ($current, $existing, $currentOverrides, $choices): void {
+            foreach ($this->mergeComparison($current, $existing, $currentOverrides) as $field => $values) {
+                $existing->{$field} = $values['conflict']
+                    ? (($choices[$field] ?? 'existing') === 'current' ? $values['current'] : $values['existing'])
+                    : ($values['existing'] ?? $values['current']);
+            }
+
+            $existing->fill([
+                'normalized_key' => $this->parser->normalizedKey($existing->artist, $existing->title),
+                'similar_key' => $this->parser->similarKey($existing->artist, $existing->title),
+                'camelot_key' => $this->musicalKeys->toCamelot($existing->musical_key),
+                'rating' => $existing->rating ?? $current->rating,
+                'notes' => collect([$existing->notes, $current->notes])->filter()->unique()->implode("\n\n") ?: null,
+                'playable_offline' => $existing->playable_offline || $current->playable_offline,
+                'wanted' => $existing->wanted || $current->wanted,
+            ]);
+
+            ImportItem::query()->where('track_id', $current->id)->update(['track_id' => $existing->id]);
+            $current->delete();
+            $existing->save();
+        });
+
+        return $existing;
+    }
+
+    /**
      * What removing the tracks touches, for the confirmation modal.
      *
      * @param  list<int>  $trackIds
@@ -278,5 +358,16 @@ class LibraryService
         $value = Str::squish((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    private function blankToNull(mixed $value): string|int|null
+    {
+        if (is_string($value)) {
+            $value = Str::squish($value);
+
+            return $value === '' ? null : $value;
+        }
+
+        return $value;
     }
 }

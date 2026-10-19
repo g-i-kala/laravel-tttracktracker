@@ -118,7 +118,50 @@ class LibraryTrackEditTest extends TestCase
             ->assertSet('edit.wanted', false);
     }
 
-    public function test_an_artist_and_title_of_another_track_are_not_saved(): void
+    public function test_an_artist_and_title_of_another_track_open_the_merge_modal_with_the_differences(): void
+    {
+        $existing = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White', 'bpm' => 118, 'genre' => null]);
+        $track = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black & White Remix', 'bpm' => 120, 'genre' => 'Synth-pop']);
+
+        Livewire::test(Index::class)
+            ->call('toggleTrack', $track->id)
+            ->set('edit.title', 'Black & White')
+            ->assertHasNoErrors()
+            ->assertSet('showMergeModal', true)
+            ->assertSet('mergeTargetId', $existing->id)
+            ->assertSet('mergeChoices', ['title' => 'current', 'bpm' => 'existing'])
+            ->assertSee('This track (edited)')
+            ->assertSee('Black &amp; White', false);
+
+        $this->assertSame('Black & White Remix', $track->fresh()->title);
+    }
+
+    public function test_merging_keeps_the_existing_track_with_the_chosen_values_and_moves_the_sources(): void
+    {
+        $existing = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White', 'bpm' => 118, 'genre' => null]);
+        $track = Track::factory()->playableOffline()->create(['artist' => 'Kombi', 'title' => 'Black & White Remix', 'bpm' => 120, 'genre' => 'Synth-pop']);
+        $item = ImportItem::factory()->for($track)->create();
+
+        Livewire::test(Index::class)
+            ->call('toggleTrack', $track->id)
+            ->set('edit.title', 'Black & White')
+            ->set('mergeChoices.bpm', 'current')
+            ->call('confirmMerge')
+            ->assertSet('showMergeModal', false)
+            ->assertSet('expandedTrackId', $existing->id)
+            ->assertSet('edit.title', 'Black & White')
+            ->assertSet('notice', 'Merged into “Kombi - Black & White”. 1 import track moved to it.');
+
+        $this->assertModelMissing($track);
+        $existing->refresh();
+        $this->assertSame('Black & White', $existing->title);
+        $this->assertSame(120, $existing->bpm);
+        $this->assertSame('Synth-pop', $existing->genre);
+        $this->assertTrue($existing->playable_offline);
+        $this->assertSame($existing->id, $item->fresh()->track_id);
+    }
+
+    public function test_cancelling_the_merge_keeps_both_tracks_and_restores_the_title(): void
     {
         Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White']);
         $track = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black & White Remix']);
@@ -126,10 +169,25 @@ class LibraryTrackEditTest extends TestCase
         Livewire::test(Index::class)
             ->call('toggleTrack', $track->id)
             ->set('edit.title', 'Black & White')
-            ->assertHasErrors('edit.title')
-            ->assertSee('Already in the library as “Kombi - Black and White”');
+            ->call('cancelMerge')
+            ->assertSet('showMergeModal', false)
+            ->assertSet('mergeTargetId', null)
+            ->assertSet('edit.title', 'Black & White Remix');
 
-        $this->assertSame('Black & White Remix', $track->fresh()->title);
+        $this->assertSame(2, Track::count());
+    }
+
+    public function test_closing_the_merge_modal_with_escape_also_cancels(): void
+    {
+        Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White']);
+        $track = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black & White Remix']);
+
+        Livewire::test(Index::class)
+            ->call('toggleTrack', $track->id)
+            ->set('edit.title', 'Black & White')
+            ->set('showMergeModal', false)
+            ->assertSet('edit.title', 'Black & White Remix')
+            ->assertSet('mergeTargetId', null);
     }
 
     public function test_sources_list_the_imports_the_track_came_from(): void

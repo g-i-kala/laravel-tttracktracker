@@ -220,4 +220,44 @@ class LibraryServiceTest extends TestCase
         $this->assertSame([$radioEdit->id], array_keys($matches));
         $this->assertSame([$glue->id, $glueExtended->id], $matches[$radioEdit->id]->modelKeys());
     }
+
+    public function test_merge_comparison_marks_only_fields_with_two_different_values_as_conflicts(): void
+    {
+        $existing = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White', 'bpm' => 118, 'genre' => null, 'label' => 'Polskie Nagrania']);
+        $current = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Old title', 'bpm' => 118, 'genre' => 'Synth-pop', 'label' => 'Pronit']);
+
+        $comparison = $this->library->mergeComparison($current, $existing, ['title' => ' Black & White ']);
+
+        $this->assertSame(['current' => 'Black & White', 'existing' => 'Black and White', 'conflict' => true], $comparison['title']);
+        $this->assertFalse($comparison['artist']['conflict']);
+        $this->assertFalse($comparison['bpm']['conflict']);
+        $this->assertFalse($comparison['genre']['conflict']);
+        $this->assertTrue($comparison['label']['conflict']);
+        $this->assertSame(array_keys(LibraryService::MERGE_FIELDS), array_keys($comparison));
+    }
+
+    public function test_merge_tracks_applies_choices_fills_empty_fields_and_combines_flags_and_notes(): void
+    {
+        $existing = Track::factory()->wanted()->create(['artist' => 'Kombi', 'title' => 'Black and White', 'bpm' => 118, 'musical_key' => null, 'label' => 'Polskie Nagrania', 'notes' => 'Opener', 'rating' => null]);
+        $current = Track::factory()->playableOffline()->withYoutubeLink()->create(['artist' => 'Kombi', 'title' => 'Black & White Remix', 'bpm' => 120, 'musical_key' => 'Bbm', 'label' => 'Pronit', 'notes' => 'Peak time', 'rating' => 4]);
+        $items = ImportItem::factory()->count(2)->for($current)->create();
+
+        $merged = $this->library->mergeTracks($current, $existing, ['title' => 'Black & White'], ['bpm' => 'current', 'label' => 'existing']);
+
+        $this->assertModelMissing($current);
+        $this->assertTrue($merged->is($existing));
+        $merged->refresh();
+        $this->assertSame('Black and White', $merged->title);
+        $this->assertSame(120, $merged->bpm);
+        $this->assertSame('Polskie Nagrania', $merged->label);
+        $this->assertSame('Bbm', $merged->musical_key);
+        $this->assertSame('3A', $merged->camelot_key);
+        $this->assertSame($current->youtube_url, $merged->youtube_url);
+        $this->assertSame(4, $merged->rating);
+        $this->assertSame("Opener\n\nPeak time", $merged->notes);
+        $this->assertTrue($merged->playable_offline);
+        $this->assertFalse($merged->wanted);
+        $this->assertSame(2, $merged->importItems()->count());
+        $this->assertSame([$merged->id], $items->map->fresh()->pluck('track_id')->unique()->values()->all());
+    }
 }

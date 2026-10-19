@@ -112,8 +112,9 @@
     - [ ] Manual test 1c-ii (user): open a row, edit fields (Tab saves, "Saved"), POF / Wanted, YouTube link, sources, title collision message
     - [x] 1c-iii (2026-10-19): delete single + selected (modal with summary)
     - [ ] Manual test 1c-iii (user): Remove from library (row), Remove selected, Cancel, In library mark gone on the import
-    - [ ] 1c-iv: collision on edit → merge modal with differences (choose per field; POF/Wanted/notes automatic; items moved)
+    - [x] 1c-iv (2026-10-19): collision on edit → merge modal with differences (choose per field; POF/Wanted/notes automatic; items moved)
   - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)
+    - [ ] Manual test 1c-iv (user): edit a title to match another track → merge modal, choose values, Merge / Cancel / Escape
 - [ ] Merge as a separate action ("Merge into…", e.g. swapped artists), later when needed (user, 2026-10-19)
 - [ ] Step 2: playlists
   - [ ] 2a: `playlists` + `playlist_track` (position), playlists list + playlist screen with drag and drop order (`wire:sort`)

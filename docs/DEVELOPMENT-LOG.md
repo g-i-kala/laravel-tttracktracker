@@ -772,3 +772,15 @@
 ### Notes
 - 411 tests pass. Ran `sail npm run build`.
 - Headless Chrome on "ZZ" tracks: row click opens the panel, typing + Tab saves BPM / year / key (Camelot 3A), "Saved" flash, POF disables and clears Wanted, title collision error; user's tracks untouched. Test data deleted.
+
+## 2026-10-19 (Library step 1c-iii)
+
+### Added
+- Library: remove tracks: **Remove from library** in the expanded row, **Remove selected** in the selection bar, confirmation modal with a summary (linked import tracks). `LibraryService::deletionSummary()` / `deleteTracks()`. 4 tests in `LibraryIndexTest`.
+
+### Changed
+- Docs: UI-FLOW, API, ARCHITECTURE, PRD, TODO, START-TUTAJ.
+
+### Notes
+- 415 tests pass. Ran `sail npm run build`.
+- Headless Chrome on "ZZQ" tracks: single remove (modal text, notice), bulk remove with Cancel first; the user's 8 tracks untouched. Test data deleted.

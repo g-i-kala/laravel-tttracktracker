@@ -186,6 +186,32 @@ class LibraryService
     }
 
     /**
+     * What removing the tracks touches, for the confirmation modal.
+     *
+     * @param  list<int>  $trackIds
+     * @return array{tracks: int, linkedItems: int}
+     */
+    public function deletionSummary(array $trackIds): array
+    {
+        return [
+            'tracks' => Track::query()->whereKey($trackIds)->count(),
+            'linkedItems' => ImportItem::query()->whereIn('track_id', $trackIds)->count(),
+        ];
+    }
+
+    /**
+     * Remove tracks from the library. Their import items are unlinked by the
+     * database (`nullOnDelete`); the imports stay.
+     *
+     * @param  list<int>  $trackIds
+     * @return int number of tracks removed
+     */
+    public function deleteTracks(array $trackIds): int
+    {
+        return Track::query()->whereKey($trackIds)->delete();
+    }
+
+    /**
      * Mark tracks as playable offline (the user has the files), which also
      * clears wanted, or unmark them.
      *

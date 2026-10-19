@@ -3,6 +3,7 @@
 namespace Tests\Feature\Library;
 
 use App\Livewire\Library\Index;
+use App\Models\ImportItem;
 use App\Models\Track;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -179,6 +180,72 @@ class LibraryIndexTest extends TestCase
         $this->assertSame($ids, $selected);
 
         $component->call('toggleAllOnPage')->assertSet('selected', []);
+    }
+
+    public function test_a_track_is_removed_after_confirmation_and_its_import_items_are_unlinked(): void
+    {
+        $track = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White']);
+        $kept = Track::factory()->create();
+        $item = ImportItem::factory()->for($track)->create();
+
+        Livewire::test(Index::class)
+            ->call('toggleTrack', $track->id)
+            ->call('confirmDelete', $track->id)
+            ->assertSet('showDeleteModal', true)
+            ->assertSeeInOrder(['Remove', 'Kombi - Black and White', 'from the library?'])
+            ->assertSee('1 track in your imports will lose the')
+            ->call('delete')
+            ->assertSet('showDeleteModal', false)
+            ->assertSet('expandedTrackId', null)
+            ->assertSet('notice', 'Removed 1 track from the library.');
+
+        $this->assertModelMissing($track);
+        $this->assertModelExists($kept);
+        $this->assertModelExists($item);
+        $this->assertNull($item->fresh()->track_id);
+    }
+
+    public function test_the_selected_tracks_are_removed(): void
+    {
+        $first = Track::factory()->create();
+        $second = Track::factory()->create();
+        $kept = Track::factory()->create();
+
+        Livewire::test(Index::class)
+            ->set('selected', [(string) $first->id, (string) $second->id])
+            ->call('confirmDelete')
+            ->assertSee('Remove 2 tracks from the library?')
+            ->assertSee('Not linked to any import.')
+            ->call('delete')
+            ->assertSet('selected', [])
+            ->assertSet('notice', 'Removed 2 tracks from the library.');
+
+        $this->assertSame([$kept->id], Track::query()->pluck('id')->all());
+    }
+
+    public function test_cancelling_keeps_the_tracks_and_an_empty_selection_opens_nothing(): void
+    {
+        $track = Track::factory()->create();
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete')
+            ->assertSet('showDeleteModal', false)
+            ->call('confirmDelete', $track->id)
+            ->set('showDeleteModal', false);
+
+        $this->assertModelExists($track);
+    }
+
+    public function test_removing_the_last_track_of_a_page_goes_back_a_page(): void
+    {
+        Track::factory()->count(Index::PER_PAGE + 1)->sequence(fn ($sequence) => ['artist' => sprintf('Artist %03d', $sequence->index)])->create();
+        $last = Track::query()->where('artist', sprintf('Artist %03d', Index::PER_PAGE))->sole();
+
+        Livewire::test(Index::class)
+            ->call('gotoPage', 2)
+            ->call('confirmDelete', $last->id)
+            ->call('delete')
+            ->assertSet('paginators.page', 1);
     }
 
     /**

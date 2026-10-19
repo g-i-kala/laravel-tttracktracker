@@ -106,6 +106,7 @@
                 <span class="font-medium">{{ count($selectedIds) }} selected</span>
                 <button type="button" wire:click="setSelectedPlayableOffline(true)" class="rounded-md bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500">Mark as POF</button>
                 <button type="button" wire:click="setSelectedPlayableOffline(false)" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">Unmark POF</button>
+                <button type="button" wire:click="confirmDelete" class="rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-500">Remove selected</button>
                 <button type="button" wire:click="$set('selected', [])" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Clear selection</button>
             </div>
         @endif
@@ -203,4 +204,28 @@
 
         {{ $tracks->links() }}
     @endif
+
+    <x-modal wire:model="showDeleteModal" title="Remove from library">
+        @php $summary = $this->deleteSummary; @endphp
+        <p>
+            @if ($summary['name'])
+                Remove <span class="font-medium">“{{ $summary['name'] }}”</span> from the library?
+            @else
+                Remove {{ $summary['tracks'] }} {{ Str::plural('track', $summary['tracks']) }} from the library?
+            @endif
+        </p>
+        <p class="mt-2 text-zinc-600 dark:text-zinc-400">
+            @if ($summary['linkedItems'] > 0)
+                {{ $summary['linkedItems'] }} {{ Str::plural('track', $summary['linkedItems']) }} in your imports will lose the “In library” mark; the imports stay and you can add them again.
+            @else
+                Not linked to any import.
+            @endif
+            Their POF, Wanted, notes and other details are lost.
+        </p>
+
+        <x-slot:footer>
+            <button type="button" x-on:click="$wire.showDeleteModal = false" class="rounded-md px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">Cancel</button>
+            <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white hover:bg-red-500">Remove</button>
+        </x-slot:footer>
+    </x-modal>
 </div>

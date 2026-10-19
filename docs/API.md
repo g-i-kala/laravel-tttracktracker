@@ -50,6 +50,7 @@ These replace the POST/PATCH routes from the original plan.
 | `Imports\Review`, `Imports\Show` | `openLibraryModal()` / `addToLibrary()` / `backToLibrarySelection()` **(implemented, trait `AddsToLibrary`)** | — | Add to library modal: preselect items without a track; possible matches → "Same track / New track" step; `LibraryService::addItems()` |
 | `Library\Index`   | `togglePlayableOffline($trackId)` / `toggleAllOnPage()` / `setSelectedPlayableOffline(bool)` **(implemented)** | — | POF per row and for the ticked tracks (`selected`), `LibraryService::setPlayableOffline()` |
 | `Library\Index`   | `toggleTrack($trackId)` / `updatedEdit()` hook **(implemented)** | — | Expand/collapse a row; autosave one field of the expanded track (`edit.*`, validated), artist/title collision check, `LibraryService::updateTrackDetails()`, dispatches `track-saved` |
+| `Library\Index`   | `confirmDelete(?$trackId)` / `delete()` **(implemented)** | — | Remove modal for one track or the ticked ones, `LibraryService::deleteTracks()` |
 | `Library\Index`   | `toggleAvailability($value)` / `sortBy($column)` / `clearFilters()` **(implemented)** | — | Filters (`search`, `availability`, `genre`, `camelot`, `bpmFrom`/`bpmTo`, `yearFrom`/`yearTo`) and `sort`/`direction` as `#[Url]` properties; any filter change resets the page |
 
 Item actions always check that the item belongs to the page's batch.

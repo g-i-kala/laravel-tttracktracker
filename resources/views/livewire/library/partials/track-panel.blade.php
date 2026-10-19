@@ -74,6 +74,7 @@
                 <span><span class="font-medium">Wanted</span> <span class="text-zinc-500 dark:text-zinc-400">I want the file</span></span>
             </label>
             <span x-show="saved" x-cloak x-transition.opacity class="text-xs text-accent-600 dark:text-accent-400">Saved</span>
+            <button type="button" wire:click="confirmDelete({{ $track->id }})" class="ml-auto text-xs font-medium text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">Remove from library</button>
         </div>
 
         <div class="mt-4 text-sm">

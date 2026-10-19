@@ -22,7 +22,8 @@ use Livewire\WithPagination;
  * filters (availability, genre, Camelot, BPM and year ranges) and sortable
  * columns. Filters and sorting live in the URL. POF can be switched per row
  * or for the ticked tracks. Clicking a row expands it to edit the track
- * (autosaved on blur) and shows the imports it came from.
+ * (autosaved on blur) and shows the imports it came from. Tracks can be
+ * removed one by one or the ticked ones, after a confirmation modal.
  */
 #[Title('Library')]
 class Index extends Component
@@ -65,6 +66,15 @@ class Index extends Component
     public ?string $notice = null;
 
     public ?int $expandedTrackId = null;
+
+    /**
+     * Track ids waiting for confirmation in the remove modal.
+     *
+     * @var list<int>
+     */
+    public array $pendingDeleteIds = [];
+
+    public bool $showDeleteModal = false;
 
     /**
      * Editable values of the expanded track.
@@ -296,6 +306,52 @@ class Index extends Component
 
         $this->syncExpandedFlags();
         unset($this->tracks);
+    }
+
+    /**
+     * Open the remove modal for one track, or for the ticked ones when no id is given.
+     */
+    public function confirmDelete(?int $trackId = null): void
+    {
+        $this->pendingDeleteIds = $trackId !== null ? [$trackId] : array_map('intval', $this->selected);
+
+        unset($this->deleteSummary);
+        $this->showDeleteModal = $this->pendingDeleteIds !== [];
+    }
+
+    public function delete(LibraryService $library): void
+    {
+        $deleted = $library->deleteTracks($this->pendingDeleteIds);
+
+        $this->selected = array_values(array_diff(array_map('intval', $this->selected), $this->pendingDeleteIds));
+
+        if (in_array($this->expandedTrackId, $this->pendingDeleteIds, true)) {
+            $this->reset('expandedTrackId', 'edit');
+        }
+
+        $this->pendingDeleteIds = [];
+        $this->showDeleteModal = false;
+        $this->notice = "Removed {$deleted} ".str('track')->plural($deleted).' from the library.';
+
+        unset($this->tracks, $this->totalTracks, $this->genres, $this->camelotKeys, $this->deleteSummary);
+
+        if ($this->tracks->isEmpty() && $this->getPage() > 1) {
+            $this->setPage($this->tracks->lastPage());
+        }
+    }
+
+    /**
+     * @return array{tracks: int, linkedItems: int, name: ?string}
+     */
+    #[Computed]
+    public function deleteSummary(): array
+    {
+        $track = count($this->pendingDeleteIds) === 1 ? Track::query()->find($this->pendingDeleteIds[0]) : null;
+
+        return [
+            ...app(LibraryService::class)->deletionSummary($this->pendingDeleteIds),
+            'name' => $track === null ? null : ($track->artist ? $track->artist.' - ' : '').$track->title,
+        ];
     }
 
     /**

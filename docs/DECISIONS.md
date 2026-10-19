@@ -567,3 +567,17 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-19), all as recommended: choosing in the modal keeps the two tables unchanged; most similar matches are other versions (track = version), so "New track" is the safe default; no sync keeps one track from many imports predictable.
 
 **Consequences:** A wrong "New track" leaves two tracks for one version until a merge/edit exists in the library screen. An item that already has a track stays on it when added again, even after its title was edited.
+
+## 2026-10-19 — Library screen (step 1c)
+
+**Decision:**
+- **Layout:** read-only table; clicking a row expands a panel to edit the track (autosave on blur, like Parse Review): artist, title, genre, BPM, key, label, year, notes, POF / Wanted checkboxes, YouTube link (PON); plus the track's **sources** (imports with line number, linked).
+- **Filters:** search (artist, title, label), availability POF / PON / Wanted / none, genre, Camelot (lists from the library's values), BPM from–to, year from–to. Rating and tags come with 1d.
+- **Paging and sorting:** 50 per page; default artist A–Z, then title; sortable columns artist, title, BPM, Camelot, year, added (asc/desc).
+- **Delete:** single (button in the expanded row) and selected (checkboxes + "Remove selected"), modal with a summary, like the imports list. Import items are unlinked (`nullOnDelete`), imports stay.
+- **Collision on edit:** when a new artist/title gives the normalized key of another library track, the change is not saved yet; a **merge** modal opens ("This track is already in the library. Merge?"). It **shows the differences** of artist, title, genre, BPM, key, label, year and YouTube link and lets the user pick the value of each conflicting field; empty fields are filled from the other track. Automatic: POF if either track is POF (Wanted then off), Wanted if either wants, notes joined. All import items move to the kept track, the other track is deleted. Cancel = the edit is not saved.
+- **Merge as a separate action** (e.g. swapped artists without a title change): later, when needed (TODO).
+
+**Reason:** User's answers (2026-10-19). Recommended options everywhere except the merge field conflicts, where the user wants to see and choose the differences.
+
+**Consequences:** Playlists (step 2) will have to move `playlist_track` rows on merge too. 1c is split into sub-steps (TODO).

@@ -724,3 +724,11 @@
 
 ### Changed
 - START-TUTAJ: steps 1a–1b done (`cf06f22`, `87d16e9`); step 1c agreed in part (expandable row editing, filters), deletion and title collision still open.
+
+## 2026-10-19 (Library screen Q&A)
+
+### Added
+- DECISIONS "Library screen (step 1c)": expandable row editing, filters, 50 per page, sorting, delete single + selected, merge modal with differences on an edit collision; separate merge later.
+
+### Changed
+- TODO: 1c split into 1c-i … 1c-iv, "Merge as a separate action" added. START-TUTAJ: next is 1c-i.

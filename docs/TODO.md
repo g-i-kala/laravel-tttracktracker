@@ -103,8 +103,13 @@
   - [x] 1a: `tracks` table + `Track` model/factory, POF/Wanted flags (PON from links), `import_items.track_id` (`nullOnDelete`), `LibraryService` (exact merge fills empty fields, similar match detection, Mark as wanted) (2026-10-19)
   - [x] 1b (2026-10-19): **Add to library** on Parse Review and YouTube Results (whole import / selected) with a **Mark as wanted** checkbox, "Same track / New track" modal for similar matches, "In library" mark on items
   - [ ] Manual test 1b (user): Add to library on Parse Review and YouTube Results, Mark as wanted, Same track / New track, In library badge
-  - [ ] 1c: Library screen: list, search, filters (genre, BPM, Camelot, label, year, rating, tags, POF / PON / Wanted), edit a track (incl. POF / Wanted), sources ("in N imports")
+  - [ ] 1c: Library screen (decisions: DECISIONS "Library screen (step 1c)")
+    - [ ] 1c-i: `/library` + sidebar link, table, search + filters (POF / PON / Wanted / none, genre, Camelot, BPM from–to, year from–to), 50 per page, sortable columns
+    - [ ] 1c-ii: expanded row: edit fields (autosave), POF / Wanted, YouTube link, sources (imports)
+    - [ ] 1c-iii: delete single + selected (modal with summary)
+    - [ ] 1c-iv: collision on edit → merge modal with differences (choose per field; POF/Wanted/notes automatic; items moved)
   - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)
+- [ ] Merge as a separate action ("Merge into…", e.g. swapped artists), later when needed (user, 2026-10-19)
 - [ ] Step 2: playlists
   - [ ] 2a: `playlists` + `playlist_track` (position), playlists list + playlist screen with drag and drop order (`wire:sort`)
   - [ ] 2b: add to a playlist from the library and from Add to library; export a playlist (TXT/CSV, Supersimple TXT — not agreed yet, ask)

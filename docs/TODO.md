@@ -98,8 +98,13 @@
 ## Library (Milestone 2, after MVP)
 
 - Use case to test on (user, 2026-10-18): an **80s party set** (Polish and international) built from many playlists and sources into one shared list. Needs: compare playlists/imports, remove duplicates across them, add to the library.
-- [ ] Questions first: data model (`tracks` vs import items), playlists, folder scan (Docker mount, tag reader package)
-- [ ] Library of unique tracks + import items linked to it
-- [ ] Library screen: search + filters (genre, BPM, Camelot, label, year/month)
-- [ ] Playlists
-- [ ] Import from the music folder on disk (scan files, read tags)
+- [x] Questions first: data model, playlists, duplicates, order of work (2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"; folder details postponed to step 3)
+- [ ] Step 1: library tracks
+  - [ ] 1a: `tracks` table + `Track` model/factory, `TrackOwnershipStatus` enum, `import_items.track_id`, library service (add item → track: exact merge fills empty fields, similar match detection)
+  - [ ] 1b: **Add to library** on Parse Review and YouTube Results (whole import / selected), "Same track / New track" modal for similar matches, "In library" mark on items
+  - [ ] 1c: Library screen: list, search, filters (genre, BPM, Camelot, label, year, rating, tags, ownership), edit a track, sources ("in N imports")
+  - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)
+- [ ] Step 2: playlists
+  - [ ] 2a: `playlists` + `playlist_track` (position), playlists list + playlist screen with drag and drop order (`wire:sort`)
+  - [ ] 2b: add to a playlist from the library and from Add to library; export a playlist (TXT/CSV, Supersimple TXT — not agreed yet, ask)
+- [ ] Step 3: music folder scan — Q&A first (path, Sail mount, formats, tag reader package needs approval), `track_files`, "Have file" set automatically

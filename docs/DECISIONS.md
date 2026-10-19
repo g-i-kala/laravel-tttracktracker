@@ -529,3 +529,20 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Consequences:** The file always reflects the current state of the import. A stored history can be added later if needed.
 
 **Details (2026-10-18, user's answers):** every track of the import goes into the file, regardless of Export ticks or links. CSV is comma-separated UTF-8 with a BOM (Numbers, Google Sheets and Excel read Polish characters). Filenames `{slug}_tracks.txt` / `.csv`.
+
+## 2026-10-19 — Music library (Milestone 2): model and scope
+
+**Decision:**
+- **A library track is one version** (Extended Mix, Radio Edit and a remix are separate tracks). Matching uses the existing `normalized_key` (versions stay distinct, `Original Mix` = no version); `similarKey()` finds possible matches.
+- **An import is not a playlist.** An import is only a way to add tracks; playlists are their own entity in the library.
+- Tracks enter the library **manually after review**: **Add to library** on Parse Review and YouTube Results (whole import or selected tracks). The library starts empty; existing imports are added with the same button when the user wants.
+- **Duplicates on adding:** same `normalized_key` → linked to the existing track automatically, its empty fields are filled from the item (non-empty fields are not overwritten); same similar key → modal "Same track / New track".
+- **Fields:** artist, title, genre, BPM, musical key + Camelot, label, **release year** (year only), **rating 1–5** (as in Rekordbox), notes, **free tags** created on the fly (genre stays a separate field), **ownership status**, one **main YouTube link** (copied from the item; the link history stays in imports).
+- **Ownership status** (enum): Have file, YouTube only, To buy, Wanted. Set manually for now; the folder scan sets "Have file" later.
+- **Playlists** contain library tracks only, with a **manual order** (drag and drop, `wire:sort`); sorting by BPM/key/year is a view option. A track can be on many playlists.
+- **Comparing sources** (e.g. many 80s playlists into one party set) goes through the library: add all imports to one playlist, duplicates merge on adding, each track shows the imports it came from. No separate comparison screen.
+- **Order of work:** 1) library tracks + Add to library + library screen, 2) playlists, 3) music folder scan (path, Sail mount, formats and tag reader package agreed before step 3).
+
+**Reason:** User's answers (2026-10-19), all as recommended. The 80s party use case (2026-10-18) works after step 2 without a folder scan.
+
+**Consequences:** New tables `tracks`, `tags`, `tag_track`, `playlists`, `playlist_track` and a nullable `import_items.track_id` (draft in DATABASE "Planned: music library"); `track_files` comes with the folder scan. `CLAUDE.md` "Local music file scanner" stays blocked until step 3 starts. The cross-batch duplicate warning (After MVP) can use `track_id` / "already in library".

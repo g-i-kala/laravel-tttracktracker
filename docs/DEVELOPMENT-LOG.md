@@ -678,3 +678,15 @@
 
 ### Changed
 - START-TUTAJ: Export track list done (`191b862`, manual test OK); next session: talk through the music library (Milestone 2) first. User: an import is not a playlist; playlists should live in the library.
+
+## 2026-10-19
+
+### Added
+- DECISIONS "Music library (Milestone 2): model and scope": track = version, Add to library after review, exact duplicates merge / similar ask, fields (year, rating 1–5, notes, free tags, ownership status, main YouTube link), playlists of library tracks with manual order, sources compared through the library, order: library → playlists → folder scan.
+- DATABASE "Planned: music library": draft of `tracks`, `import_items.track_id`, `tags`, `tag_track`, `playlists`, `playlist_track`.
+
+### Changed
+- ROADMAP Milestone 2 and TODO "Library" split into steps 1a–1d, 2a–2b, 3.
+
+### Notes
+- Q&A only, no code. Folder scan details (path, mount, formats, tag reader) postponed to step 3.

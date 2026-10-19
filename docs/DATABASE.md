@@ -221,3 +221,45 @@ No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look
 
 - Use `./vendor/bin/sail artisan migrate`; never `migrate:fresh` / `db:wipe` without explicit permission.
 - App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`.
+
+## Planned: music library (Milestone 2)
+
+> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). Exact types, FK delete rules and indexes are settled when each step is built.
+
+### `tracks` — `Track`
+
+One row per **version** of a track.
+
+| Column                 | Type                        | Notes                                             |
+| ---------------------- | --------------------------- | ------------------------------------------------- |
+| id                     | bigint PK                   |                                                   |
+| artist                 | string, nullable            |                                                   |
+| title                  | string                      | version stays in the title, as in `import_items`  |
+| normalized_key         | string, unique              | `ImportParserService::normalizedKey()`; exact match on Add to library |
+| genre                  | string, nullable            |                                                   |
+| bpm                    | unsigned smallint, nullable |                                                   |
+| musical_key            | string(50), nullable        |                                                   |
+| camelot_key            | string(3), nullable         | `MusicalKeyService`                               |
+| label                  | string, nullable            |                                                   |
+| release_year           | unsigned smallint, nullable | year only                                         |
+| rating                 | unsigned tinyint, nullable  | 1–5                                               |
+| notes                  | text, nullable              |                                                   |
+| ownership_status       | string                      | `TrackOwnershipStatus`: `have_file`, `youtube_only`, `to_buy`, `wanted` |
+| youtube_url            | string, nullable            | main link, copied from the item on Add to library |
+| created_at, updated_at | timestamps                  |                                                   |
+
+### `import_items.track_id`
+
+Nullable FK → `tracks`. Set by Add to library; gives "in library" on items and "in N imports" on a track.
+
+### `tags` + `tag_track`
+
+`tags`: id, name (unique), timestamps. Free tags created on the fly. `tag_track`: `tag_id`, `track_id`, unique pair.
+
+### `playlists` + `playlist_track`
+
+`playlists`: id, name, notes (nullable), timestamps. `playlist_track`: `playlist_id`, `track_id`, `position` (manual order), unique `(playlist_id, track_id)`.
+
+### Later (step 3, folder scan)
+
+`track_files` (path, format, size, …), details after the step 3 Q&A.

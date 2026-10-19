@@ -617,3 +617,18 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-19), all recommended. Sorting by rating added as a small extra next to the new column.
 
 **Consequences:** New tables `tags` (unique `lower(name)`) and `tag_track` (cascade on delete). `TagService` holds the tag rules.
+
+## 2026-10-19 — Playlists (step 2)
+
+**Decision:**
+- A playlist has a **name** and **notes**. It holds library tracks only, each **once** (adding a track that is already there is skipped with a notice "Added N, M already on the playlist"), in a **manual order** (drag and drop, `wire:sort`). Removing a track from a playlist or deleting a playlist never removes library tracks.
+- **Adding tracks** from: the library selection bar ("Add to playlist" → existing or "New playlist…"), the **Add to library** modal ("Also add to playlist: … / New playlist"), a search on the playlist screen ("+" next to a library track) and the expanded library row (the track's playlists + "Add to playlist").
+- **Sorting** on the playlist screen by a column (BPM, key, year…) changes only the view (dragging off); **Apply this order** saves it as the manual order.
+- **Readiness:** summary "N tracks · X POF · Y only online · Z missing" on the playlists list and the playlist screen, availability badges per track, filter "Show missing".
+- **Library filter** "On playlist" (choose a playlist) incl. "Not on any playlist".
+- **Export** of a playlist: track list **TXT** (`Artist - Title`) / **CSV** (all fields incl. POF/PON/Wanted, rating, tags) in playlist order, download only. No Supersimple TXT for playlists for now.
+- Sub-steps: 2a tables + playlists list + playlist screen (order, view sort, Apply order, remove tracks, delete playlist); 2b adding from the library (selection, row panel, playlist screen search) + library filter; 2c Add to library option; 2d export + readiness summary.
+
+**Reason:** User's answers (2026-10-19): all recommended options, plus adding from the playlist screen and the row panel; export only as a track list.
+
+**Consequences:** `mergeTracks()` must move `playlist_track` rows (keeping one row per playlist); `deleteTracks()` removes them through the FK cascade. Sidebar gets **Playlists**.

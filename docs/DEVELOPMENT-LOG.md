@@ -811,3 +811,11 @@
 ### Notes
 - 430 tests pass. Ran `sail artisan migrate`, `sail npm run build`.
 - Headless Chrome on "ZZQ" tracks: 4 stars in a row, tag via Enter (field cleared, suggestion listed), bulk tag "lata 80" matched "Lata 80", tag filter in the URL; no JS errors. Test tracks and tag deleted.
+
+## 2026-10-19 (Playlists Q&A)
+
+### Added
+- DECISIONS "Playlists (step 2)": name + notes, each track once, manual order + view sort with Apply order, adding from four places, readiness summary, library filter, export TXT/CSV; sub-steps 2a–2d.
+
+### Changed
+- TODO step 2 split into 2a–2d; ROADMAP step 1 done, step 2 described; DATABASE playlist draft (cascade, unique pair). START-TUTAJ: next is 2a.

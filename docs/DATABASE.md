@@ -278,7 +278,7 @@ No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look
 
 ### `playlists` + `playlist_track` (step 2)
 
-`playlists`: id, name, notes (nullable), timestamps. `playlist_track`: `playlist_id`, `track_id`, `position` (manual order), unique `(playlist_id, track_id)`.
+`playlists`: id, name, notes (nullable), timestamps. `playlist_track`: `playlist_id` (cascade), `track_id` (cascade), `position` (manual order), unique `(playlist_id, track_id)` (a track once per playlist). Agreed 2026-10-19 (DECISIONS "Playlists (step 2)").
 
 ### Later (step 3, folder scan)
 

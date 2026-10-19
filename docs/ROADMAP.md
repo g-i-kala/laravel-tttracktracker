@@ -30,8 +30,8 @@
 
 Replaces the user's spreadsheets (Numbers/XLS) as the main track list. Planned 2026-10-17, model and scope agreed 2026-10-19 (DECISIONS "Music library (Milestone 2): model and scope"). First use case: one 80s party set from many playlists and sources.
 
-- [ ] Step 1: library tracks (one track = one version, matched by `normalized_key`), **Add to library** after review (exact duplicates merge, similar ones ask), library screen (search, filters: genre, BPM, Camelot, label, year, rating, tags, POF / PON / Wanted), track sources ("in N imports")
-- [ ] Step 2: playlists of library tracks, manual order (drag and drop), add from the library and from Add to library
+- [x] Step 1: library tracks (one track = one version, matched by `normalized_key`), **Add to library** after review (exact duplicates merge, similar ones ask), library screen (search, filters: genre, BPM, Camelot, label, year, rating, tags, POF / PON / Wanted), track sources ("in N imports")
+- [ ] Step 2: playlists of library tracks (name + notes), manual order (drag and drop) + view sort with Apply order, add from the library / Add to library / playlist screen / track panel, readiness summary (POF / online / missing), library filter, export TXT/CSV (sub-steps 2a–2d, agreed 2026-10-19)
 - [ ] Step 3: import from the music folder on disk (scan files, read tags, "Have file" status) — takes over the scope of the former "Local music inventory" milestone; Q&A first (path, Sail mount, formats, tag reader package)
 
 ## Milestone 3 — Beatport integration / import helper

@@ -117,7 +117,9 @@
   - [ ] Manual test 1d (user): stars in the row and panel, tags (panel + Enter, ticked tracks), rating and tag filters
     - [ ] Manual test 1c-iv (user): edit a title to match another track → merge modal, choose values, Merge / Cancel / Escape
 - [ ] Merge as a separate action ("Merge into…", e.g. swapped artists), later when needed (user, 2026-10-19)
-- [ ] Step 2: playlists
-  - [ ] 2a: `playlists` + `playlist_track` (position), playlists list + playlist screen with drag and drop order (`wire:sort`)
-  - [ ] 2b: add to a playlist from the library and from Add to library; export a playlist (TXT/CSV, Supersimple TXT — not agreed yet, ask)
+- [ ] Step 2: playlists (decisions: DECISIONS "Playlists (step 2)")
+  - [ ] 2a: `playlists` + `playlist_track` (position, unique pair), sidebar **Playlists**, list `/playlists` (create, rename, delete), playlist screen `/playlists/{playlist}`: drag and drop order (`wire:sort`), sort view by column + **Apply this order**, remove a track; `mergeTracks()` moves playlist rows
+  - [ ] 2b: add from the library (selection bar "Add to playlist" / "New playlist…", expanded row: the track's playlists + add), playlist screen search with "+", library filter "On playlist" / "Not on any playlist"; skip tracks already on the playlist with a notice
+  - [ ] 2c: Add to library modal: "Also add to playlist: … / New playlist"
+  - [ ] 2d: export TXT / CSV (playlist order, all fields incl. POF/PON/Wanted, rating, tags) + readiness summary (N tracks · X POF · Y only online · Z missing) on the list and the playlist screen, "Show missing" filter
 - [ ] Step 3: music folder scan — Q&A first (path, Sail mount, formats, tag reader package needs approval), `track_files`, "Have file" set automatically

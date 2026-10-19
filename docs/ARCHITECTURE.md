@@ -18,7 +18,7 @@
 ```text
 app/
   Enums/         ImportBatchStatus, ImportItemStatus
-  Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache
+  Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache, Track
   Livewire/      Full-page components (class-based), one per screen:
                  Dashboard, Imports/Index, Imports/Create, Imports/Review,
                  Imports/Show (YouTube results + export), Exports/Index
@@ -28,7 +28,8 @@ app/
                  ImportItemService (edit track details during review),
                  DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
-                 SupersimpleTxtExportService, ExportFilenameService
+                 SupersimpleTxtExportService, ExportFilenameService,
+                 LibraryService (music library: add import items as tracks)
   Ai/Agents/     TrackListParser, PlaylistTitleParser (Laravel AI SDK agents, structured output)
   Jobs/          ParseImportBatchWithAiJob, ParsePlaylistTitlesWithAiJob, SearchYoutubeForImportItemJob (dispatched via Bus::batch())
 
@@ -205,6 +206,14 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - `ImportBatchService::deletionSummary(ids)` → `{imports, tracks, exports}` for the modal. `deleteBatches(ids)` deletes in a transaction, in foreign-key order: YouTube candidates → items → export rows → batches; then the TXT files and `exports/{batch id}/` directories (after the transaction). `ai_usage_logs.import_batch_id` is `nullOnDelete`, so cost history stays.
 - `SupersimpleTxtExportService::deleteExports(ids)` deletes rows (transaction) and files; batches left without any export go back from `exported` to `searched`, and so do their exported items.
 - `ParseImportBatchWithAiJob` has `#[DeleteWhenMissingModels]`: a job queued for a batch deleted in the meantime is dropped silently.
+
+## Music library (Milestone 2, step 1a)
+
+`App\Services\LibraryService` (no UI yet; Add to library comes in 1b):
+- `addItem(item, markAsWanted = false)`: the track with the item's `normalized_key` (`exactTrack()`) → `linkToTrack()`; otherwise a new track (artist, title, keys, genre, BPM, key, Camelot, label, `youtube_url` = `selected_youtube_url`, `wanted` = the checkbox). Sets `import_items.track_id`.
+- `linkToTrack(item, track, markAsWanted = false)`: exact match or the user's "Same track" choice. Fills only the track's empty fields (genre, BPM, key, Camelot, label, YouTube link); artist/title/rating/notes are never overwritten. Wanted is only switched on, never off.
+- `similarTracks(item)`: tracks with the same `similar_key` and another `normalized_key` (other version, swapped artists) for the "Same track / New track" modal. Call it when `exactTrack()` is null.
+- `Track`: POF = `playable_offline`, PON = `isPlayableOnline()` (has `youtube_url`), `wanted` cleared in a `saving` hook when POF is set.
 
 ## Dashboard
 

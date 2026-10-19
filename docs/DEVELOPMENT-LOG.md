@@ -690,3 +690,17 @@
 
 ### Notes
 - Q&A only, no code. Folder scan details (path, mount, formats, tag reader) postponed to step 3.
+
+## 2026-10-19 (Library step 1a)
+
+### Added
+- `tracks` table + `Track` model/factory (`withMetadata()`, `withYoutubeLink()`, `playableOffline()`, `wanted()`), `import_items.track_id` (nullable, `nullOnDelete`), `ImportItem::track()`, `Track::importItems()`.
+- `LibraryService`: `addItem()` (exact `normalized_key` match → link + fill empty fields, otherwise new track; Mark as wanted), `exactTrack()`, `similarTracks()` (stored `similar_key`), `linkToTrack()`.
+- `tests/Feature/Library/LibraryServiceTest.php` (12).
+- DECISIONS "Library track availability: POF / PON / Wanted" (flow A: POF and Wanted stored, PON derived from links, Wanted cleared on POF, Mark as wanted checkbox on Add to library).
+
+### Changed
+- Ownership status enum (Have file / YouTube only / To buy / Wanted) dropped the same day in favour of POF / PON / Wanted. Docs: DATABASE, ARCHITECTURE, ROADMAP, TODO, DECISIONS.
+
+### Notes
+- 379 tests pass. Ran `sail artisan migrate` (the two new migrations were rolled back and re-run once while `tracks` was empty, to replace the status column).

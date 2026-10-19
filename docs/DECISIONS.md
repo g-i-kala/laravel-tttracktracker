@@ -537,8 +537,8 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 - **An import is not a playlist.** An import is only a way to add tracks; playlists are their own entity in the library.
 - Tracks enter the library **manually after review**: **Add to library** on Parse Review and YouTube Results (whole import or selected tracks). The library starts empty; existing imports are added with the same button when the user wants.
 - **Duplicates on adding:** same `normalized_key` → linked to the existing track automatically, its empty fields are filled from the item (non-empty fields are not overwritten); same similar key → modal "Same track / New track".
-- **Fields:** artist, title, genre, BPM, musical key + Camelot, label, **release year** (year only), **rating 1–5** (as in Rekordbox), notes, **free tags** created on the fly (genre stays a separate field), **ownership status**, one **main YouTube link** (copied from the item; the link history stays in imports).
-- **Ownership status** (enum): Have file, YouTube only, To buy, Wanted. Set manually for now; the folder scan sets "Have file" later.
+- **Fields:** artist, title, genre, BPM, musical key + Camelot, label, **release year** (year only), **rating 1–5** (as in Rekordbox), notes, **free tags** created on the fly (genre stays a separate field), **availability** (see below), one **main YouTube link** (copied from the item; the link history stays in imports).
+- ~~**Ownership status** (enum): Have file, YouTube only, To buy, Wanted.~~ Replaced the same day by POF / PON / Wanted (see "Library track availability" below).
 - **Playlists** contain library tracks only, with a **manual order** (drag and drop, `wire:sort`); sorting by BPM/key/year is a view option. A track can be on many playlists.
 - **Comparing sources** (e.g. many 80s playlists into one party set) goes through the library: add all imports to one playlist, duplicates merge on adding, each track shows the imports it came from. No separate comparison screen.
 - **Order of work:** 1) library tracks + Add to library + library screen, 2) playlists, 3) music folder scan (path, Sail mount, formats and tag reader package agreed before step 3).
@@ -546,3 +546,16 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-19), all as recommended. The 80s party use case (2026-10-18) works after step 2 without a folder scan.
 
 **Consequences:** New tables `tracks`, `tags`, `tag_track`, `playlists`, `playlist_track` and a nullable `import_items.track_id` (draft in DATABASE "Planned: music library"); `track_files` comes with the folder scan. `CLAUDE.md` "Local music file scanner" stays blocked until step 3 starts. The cross-batch duplicate warning (After MVP) can use `track_id` / "already in library".
+
+## 2026-10-19 — Library track availability: POF / PON / Wanted
+
+**Decision:** Instead of one ownership status, a track has three independent answers (flow A):
+- **POF — playable offline** (`tracks.playable_offline`, bool): the user has a file (on disk, in Rekordbox). An indirect claim, set manually; the folder scan (step 3) will set it automatically.
+- **PON — playable online**: not stored, derived from the track's links (`Track::isPlayableOnline()`: today `youtube_url`; later other services).
+- **Wanted** (`tracks.wanted`, bool): "I want a file" (= want POF). Set manually or with **Mark as wanted** in the Add to library modal; switched off automatically whenever the track becomes POF (model `saving` hook). Adding an item never switches it off. "To buy" is part of Wanted.
+- Add to library sets nothing automatically: POF and Wanted start off unless "Mark as wanted" is ticked (ignored for tracks already POF); PON follows from the copied link.
+- Removing a track from the library unlinks its import items (`import_items.track_id` `nullOnDelete`), the imports stay.
+
+**Reason:** User's input (2026-10-19): a track can be on disk without a link and without being wanted, can be played from a streaming playlist and still be wanted, so one status cannot describe it. Flow A chosen over B (manual PON flag, can drift from the links) and C (one offline lifecycle enum `— → Wanted → POF`).
+
+**Consequences:** All combinations are possible (POF only, PON + Wanted, PON only, none). The Wanted filter is the shopping list. Badges `POF` / `PON` / `Wanted` on the library screen (1c). `tracks` also stores `similar_key` (indexed) so possible matches can be queried without loading the whole library.

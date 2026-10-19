@@ -69,6 +69,14 @@ class ImportItem extends Model
     }
 
     /**
+     * @return BelongsTo<Track, $this>
+     */
+    public function track(): BelongsTo
+    {
+        return $this->belongsTo(Track::class);
+    }
+
+    /**
      * @return HasMany<YoutubeCandidate, $this>
      */
     public function youtubeCandidates(): HasMany

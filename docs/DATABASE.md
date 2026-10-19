@@ -52,6 +52,7 @@ No stored counters (`items_count`, `exportable_count`, `missing_links_count` rem
 | youtube_score             | unsigned tinyint, nullable  | 0–100, null for custom links                       |
 | youtube_search_url        | text, nullable              | no-key / fallback search URL                       |
 | include_in_export         | boolean, default false      |                                                    |
+| track_id                  | FK → tracks, nullable, **nullOnDelete** | library track (Add to library); removing the track unlinks the item |
 | error_message             | text, nullable              | e.g. quota exceeded notice                         |
 | created_at, updated_at    | timestamps                  |                                                    |
 
@@ -150,6 +151,30 @@ Key/value app settings (`SettingsService`). Secrets are encrypted with `Crypt::e
 | value                  | text, nullable     |                                        |
 | created_at, updated_at | timestamps         |                                        |
 
+### `tracks` — `Track`
+
+Music library (Milestone 2, step 1a, 2026-10-19). One row per **version** of a track (DECISIONS "Music library (Milestone 2): model and scope", "Library track availability").
+
+| Column                 | Type                        | Notes                                             |
+| ---------------------- | --------------------------- | ------------------------------------------------- |
+| id                     | bigint PK                   |                                                   |
+| artist                 | string, nullable            |                                                   |
+| title                  | string                      | version stays in the title, as in `import_items`  |
+| normalized_key         | string, unique              | `ImportParserService::normalizedKey()`; exact match on Add to library |
+| similar_key            | string, indexed             | `ImportParserService::similarKey()`; possible matches ("Same track / New track") |
+| genre                  | string, nullable            |                                                   |
+| bpm                    | unsigned smallint, nullable |                                                   |
+| musical_key            | string(50), nullable        |                                                   |
+| camelot_key            | string(3), nullable         | `MusicalKeyService`                               |
+| label                  | string, nullable            |                                                   |
+| release_year           | unsigned smallint, nullable | year only                                         |
+| rating                 | unsigned tinyint, nullable  | 1–5                                               |
+| notes                  | text, nullable              |                                                   |
+| playable_offline       | boolean, default false      | **POF**: the user has a file; manual, later the folder scan |
+| wanted                 | boolean, default false      | "want a file"; cleared when the track becomes POF (`saving` hook) |
+| youtube_url            | string, nullable            | main link, copied from the item on Add to library; **PON** = `isPlayableOnline()` (derived, not stored) |
+| created_at, updated_at | timestamps                  |                                                   |
+
 ### Framework tables
 
 - `jobs`, `failed_jobs`, `job_batches`: database queue + `Bus::batch()` (all in the default `0001_01_01_000002_create_jobs_table` migration).
@@ -162,7 +187,8 @@ Key/value app settings (`SettingsService`). Secrets are encrypted with `Crypt::e
 | Model            | Relationship                                   |
 | ---------------- | ---------------------------------------------- |
 | ImportBatch      | `items()` hasMany ImportItem, `exportFiles()` hasMany ExportFile |
-| ImportItem       | `importBatch()` belongsTo, `youtubeCandidates()` hasMany YoutubeCandidate |
+| ImportItem       | `importBatch()` belongsTo, `youtubeCandidates()` hasMany YoutubeCandidate, `track()` belongsTo Track (nullable) |
+| Track            | `importItems()` hasMany ImportItem             |
 | YoutubeCandidate | `importItem()` belongsTo                       |
 | ExportFile       | `importBatch()` belongsTo                      |
 | AiUsageLog       | `importBatch()` belongsTo (nullable)           |
@@ -202,6 +228,9 @@ Derived (not stored):
 | `youtube_search_cache` | unique `(query_hash)`                   | cache lookup                                |
 | `ai_usage_logs`        | `(created_at)`                          | monthly spend sum                           |
 | `youtube_api_calls`    | `(created_at)`                          | quota units used today                      |
+| `import_items`         | `(track_id)`                            | items of a library track (FK)               |
+| `tracks`               | unique `(normalized_key)`               | exact match on Add to library               |
+| `tracks`               | `(similar_key)`                         | possible matches                            |
 
 ## Factories
 
@@ -214,52 +243,27 @@ Derived (not stored):
 | `YoutubeSearchCacheFactory` | `expired()`                                                 |
 | `AiUsageLogFactory`         | `failed()`                                                  |
 | `YoutubeApiCallFactory`     | `quotaExceeded()` (0 units)                                 |
+| `TrackFactory`              | `withMetadata()`, `withYoutubeLink()` (PON), `playableOffline()`, `wanted()` |
 
 No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look at.
 
 ## Migration notes
 
 - Use `./vendor/bin/sail artisan migrate`; never `migrate:fresh` / `db:wipe` without explicit permission.
-- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`.
+- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`, `2026_10_19_092356_create_tracks_table`, `2026_10_19_092357_add_track_id_to_import_items_table`.
 
 ## Planned: music library (Milestone 2)
 
-> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). Exact types, FK delete rules and indexes are settled when each step is built.
+> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). `tracks` and `import_items.track_id` are implemented (step 1a, see above). Exact types and indexes of the rest are settled when each step is built.
 
-### `tracks` — `Track`
-
-One row per **version** of a track.
-
-| Column                 | Type                        | Notes                                             |
-| ---------------------- | --------------------------- | ------------------------------------------------- |
-| id                     | bigint PK                   |                                                   |
-| artist                 | string, nullable            |                                                   |
-| title                  | string                      | version stays in the title, as in `import_items`  |
-| normalized_key         | string, unique              | `ImportParserService::normalizedKey()`; exact match on Add to library |
-| genre                  | string, nullable            |                                                   |
-| bpm                    | unsigned smallint, nullable |                                                   |
-| musical_key            | string(50), nullable        |                                                   |
-| camelot_key            | string(3), nullable         | `MusicalKeyService`                               |
-| label                  | string, nullable            |                                                   |
-| release_year           | unsigned smallint, nullable | year only                                         |
-| rating                 | unsigned tinyint, nullable  | 1–5                                               |
-| notes                  | text, nullable              |                                                   |
-| ownership_status       | string                      | `TrackOwnershipStatus`: `have_file`, `youtube_only`, `to_buy`, `wanted` |
-| youtube_url            | string, nullable            | main link, copied from the item on Add to library |
-| created_at, updated_at | timestamps                  |                                                   |
-
-### `import_items.track_id`
-
-Nullable FK → `tracks`. Set by Add to library; gives "in library" on items and "in N imports" on a track.
-
-### `tags` + `tag_track`
+### `tags` + `tag_track` (step 1d)
 
 `tags`: id, name (unique), timestamps. Free tags created on the fly. `tag_track`: `tag_id`, `track_id`, unique pair.
 
-### `playlists` + `playlist_track`
+### `playlists` + `playlist_track` (step 2)
 
 `playlists`: id, name, notes (nullable), timestamps. `playlist_track`: `playlist_id`, `track_id`, `position` (manual order), unique `(playlist_id, track_id)`.
 
 ### Later (step 3, folder scan)
 
-`track_files` (path, format, size, …), details after the step 3 Q&A.
+`track_files` (path, format, size, …), details after the step 3 Q&A. A file sets `playable_offline`.

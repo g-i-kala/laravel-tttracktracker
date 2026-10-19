@@ -100,9 +100,9 @@
 - Use case to test on (user, 2026-10-18): an **80s party set** (Polish and international) built from many playlists and sources into one shared list. Needs: compare playlists/imports, remove duplicates across them, add to the library.
 - [x] Questions first: data model, playlists, duplicates, order of work (2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"; folder details postponed to step 3)
 - [ ] Step 1: library tracks
-  - [ ] 1a: `tracks` table + `Track` model/factory, `TrackOwnershipStatus` enum, `import_items.track_id`, library service (add item → track: exact merge fills empty fields, similar match detection)
-  - [ ] 1b: **Add to library** on Parse Review and YouTube Results (whole import / selected), "Same track / New track" modal for similar matches, "In library" mark on items
-  - [ ] 1c: Library screen: list, search, filters (genre, BPM, Camelot, label, year, rating, tags, ownership), edit a track, sources ("in N imports")
+  - [x] 1a: `tracks` table + `Track` model/factory, POF/Wanted flags (PON from links), `import_items.track_id` (`nullOnDelete`), `LibraryService` (exact merge fills empty fields, similar match detection, Mark as wanted) (2026-10-19)
+  - [ ] 1b: **Add to library** on Parse Review and YouTube Results (whole import / selected) with a **Mark as wanted** checkbox, "Same track / New track" modal for similar matches, "In library" mark on items
+  - [ ] 1c: Library screen: list, search, filters (genre, BPM, Camelot, label, year, rating, tags, POF / PON / Wanted), edit a track (incl. POF / Wanted), sources ("in N imports")
   - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)
 - [ ] Step 2: playlists
   - [ ] 2a: `playlists` + `playlist_track` (position), playlists list + playlist screen with drag and drop order (`wire:sort`)

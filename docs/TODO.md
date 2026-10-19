@@ -106,8 +106,10 @@
   - [ ] 1c: Library screen (decisions: DECISIONS "Library screen (step 1c)")
     - [x] 1c-i (2026-10-19): `/library` + sidebar link, table, search + filters (POF / PON / Wanted / none, genre, Camelot, BPM from–to, year from–to), 50 per page, sortable columns
     - [x] POF per row + ticked tracks Mark as POF / Unmark POF (user request, 2026-10-19; selection checkboxes reused by 1c-iii)
+    - [x] Manual test POF on the list (user, 2026-10-19: "działa")
     - [ ] Manual test 1c-i (user): sidebar Library, search, filters, chips, sorting, pages
-    - [ ] 1c-ii: expanded row: edit fields (autosave), POF / Wanted, YouTube link, sources (imports)
+    - [x] 1c-ii (2026-10-19): expanded row: edit fields (autosave), POF / Wanted, YouTube link, sources (imports)
+    - [ ] Manual test 1c-ii (user): open a row, edit fields (Tab saves, "Saved"), POF / Wanted, YouTube link, sources, title collision message
     - [ ] 1c-iii: delete single + selected (modal with summary)
     - [ ] 1c-iv: collision on edit → merge modal with differences (choose per field; POF/Wanted/notes automatic; items moved)
   - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)

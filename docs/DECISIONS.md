@@ -589,3 +589,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User request (2026-10-19): many tracks are already downloaded and need POF now, before the expanded row editing (1c-ii). User chose the row button and the bulk action (both recommended).
 
 **Consequences:** The selection checkboxes are in place for "Remove selected" (1c-iii). The expanded row (1c-ii) still gets a POF checkbox.
+
+## 2026-10-19 — Library row editing (step 1c-ii): details
+
+**Decision:** One expanded row at a time. Validation like Parse Review (BPM 40–300) plus year 1900–next year and a YouTube video link (normalized; empty removes it, so the track is no longer PON). Until the merge modal exists (1c-iv), an artist/title that matches another library track shows an error and is not saved.
+
+**Reason:** Implementation choices within DECISIONS "Library screen (step 1c)"; the unique `normalized_key` cannot hold two tracks with the same key.
+
+**Consequences:** 1c-iv replaces the collision error with the merge modal.

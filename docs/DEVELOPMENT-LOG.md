@@ -758,3 +758,17 @@
 ### Notes
 - 36 library tests pass. Ran `sail npm run build`.
 - Headless Chrome on 3 "ZZ" tracks next to the user's 8 real tracks: row button (Wanted cleared), select two + Mark as POF, notice; the real tracks were not touched. Test tracks deleted.
+
+## 2026-10-19 (Library step 1c-ii)
+
+### Added
+- Library: expanded row editing (partial `library/partials/track-panel`): autosaved fields, POF / Wanted, YouTube link, notes, year, sources; collision error for an artist/title of another track. `LibraryService::updateTrackDetails()` / `conflictingTrack()`.
+- `tests/Feature/Library/LibraryTrackEditTest.php` (8).
+- DECISIONS "Library row editing (step 1c-ii): details".
+
+### Changed
+- Docs: UI-FLOW, API, ARCHITECTURE, PRD, TODO, START-TUTAJ. TODO also records the user's OK for POF on the list.
+
+### Notes
+- 411 tests pass. Ran `sail npm run build`.
+- Headless Chrome on "ZZ" tracks: row click opens the panel, typing + Tab saves BPM / year / key (Camelot 3A), "Saved" flash, POF disables and clears Wanted, title collision error; user's tracks untouched. Test data deleted.

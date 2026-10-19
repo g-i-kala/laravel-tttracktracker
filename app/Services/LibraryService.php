@@ -6,6 +6,7 @@ use App\Models\ImportItem;
 use App\Models\Track;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Adds import items to the music library. One track is one version: an item
@@ -30,7 +31,7 @@ class LibraryService
         'youtube_url' => 'selected_youtube_url',
     ];
 
-    public function __construct(private ImportParserService $parser) {}
+    public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys) {}
 
     /**
      * Link the item to its track (already in the library) or the track with the
@@ -136,6 +137,55 @@ class LibraryService
     }
 
     /**
+     * Another library track that the given artist and title would make the
+     * same track (same normalized key), if any.
+     */
+    public function conflictingTrack(Track $track, ?string $artist, string $title): ?Track
+    {
+        return Track::query()
+            ->whereKeyNot($track->id)
+            ->where('normalized_key', $this->parser->normalizedKey($this->nullIfBlank($artist), Str::squish($title)))
+            ->first();
+    }
+
+    /**
+     * Save the fields edited on the library screen. Empty optional fields
+     * become null; the normalized, similar and Camelot keys are recomputed.
+     * The YouTube link must already be normalized (or null). Wanted is
+     * cleared by the model when the track is playable offline.
+     *
+     * @param  array{artist: ?string, title: string, genre: ?string, bpm: int|string|null, musical_key: ?string, label: ?string, release_year: int|string|null, notes: ?string, youtube_url: ?string, playable_offline: bool, wanted: bool}  $attributes
+     */
+    public function updateTrackDetails(Track $track, array $attributes): Track
+    {
+        $artist = $this->nullIfBlank($attributes['artist']);
+        $title = Str::squish($attributes['title']);
+        $musicalKey = $this->nullIfBlank($attributes['musical_key']);
+        $bpm = $this->nullIfBlank((string) $attributes['bpm']);
+        $releaseYear = $this->nullIfBlank((string) $attributes['release_year']);
+        $notes = trim((string) $attributes['notes']);
+
+        $track->update([
+            'artist' => $artist,
+            'title' => $title,
+            'normalized_key' => $this->parser->normalizedKey($artist, $title),
+            'similar_key' => $this->parser->similarKey($artist, $title),
+            'genre' => $this->nullIfBlank($attributes['genre']),
+            'bpm' => $bpm === null ? null : (int) $bpm,
+            'musical_key' => $musicalKey,
+            'camelot_key' => $this->musicalKeys->toCamelot($musicalKey),
+            'label' => $this->nullIfBlank($attributes['label']),
+            'release_year' => $releaseYear === null ? null : (int) $releaseYear,
+            'notes' => $notes === '' ? null : $notes,
+            'youtube_url' => $this->nullIfBlank($attributes['youtube_url']),
+            'playable_offline' => (bool) $attributes['playable_offline'],
+            'wanted' => (bool) $attributes['wanted'],
+        ]);
+
+        return $track;
+    }
+
+    /**
      * Mark tracks as playable offline (the user has the files), which also
      * clears wanted, or unmark them.
      *
@@ -195,5 +245,12 @@ class LibraryService
 
             return $track;
         });
+    }
+
+    private function nullIfBlank(?string $value): ?string
+    {
+        $value = Str::squish((string) $value);
+
+        return $value === '' ? null : $value;
     }
 }

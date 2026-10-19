@@ -3,7 +3,10 @@
 namespace App\Livewire\Library;
 
 use App\Models\Track;
+use App\Services\AiTrackListParserService;
 use App\Services\LibraryService;
+use App\Services\YoutubeUrlNormalizer;
+use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,7 +21,8 @@ use Livewire\WithPagination;
  * Library: all library tracks (one per version), 50 per page, with search,
  * filters (availability, genre, Camelot, BPM and year ranges) and sortable
  * columns. Filters and sorting live in the URL. POF can be switched per row
- * or for the ticked tracks.
+ * or for the ticked tracks. Clicking a row expands it to edit the track
+ * (autosaved on blur) and shows the imports it came from.
  */
 #[Title('Library')]
 class Index extends Component
@@ -59,6 +63,15 @@ class Index extends Component
     public array $selected = [];
 
     public ?string $notice = null;
+
+    public ?int $expandedTrackId = null;
+
+    /**
+     * Editable values of the expanded track.
+     *
+     * @var array{artist?: string, title?: string, genre?: string, bpm?: string, musical_key?: string, label?: string, release_year?: string, notes?: string, youtube_url?: string, playable_offline?: bool, wanted?: bool}
+     */
+    public array $edit = [];
 
     #[Url(except: '')]
     public string $search = '';
@@ -134,12 +147,138 @@ class Index extends Component
         $this->resetPage();
     }
 
+    /**
+     * Expand a row to edit the track, or collapse it when it is open already.
+     * One row is open at a time.
+     */
+    public function toggleTrack(int $trackId): void
+    {
+        $this->resetErrorBag();
+
+        if ($this->expandedTrackId === $trackId) {
+            $this->reset('expandedTrackId', 'edit');
+
+            return;
+        }
+
+        $track = Track::query()->findOrFail($trackId);
+
+        $this->expandedTrackId = $track->id;
+        $this->edit = [
+            'artist' => (string) $track->artist,
+            'title' => $track->title,
+            'genre' => (string) $track->genre,
+            'bpm' => (string) $track->bpm,
+            'musical_key' => (string) $track->musical_key,
+            'label' => (string) $track->label,
+            'release_year' => (string) $track->release_year,
+            'notes' => (string) $track->notes,
+            'youtube_url' => (string) $track->youtube_url,
+            'playable_offline' => $track->playable_offline,
+            'wanted' => $track->wanted,
+        ];
+    }
+
+    /**
+     * Autosave one field of the expanded track (on blur; checkboxes right away).
+     * An artist/title that matches another library track is not saved.
+     * Dispatches `track-saved` so the panel can flash "Saved".
+     */
+    public function updatedEdit(mixed $value, string $key): void
+    {
+        if ($this->expandedTrackId === null) {
+            return;
+        }
+
+        $this->validateOnly("edit.{$key}");
+
+        $track = Track::query()->findOrFail($this->expandedTrackId);
+        $library = app(LibraryService::class);
+
+        if (in_array($key, ['artist', 'title'], true)) {
+            $conflict = $library->conflictingTrack($track, $this->edit['artist'], $this->edit['title']);
+
+            if ($conflict !== null) {
+                $this->addError("edit.{$key}", 'Already in the library as “'.($conflict->artist ? $conflict->artist.' - ' : '').$conflict->title.'”. Merging tracks comes in a later step.');
+
+                return;
+            }
+        }
+
+        $library->updateTrackDetails($track, [
+            ...$this->edit,
+            'youtube_url' => $this->edit['youtube_url'] === '' ? null : app(YoutubeUrlNormalizer::class)->normalize($this->edit['youtube_url']),
+        ]);
+
+        $this->edit['youtube_url'] = (string) $track->youtube_url;
+        $this->edit['wanted'] = $track->wanted;
+
+        $this->dispatch('track-saved', id: $track->id);
+        unset($this->tracks, $this->genres, $this->camelotKeys, $this->expandedTrack);
+    }
+
+    /**
+     * The expanded track with its sources (import items and their imports).
+     */
+    #[Computed]
+    public function expandedTrack(): ?Track
+    {
+        return $this->expandedTrackId === null
+            ? null
+            : Track::query()
+                ->with(['importItems' => fn ($query) => $query->with('importBatch')->orderBy('import_batch_id')->orderBy('line_number')])
+                ->find($this->expandedTrackId);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function rules(): array
+    {
+        return [
+            'edit.artist' => ['nullable', 'string', 'max:255'],
+            'edit.title' => ['required', 'string', 'max:255'],
+            'edit.genre' => ['nullable', 'string', 'max:255'],
+            'edit.bpm' => ['nullable', 'integer', 'between:'.AiTrackListParserService::MIN_BPM.','.AiTrackListParserService::MAX_BPM],
+            'edit.musical_key' => ['nullable', 'string', 'max:20'],
+            'edit.label' => ['nullable', 'string', 'max:255'],
+            'edit.release_year' => ['nullable', 'integer', 'between:1900,'.(now()->year + 1)],
+            'edit.notes' => ['nullable', 'string', 'max:5000'],
+            'edit.youtube_url' => ['nullable', 'string', function (string $attribute, mixed $value, Closure $fail): void {
+                if (app(YoutubeUrlNormalizer::class)->normalize((string) $value) === null) {
+                    $fail('Paste a YouTube video link (youtube.com/watch?v=…, youtu.be/… or youtube.com/shorts/…).');
+                }
+            }],
+            'edit.playable_offline' => ['boolean'],
+            'edit.wanted' => ['boolean'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function validationAttributes(): array
+    {
+        return [
+            'edit.artist' => 'artist',
+            'edit.title' => 'title',
+            'edit.genre' => 'genre',
+            'edit.bpm' => 'BPM',
+            'edit.musical_key' => 'key',
+            'edit.label' => 'label',
+            'edit.release_year' => 'year',
+            'edit.notes' => 'notes',
+            'edit.youtube_url' => 'YouTube link',
+        ];
+    }
+
     public function togglePlayableOffline(int $trackId, LibraryService $library): void
     {
         $track = Track::query()->findOrFail($trackId);
 
         $library->setPlayableOffline([$track->id], ! $track->playable_offline);
 
+        $this->syncExpandedFlags();
         unset($this->tracks);
     }
 
@@ -155,6 +294,7 @@ class Index extends Component
             : "Removed POF from {$updated} ".str('track')->plural($updated).'.';
         $this->selected = [];
 
+        $this->syncExpandedFlags();
         unset($this->tracks);
     }
 
@@ -273,6 +413,19 @@ class Index extends Component
                 'wanted' => $query->where('wanted', true),
                 'none' => $query->where('playable_offline', false)->whereNull('youtube_url')->where('wanted', false),
             };
+        }
+    }
+
+    /**
+     * Keep the POF / Wanted checkboxes of the open row in step after a change from the list.
+     */
+    private function syncExpandedFlags(): void
+    {
+        $track = $this->expandedTrackId === null ? null : Track::query()->find($this->expandedTrackId);
+
+        if ($track !== null) {
+            $this->edit['playable_offline'] = $track->playable_offline;
+            $this->edit['wanted'] = $track->wanted;
         }
     }
 

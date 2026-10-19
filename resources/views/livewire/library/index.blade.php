@@ -138,7 +138,17 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($tracks as $track)
-                        <tr wire:key="track-{{ $track->id }}" @class(['align-top', 'bg-accent-50/50 dark:bg-accent-950/30' => in_array($track->id, $selectedIds, true)])>
+                        @php $isExpanded = $expandedTrackId === $track->id; @endphp
+                        <tr
+                            wire:key="track-{{ $track->id }}"
+                            x-on:click="if (! $event.target.closest('input, button, a, select, textarea')) $wire.toggleTrack({{ $track->id }})"
+                            aria-expanded="{{ $isExpanded ? 'true' : 'false' }}"
+                            @class([
+                                'cursor-pointer align-top hover:bg-zinc-50 dark:hover:bg-zinc-800/40',
+                                'bg-accent-50/50 dark:bg-accent-950/30' => in_array($track->id, $selectedIds, true),
+                                'bg-zinc-50 dark:bg-zinc-800/40' => $isExpanded,
+                            ])
+                        >
                             <td class="px-3 py-2">
                                 <input type="checkbox" wire:model.live="selected" value="{{ $track->id }}" aria-label="Select {{ $track->artist ? $track->artist.' - ' : '' }}{{ $track->title }}" class="{{ $checkboxClasses }}">
                             </td>
@@ -176,6 +186,9 @@
                             </td>
                             <td class="px-3 py-2 whitespace-nowrap text-zinc-600 dark:text-zinc-400">{{ $track->created_at->format('Y-m-d') }}</td>
                         </tr>
+                        @if ($isExpanded && $this->expandedTrack)
+                            @include('livewire.library.partials.track-panel', ['track' => $this->expandedTrack, 'colspan' => count($columns) + 1])
+                        @endif
                     @empty
                         <tr>
                             <td colspan="{{ count($columns) + 1 }}" class="px-3 py-8 text-center text-zinc-500">

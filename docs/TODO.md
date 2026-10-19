@@ -113,7 +113,8 @@
     - [x] 1c-iii (2026-10-19): delete single + selected (modal with summary)
     - [ ] Manual test 1c-iii (user): Remove from library (row), Remove selected, Cancel, In library mark gone on the import
     - [x] 1c-iv (2026-10-19): collision on edit → merge modal with differences (choose per field; POF/Wanted/notes automatic; items moved)
-  - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)
+  - [x] 1d (2026-10-19): rating 1–5, notes, free tags (`tags` + `tag_track`)
+  - [ ] Manual test 1d (user): stars in the row and panel, tags (panel + Enter, ticked tracks), rating and tag filters
     - [ ] Manual test 1c-iv (user): edit a title to match another track → merge modal, choose values, Merge / Cancel / Escape
 - [ ] Merge as a separate action ("Merge into…", e.g. swapped artists), later when needed (user, 2026-10-19)
 - [ ] Step 2: playlists

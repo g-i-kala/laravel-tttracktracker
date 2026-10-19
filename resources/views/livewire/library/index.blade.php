@@ -11,7 +11,8 @@
     $checkboxClasses = 'size-4 rounded border-zinc-300 text-accent-600 focus:ring-accent-500 dark:border-zinc-700';
     $selectedIds = array_map('intval', $selected);
     $allOnPageSelected = $tracks->isNotEmpty() && $tracks->pluck('id')->diff($selectedIds)->isEmpty();
-    $columns = ['artist' => 'Artist', 'title' => 'Title', 'genre' => 'Genre', 'bpm' => 'BPM', 'camelot' => 'Key', 'year' => 'Year', 'availability' => '', 'added' => 'Added'];
+    $columns = ['artist' => 'Artist', 'title' => 'Title', 'genre' => 'Genre', 'bpm' => 'BPM', 'camelot' => 'Key', 'year' => 'Year', 'rating' => 'Rating', 'availability' => '', 'added' => 'Added'];
+    $allTags = $this->allTags;
 @endphp
 
 <div class="flex flex-col gap-6">
@@ -77,9 +78,39 @@
                         <input type="number" min="0" wire:model.live.debounce.400ms="yearTo" placeholder="to" aria-label="Year to" class="{{ $inputClasses }} w-24 text-zinc-900 dark:text-zinc-100">
                     </div>
                 </fieldset>
+                <label class="flex w-28 flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Rating
+                    <select wire:model.live="minRating" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
+                        <option value="">Any</option>
+                        @foreach (range(1, 5) as $stars)
+                            <option value="{{ $stars }}">{{ str_repeat('★', $stars) }}{{ $stars < 5 ? '+' : '' }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                @if ($allTags !== [])
+                    <label class="flex w-40 flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        Tags (all of)
+                        <select x-on:change="$wire.addTagFilter($event.target.value); $event.target.value = ''" class="{{ $inputClasses }} text-zinc-900 dark:text-zinc-100">
+                            <option value="">Add tag…</option>
+                            @foreach ($allTags as $tagId => $tagName)
+                                @unless (in_array($tagId, array_map('intval', $tagFilter), true))
+                                    <option value="{{ $tagId }}">{{ $tagName }}</option>
+                                @endunless
+                            @endforeach
+                        </select>
+                    </label>
+                @endif
             </div>
 
             <div class="flex flex-wrap items-center gap-2 text-sm">
+                @foreach (array_map('intval', $tagFilter) as $tagId)
+                    @isset($allTags[$tagId])
+                        <span wire:key="tag-filter-{{ $tagId }}" class="inline-flex items-center gap-1 rounded-full bg-accent-600 px-3 py-1 text-xs font-medium text-white">
+                            #{{ $allTags[$tagId] }}
+                            <button type="button" wire:click="removeTagFilter({{ $tagId }})" aria-label="Remove tag filter {{ $allTags[$tagId] }}" class="hover:text-accent-200">&times;</button>
+                        </span>
+                    @endisset
+                @endforeach
                 <span class="text-xs text-zinc-500 dark:text-zinc-400">Availability:</span>
                 @foreach ($availabilityLabels as $value => $label)
                     <button
@@ -106,6 +137,12 @@
                 <span class="font-medium">{{ count($selectedIds) }} selected</span>
                 <button type="button" wire:click="setSelectedPlayableOffline(true)" class="rounded-md bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500">Mark as POF</button>
                 <button type="button" wire:click="setSelectedPlayableOffline(false)" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">Unmark POF</button>
+                <span class="flex items-center gap-1">
+                    <input type="text" wire:model="bulkTag" list="library-tags" maxlength="{{ \App\Services\TagService::MAX_LENGTH }}" placeholder="Tag" aria-label="Tag for the selected tracks" x-on:keydown.enter.prevent="$wire.tagSelected()" class="{{ $inputClasses }} w-32">
+                    <button type="button" wire:click="tagSelected" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">Add tag</button>
+                    <button type="button" wire:click="untagSelected" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">Remove tag</button>
+                </span>
+                @error('bulkTag') <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
                 <button type="button" wire:click="confirmDelete" class="rounded-md bg-red-600 px-3 py-1.5 font-semibold text-white hover:bg-red-500">Remove selected</button>
                 <button type="button" wire:click="$set('selected', [])" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Clear selection</button>
             </div>
@@ -120,7 +157,7 @@
                         </th>
                         @foreach ($columns as $column => $label)
                             <th @class(['px-3 py-2', 'text-right' => in_array($column, ['bpm', 'year'], true)])>
-                                @if (in_array($column, ['artist', 'title', 'bpm', 'camelot', 'year', 'added'], true))
+                                @if (in_array($column, ['artist', 'title', 'bpm', 'camelot', 'year', 'rating', 'added'], true))
                                     <button type="button" wire:click="sortBy('{{ $column }}')" class="inline-flex items-center gap-1 uppercase hover:text-zinc-900 dark:hover:text-zinc-100">
                                         {{ $label }}
                                         @if ($sort === $column)
@@ -159,11 +196,19 @@
                                 @if ($track->label)
                                     <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{{ $track->label }}</p>
                                 @endif
+                                @if ($track->tags->isNotEmpty())
+                                    <p class="mt-1 flex flex-wrap gap-1">
+                                        @foreach ($track->tags as $tag)
+                                            <span wire:key="track-{{ $track->id }}-tag-{{ $tag->id }}" class="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">#{{ $tag->name }}</span>
+                                        @endforeach
+                                    </p>
+                                @endif
                             </td>
                             <td class="px-3 py-2 text-zinc-600 dark:text-zinc-400">{{ $track->genre }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $track->bpm }}</td>
                             <td class="px-3 py-2 whitespace-nowrap" title="{{ $track->musical_key }}">{{ $track->camelot_key ?? $track->musical_key }}</td>
                             <td class="px-3 py-2 text-right tabular-nums">{{ $track->release_year }}</td>
+                            <td class="px-3 py-2 whitespace-nowrap"><x-rating-stars :track-id="$track->id" :rating="$track->rating" /></td>
                             <td class="px-3 py-2 whitespace-nowrap">
                                 <div class="flex gap-1">
                                     <button
@@ -288,4 +333,10 @@
             <button type="button" wire:click="confirmMerge" wire:loading.attr="disabled" wire:target="confirmMerge" class="rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white hover:bg-accent-500 disabled:opacity-50">Merge</button>
         </x-slot:footer>
     </x-modal>
+
+    <datalist id="library-tags">
+        @foreach ($allTags as $tagName)
+            <option value="{{ $tagName }}"></option>
+        @endforeach
+    </datalist>
 </div>

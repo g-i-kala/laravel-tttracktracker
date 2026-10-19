@@ -47,7 +47,7 @@ class LibraryService
         'youtube_url' => 'YouTube link',
     ];
 
-    public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys) {}
+    public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys, private TagService $tags) {}
 
     /**
      * Link the item to its track (already in the library) or the track with the
@@ -233,7 +233,7 @@ class LibraryService
      * fields take the chosen side (`current` or `existing`, default existing),
      * empty fields are filled from the other track, POF and Wanted are kept if
      * either track has them (Wanted stays off when POF), notes are joined and
-     * the import items move to the existing track. The current track is deleted.
+     * the import items and tags move to the existing track. The current track is deleted.
      *
      * @param  array<string, mixed>  $currentOverrides
      * @param  array<string, string>  $choices  field => `current` | `existing`
@@ -258,6 +258,7 @@ class LibraryService
             ]);
 
             ImportItem::query()->where('track_id', $current->id)->update(['track_id' => $existing->id]);
+            $existing->tags()->syncWithoutDetaching($current->tags()->pluck('tags.id')->all());
             $current->delete();
             $existing->save();
         });
@@ -288,7 +289,20 @@ class LibraryService
      */
     public function deleteTracks(array $trackIds): int
     {
-        return Track::query()->whereKey($trackIds)->delete();
+        $deleted = Track::query()->whereKey($trackIds)->delete();
+        $this->tags->deleteUnused();
+
+        return $deleted;
+    }
+
+    /**
+     * Set the rating (1–5); the same rating again clears it.
+     */
+    public function rate(Track $track, int $stars): Track
+    {
+        $track->update(['rating' => $track->rating === $stars ? null : $stars]);
+
+        return $track;
     }
 
     /**

@@ -2,9 +2,11 @@
 
 namespace App\Livewire\Library;
 
+use App\Models\Tag;
 use App\Models\Track;
 use App\Services\AiTrackListParserService;
 use App\Services\LibraryService;
+use App\Services\TagService;
 use App\Services\YoutubeUrlNormalizer;
 use Closure;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -19,8 +21,9 @@ use Livewire\WithPagination;
 
 /**
  * Library: all library tracks (one per version), 50 per page, with search,
- * filters (availability, genre, Camelot, BPM and year ranges) and sortable
- * columns. Filters and sorting live in the URL. POF can be switched per row
+ * filters (availability, genre, Camelot, BPM and year ranges, minimum rating,
+ * tags) and sortable columns. Ratings are set with stars in the row or the
+ * panel; tags in the panel or for the ticked tracks. Filters and sorting live in the URL. POF can be switched per row
  * or for the ticked tracks. Clicking a row expands it to edit the track
  * (autosaved on blur) and shows the imports it came from. An artist/title
  * that matches another library track opens a merge modal. Tracks can be
@@ -52,10 +55,11 @@ class Index extends Component
         'bpm' => 'bpm',
         'camelot' => "cast(substring(camelot_key from '^[0-9]+') as integer)",
         'year' => 'release_year',
+        'rating' => 'rating',
         'added' => 'created_at',
     ];
 
-    private const array FILTERS = ['search', 'availability', 'genre', 'camelot', 'bpmFrom', 'bpmTo', 'yearFrom', 'yearTo'];
+    private const array FILTERS = ['search', 'availability', 'genre', 'camelot', 'bpmFrom', 'bpmTo', 'yearFrom', 'yearTo', 'minRating', 'tagFilter'];
 
     /**
      * Ticked track ids (kept across pages and filters).
@@ -124,6 +128,27 @@ class Index extends Component
 
     #[Url(except: '')]
     public string $yearTo = '';
+
+    #[Url(except: '')]
+    public string $minRating = '';
+
+    /**
+     * Tag ids; a track must have all of them.
+     *
+     * @var list<int|string>
+     */
+    #[Url(as: 'tags', except: [])]
+    public array $tagFilter = [];
+
+    /**
+     * New tag typed in the expanded row.
+     */
+    public string $newTag = '';
+
+    /**
+     * Tag typed in the selection bar.
+     */
+    public string $bulkTag = '';
 
     #[Url(except: 'artist')]
     public string $sort = 'artist';
@@ -347,7 +372,7 @@ class Index extends Component
         return $this->expandedTrackId === null
             ? null
             : Track::query()
-                ->with(['importItems' => fn ($query) => $query->with('importBatch')->orderBy('import_batch_id')->orderBy('line_number')])
+                ->with(['tags', 'importItems' => fn ($query) => $query->with('importBatch')->orderBy('import_batch_id')->orderBy('line_number')])
                 ->find($this->expandedTrackId);
     }
 
@@ -391,6 +416,107 @@ class Index extends Component
             'edit.notes' => 'notes',
             'edit.youtube_url' => 'YouTube link',
         ];
+    }
+
+    /**
+     * Click on a star (row or panel): set the rating, or clear it when it is the same.
+     */
+    public function rate(int $trackId, int $stars, LibraryService $library): void
+    {
+        if ($stars < 1 || $stars > 5) {
+            return;
+        }
+
+        $library->rate(Track::query()->findOrFail($trackId), $stars);
+
+        unset($this->tracks, $this->expandedTrack);
+    }
+
+    /**
+     * Add the typed tag to the expanded track.
+     */
+    public function addTag(TagService $tags): void
+    {
+        $this->validate(['newTag' => ['required', 'string', 'max:'.TagService::MAX_LENGTH]], attributes: ['newTag' => 'tag']);
+
+        if ($this->expandedTrackId !== null) {
+            $tags->tagTracks([$this->expandedTrackId], $this->newTag);
+        }
+
+        $this->reset('newTag');
+        unset($this->tracks, $this->expandedTrack, $this->allTags);
+    }
+
+    public function removeTag(int $tagId, TagService $tags): void
+    {
+        if ($this->expandedTrackId !== null) {
+            $tags->untagTracks([$this->expandedTrackId], Tag::query()->findOrFail($tagId));
+        }
+
+        $this->afterTagsRemoved();
+    }
+
+    /**
+     * Add the typed tag to the ticked tracks.
+     */
+    public function tagSelected(TagService $tags): void
+    {
+        $this->validate(['bulkTag' => ['required', 'string', 'max:'.TagService::MAX_LENGTH]], attributes: ['bulkTag' => 'tag']);
+
+        $tag = $tags->tagTracks(array_map('intval', $this->selected), $this->bulkTag);
+        $count = count($this->selected);
+
+        $this->notice = "Tagged {$count} ".str('track')->plural($count)." with “{$tag->name}”.";
+        $this->reset('bulkTag');
+        unset($this->tracks, $this->expandedTrack, $this->allTags);
+    }
+
+    /**
+     * Remove the typed tag from the ticked tracks.
+     */
+    public function untagSelected(TagService $tags): void
+    {
+        $this->validate(['bulkTag' => ['required', 'string', 'max:'.TagService::MAX_LENGTH]], attributes: ['bulkTag' => 'tag']);
+
+        $tag = $tags->find($this->bulkTag);
+
+        if ($tag === null) {
+            $this->addError('bulkTag', 'No such tag.');
+
+            return;
+        }
+
+        $name = $tag->name;
+        $removed = $tags->untagTracks(array_map('intval', $this->selected), $tag);
+
+        $this->notice = "Removed “{$name}” from {$removed} ".str('track')->plural($removed).'.';
+        $this->reset('bulkTag');
+        $this->afterTagsRemoved();
+    }
+
+    public function addTagFilter(int|string $tagId): void
+    {
+        $tagId = (int) $tagId;
+
+        if ($tagId > 0 && ! in_array($tagId, array_map('intval', $this->tagFilter), true)) {
+            $this->tagFilter = [...array_map('intval', $this->tagFilter), $tagId];
+            $this->resetPage();
+        }
+    }
+
+    public function removeTagFilter(int $tagId): void
+    {
+        $this->tagFilter = array_values(array_diff(array_map('intval', $this->tagFilter), [$tagId]));
+        $this->resetPage();
+    }
+
+    /**
+     * @return array<int, string> tag id => name
+     */
+    #[Computed]
+    public function allTags(): array
+    {
+        return app(TagService::class)->all();
     }
 
     public function togglePlayableOffline(int $trackId, LibraryService $library): void
@@ -444,7 +570,8 @@ class Index extends Component
         $this->showDeleteModal = false;
         $this->notice = "Removed {$deleted} ".str('track')->plural($deleted).' from the library.';
 
-        unset($this->tracks, $this->totalTracks, $this->genres, $this->camelotKeys, $this->deleteSummary);
+        unset($this->tracks, $this->totalTracks, $this->genres, $this->camelotKeys, $this->deleteSummary, $this->allTags);
+        $this->tagFilter = array_values(array_intersect(array_map('intval', $this->tagFilter), array_keys($this->allTags)));
 
         if ($this->tracks->isEmpty() && $this->getPage() > 1) {
             $this->setPage($this->tracks->lastPage());
@@ -496,7 +623,7 @@ class Index extends Component
     #[Computed]
     public function tracks(): LengthAwarePaginator
     {
-        $query = Track::query();
+        $query = Track::query()->with('tags');
 
         $this->applySearch($query);
         $this->applyAvailability($query);
@@ -507,7 +634,12 @@ class Index extends Component
             ->when($this->number($this->bpmFrom) !== null, fn (Builder $query) => $query->where('bpm', '>=', $this->number($this->bpmFrom)))
             ->when($this->number($this->bpmTo) !== null, fn (Builder $query) => $query->where('bpm', '<=', $this->number($this->bpmTo)))
             ->when($this->number($this->yearFrom) !== null, fn (Builder $query) => $query->where('release_year', '>=', $this->number($this->yearFrom)))
-            ->when($this->number($this->yearTo) !== null, fn (Builder $query) => $query->where('release_year', '<=', $this->number($this->yearTo)));
+            ->when($this->number($this->yearTo) !== null, fn (Builder $query) => $query->where('release_year', '<=', $this->number($this->yearTo)))
+            ->when($this->number($this->minRating) !== null, fn (Builder $query) => $query->where('rating', '>=', $this->number($this->minRating)));
+
+        foreach (array_map('intval', $this->tagFilter) as $tagId) {
+            $query->whereHas('tags', fn (Builder $query) => $query->whereKey($tagId));
+        }
 
         $sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'artist';
         $direction = $this->direction === 'desc' ? 'desc' : 'asc';
@@ -594,6 +726,16 @@ class Index extends Component
             $this->edit['playable_offline'] = $track->playable_offline;
             $this->edit['wanted'] = $track->wanted;
         }
+    }
+
+    /**
+     * Unused tags are gone: drop them from the filter too.
+     */
+    private function afterTagsRemoved(): void
+    {
+        unset($this->tracks, $this->expandedTrack, $this->allTags);
+
+        $this->tagFilter = array_values(array_intersect(array_map('intval', $this->tagFilter), array_keys($this->allTags)));
     }
 
     private function number(string $value): ?int

@@ -605,3 +605,15 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** Implementation choices within DECISIONS "Library screen (step 1c)" (user chose "show differences" for conflicts). Defaulting artist/title to the new text respects the edit that triggered the merge.
 
 **Consequences:** Playlists (step 2) must move `playlist_track` rows in `mergeTracks()`. A separate "Merge into…" action stays in TODO.
+
+## 2026-10-19 — Rating and tags (step 1d)
+
+**Decision:**
+- **Rating 1–5:** clickable stars in the library row and in the expanded row; clicking the current rating clears it. Filter "minimum rating" (★ N+); the Rating column is sortable.
+- **Tags:** added in the expanded row (type + Enter, suggestions from existing tags, × to remove), shown as chips under the title, and added/removed for the ticked tracks from the selection bar. Filter: choose several tags, a track must have **all** of them.
+- Tag names are unique **regardless of case** (first spelling kept); a tag without tracks is **deleted automatically**. Renaming tags / a tags screen: later.
+- Merge keeps the tags of both tracks.
+
+**Reason:** User's answers (2026-10-19), all recommended. Sorting by rating added as a small extra next to the new column.
+
+**Consequences:** New tables `tags` (unique `lower(name)`) and `tag_track` (cascade on delete). `TagService` holds the tag rules.

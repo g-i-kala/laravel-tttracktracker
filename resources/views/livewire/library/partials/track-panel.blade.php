@@ -64,7 +64,20 @@
             </label>
         </div>
 
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+            <span class="text-xs text-zinc-500 dark:text-zinc-400">Tags</span>
+            @foreach ($track->tags as $tag)
+                <span wire:key="panel-tag-{{ $tag->id }}" class="inline-flex items-center gap-1 rounded bg-zinc-200 px-1.5 py-0.5 text-xs text-zinc-800 dark:bg-zinc-700 dark:text-zinc-100">
+                    #{{ $tag->name }}
+                    <button type="button" wire:click="removeTag({{ $tag->id }})" aria-label="Remove tag {{ $tag->name }}" class="text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">&times;</button>
+                </span>
+            @endforeach
+            <input type="text" wire:model="newTag" list="library-tags" maxlength="{{ \App\Services\TagService::MAX_LENGTH }}" placeholder="Add tag + Enter" aria-label="Add tag" x-on:keydown.enter.prevent="$wire.addTag()" class="{{ $fieldClasses }} w-40 py-1 text-xs">
+            @error('newTag') <span class="text-xs text-red-600 dark:text-red-400">{{ $message }}</span> @enderror
+        </div>
+
         <div class="mt-3 flex flex-wrap items-center gap-5 text-sm">
+            <span class="flex items-center gap-2"><span class="text-xs text-zinc-500 dark:text-zinc-400">Rating</span><x-rating-stars :track-id="$track->id" :rating="$track->rating" /></span>
             <label class="flex items-center gap-2">
                 <input type="checkbox" wire:model.live="edit.playable_offline" class="{{ $checkboxClasses }}">
                 <span><span class="font-medium">POF</span> <span class="text-zinc-500 dark:text-zinc-400">I have the file</span></span>

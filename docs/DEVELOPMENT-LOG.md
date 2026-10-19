@@ -797,3 +797,17 @@
 ### Notes
 - 420 tests pass. Ran `sail npm run build`.
 - Headless Chrome on "ZZQ" tracks found a bug: Escape closed the modal without telling the server (deferred `wire:model`), so the title stayed edited; fixed with `wire:model.live` on the merge modal. Then Escape restored the title and Merge kept the chosen values, POF and the source. Test data deleted; the user's tracks untouched.
+
+## 2026-10-19 (Library step 1d)
+
+### Added
+- Rating 1–5 (`<x-rating-stars>` in the row and panel, filter ★ N+, sortable) and free tags: tables `tags` / `tag_track`, `Tag` model + factory, `TagService` (case-insensitive, unused tags deleted), tags in the panel (Enter, `<datalist>` suggestions), chips in the row, Add tag / Remove tag for ticked tracks, tag filter "all of" (URL `tags[]`). Merge keeps both tracks' tags; removing tracks cleans up unused tags.
+- `tests/Feature/Library/LibraryRatingAndTagsTest.php` (10).
+- DECISIONS "Rating and tags (step 1d)".
+
+### Changed
+- Docs: DATABASE (tags tables, planned section trimmed), UI-FLOW, API, ARCHITECTURE, PRD, TODO, START-TUTAJ.
+
+### Notes
+- 430 tests pass. Ran `sail artisan migrate`, `sail npm run build`.
+- Headless Chrome on "ZZQ" tracks: 4 stars in a row, tag via Enter (field cleared, suggestion listed), bulk tag "lata 80" matched "Lata 80", tag filter in the URL; no JS errors. Test tracks and tag deleted.

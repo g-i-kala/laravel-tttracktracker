@@ -175,6 +175,22 @@ Music library (Milestone 2, step 1a, 2026-10-19). One row per **version** of a t
 | youtube_url            | string, nullable            | main link, copied from the item on Add to library; **PON** = `isPlayableOnline()` (derived, not stored) |
 | created_at, updated_at | timestamps                  |                                                   |
 
+### `tags` — `Tag`
+
+Step 1d (2026-10-19). Free tags on library tracks.
+
+| Column                 | Type          | Notes                                                    |
+| ---------------------- | ------------- | -------------------------------------------------------- |
+| id                     | bigint PK     |                                                          |
+| name                   | string(50)    | unique regardless of case (`tags_name_lower_unique` on `lower(name)`); first spelling kept |
+| created_at, updated_at | timestamps    |                                                          |
+
+A tag without tracks is deleted (`TagService::deleteUnused()`).
+
+### `tag_track`
+
+`tag_id` FK → tags (**cascadeOnDelete**), `track_id` FK → tracks (**cascadeOnDelete**, indexed), primary key `(tag_id, track_id)`.
+
 ### Framework tables
 
 - `jobs`, `failed_jobs`, `job_batches`: database queue + `Bus::batch()` (all in the default `0001_01_01_000002_create_jobs_table` migration).
@@ -188,7 +204,8 @@ Music library (Milestone 2, step 1a, 2026-10-19). One row per **version** of a t
 | ---------------- | ---------------------------------------------- |
 | ImportBatch      | `items()` hasMany ImportItem, `exportFiles()` hasMany ExportFile |
 | ImportItem       | `importBatch()` belongsTo, `youtubeCandidates()` hasMany YoutubeCandidate, `track()` belongsTo Track (nullable) |
-| Track            | `importItems()` hasMany ImportItem             |
+| Track            | `importItems()` hasMany ImportItem, `tags()` belongsToMany Tag (ordered by name) |
+| Tag              | `tracks()` belongsToMany Track                 |
 | YoutubeCandidate | `importItem()` belongsTo                       |
 | ExportFile       | `importBatch()` belongsTo                      |
 | AiUsageLog       | `importBatch()` belongsTo (nullable)           |
@@ -231,6 +248,8 @@ Derived (not stored):
 | `import_items`         | `(track_id)`                            | items of a library track (FK)               |
 | `tracks`               | unique `(normalized_key)`               | exact match on Add to library               |
 | `tracks`               | `(similar_key)`                         | possible matches                            |
+| `tags`                 | unique `lower(name)`                    | case-insensitive tag names                  |
+| `tag_track`            | primary `(tag_id, track_id)`, `(track_id)` | tags of a track / tracks of a tag        |
 
 ## Factories
 
@@ -243,6 +262,7 @@ Derived (not stored):
 | `YoutubeSearchCacheFactory` | `expired()`                                                 |
 | `AiUsageLogFactory`         | `failed()`                                                  |
 | `YoutubeApiCallFactory`     | `quotaExceeded()` (0 units)                                 |
+| `TagFactory`                | —                                                           |
 | `TrackFactory`              | `withMetadata()`, `withYoutubeLink()` (PON), `playableOffline()`, `wanted()` |
 
 No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look at.
@@ -250,15 +270,11 @@ No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look
 ## Migration notes
 
 - Use `./vendor/bin/sail artisan migrate`; never `migrate:fresh` / `db:wipe` without explicit permission.
-- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`, `2026_10_19_092356_create_tracks_table`, `2026_10_19_092357_add_track_id_to_import_items_table`.
+- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`, `2026_10_19_092356_create_tracks_table`, `2026_10_19_092357_add_track_id_to_import_items_table`, `2026_10_19_122126_create_tags_table`, `2026_10_19_122127_create_tag_track_table`.
 
 ## Planned: music library (Milestone 2)
 
-> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). `tracks` and `import_items.track_id` are implemented (step 1a, see above). Exact types and indexes of the rest are settled when each step is built.
-
-### `tags` + `tag_track` (step 1d)
-
-`tags`: id, name (unique), timestamps. Free tags created on the fly. `tag_track`: `tag_id`, `track_id`, unique pair.
+> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). `tracks`, `import_items.track_id` (step 1a), `tags` and `tag_track` (step 1d) are implemented, see above. Exact types and indexes of the rest are settled when each step is built.
 
 ### `playlists` + `playlist_track` (step 2)
 

@@ -18,7 +18,7 @@
 ```text
 app/
   Enums/         ImportBatchStatus, ImportItemStatus
-  Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache, Track
+  Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache, Track, Tag
   Livewire/      Full-page components (class-based), one per screen:
                  Dashboard, Imports/Index, Imports/Create, Imports/Review,
                  Imports/Show (YouTube results + export), Exports/Index, Library/Index
@@ -29,7 +29,7 @@ app/
                  DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService,
-                 LibraryService (music library: add import items as tracks)
+                 LibraryService (music library: add import items as tracks), TagService
   Ai/Agents/     TrackListParser, PlaylistTitleParser (Laravel AI SDK agents, structured output)
   Jobs/          ParseImportBatchWithAiJob, ParsePlaylistTitlesWithAiJob, SearchYoutubeForImportItemJob (dispatched via Bus::batch())
 
@@ -220,6 +220,7 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - **Library screen** `App\Livewire\Library\Index` (`/library`, step 1c-i): `#[Url]` filters, `tracks` computed paginator (50). Search: `artist`/`title`/`label` `ilike` (LIKE wildcards escaped) or `normalized_key` containing the ASCII-lowercased text (accents ignored: "niz" finds "niż"). Availability filters are ANDed (`pof` = `playable_offline`, `pon` = has `youtube_url`, `wanted`, `none` = none of them; `none` clears the others). Ranges ignore non-numeric input. Sorting by a whitelist of SQL expressions, `nulls last`, then artist, title, id; Camelot sorts by its number (`substring(camelot_key from '^[0-9]+')`, PostgreSQL). Genre and Camelot options come from the library's values.
 - **Track editing** (1c-ii): `Library\Index` keeps `expandedTrackId` + `edit` (one row open). `updatedEdit()` validates the field, for artist/title checks `LibraryService::conflictingTrack()` (another track with the new normalized key → merge modal, nothing saved yet), normalizes the YouTube link with `YoutubeUrlNormalizer`, then `LibraryService::updateTrackDetails()` (squish, blanks → null, `normalized_key` / `similar_key` / `camelot_key` recomputed; the model clears Wanted when POF). Sources: computed `expandedTrack` with `importItems.importBatch`; partial `library/partials/track-panel`.
 - **Merge** (1c-iv): `LibraryService::MERGE_FIELDS`; `mergeComparison(current, existing, overrides)` → per field `{current, existing, conflict}` (conflict = both non-empty and different; `overrides` = the unsaved artist/title). `mergeTracks(current, existing, overrides, choices)` in a transaction: conflicts take the chosen side (default existing), other fields the non-empty value, keys + Camelot recomputed, rating existing ?? current, notes joined, POF / Wanted OR-ed (model clears Wanted when POF), import items moved, current deleted. The existing track is always the one kept. Playlists (step 2) must move their pivot rows here too.
+- **Rating and tags** (1d): `LibraryService::rate(track, stars)` (same value clears). `App\Services\TagService`: `findOrCreate()` / `find()` by `lower(name)`, `tagTracks(ids, name)` (`syncWithoutDetaching`), `untagTracks(ids, tag)` + `deleteUnused()`, `all()` (id => name). `deleteTracks()` and tag removal clean up unused tags; `mergeTracks()` copies the edited track's tags to the kept one. Library filters: `minRating` (`rating >=`), `tagFilter` (one `whereHas` per tag = all of them); tracks eager-load `tags`. Component `<x-rating-stars>` calls `rate()`.
 - **Removing tracks** (1c-iii): `LibraryService::deletionSummary(ids)` → `{tracks, linkedItems}` for the modal; `deleteTracks(ids)` deletes the rows, `import_items.track_id` is set to null by the FK (`nullOnDelete`). Playlists (step 2) will need their pivot rows removed too (FK cascade).
 - `LibraryService::setPlayableOffline(ids, bool)`: one `update` query; marking also sets `wanted = false` (same rule as the model `saving` hook, which a mass update skips). Used by the POF button and Mark as POF / Unmark POF on the library screen.
 - `Track`: POF = `playable_offline`, PON = `isPlayableOnline()` (has `youtube_url`), `wanted` cleared in a `saving` hook when POF is set.

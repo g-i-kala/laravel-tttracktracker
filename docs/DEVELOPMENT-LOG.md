@@ -719,3 +719,8 @@
 ### Notes
 - 392 tests pass. Ran `sail npm run build`.
 - Headless Chrome on a "ZZ" import: modal preselection, live "Add N tracks" count, step 2 with "Same track as …", notice and In library badges; no JS errors. Test data deleted.
+
+## 2026-10-19 (Session handoff)
+
+### Changed
+- START-TUTAJ: steps 1a–1b done (`cf06f22`, `87d16e9`); step 1c agreed in part (expandable row editing, filters), deletion and title collision still open.

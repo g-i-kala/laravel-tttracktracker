@@ -4,6 +4,7 @@ namespace App\Livewire\Imports;
 
 use App\Enums\ImportBatchStatus;
 use App\Enums\ImportItemStatus;
+use App\Livewire\Concerns\AddsToLibrary;
 use App\Livewire\Concerns\AddsTracks;
 use App\Livewire\Concerns\ShowsYoutubeQuota;
 use App\Models\ExportFile;
@@ -28,11 +29,13 @@ use Livewire\Component;
  * asks whether to overwrite an existing export, writes the file and starts the download.
  * While the YouTube API search runs in the background the screen polls for progress,
  * fills in each track's link as soon as it is found and ends with a summary.
- * Add tracks appends more tracks and searches them right away.
+ * Add tracks appends more tracks and searches them right away. Add to library
+ * adds the tracks (with their links) to the music library.
  */
 #[Title('YouTube Results')]
 class Show extends Component
 {
+    use AddsToLibrary;
     use AddsTracks;
     use ShowsYoutubeQuota;
 
@@ -226,6 +229,12 @@ class Show extends Component
         }
 
         $this->confirmExport('new', app(SupersimpleTxtExportService::class));
+    }
+
+    protected function addedToLibrary(string $notice): void
+    {
+        $this->notice = $notice;
+        unset($this->rows);
     }
 
     /**

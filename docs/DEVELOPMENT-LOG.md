@@ -704,3 +704,18 @@
 
 ### Notes
 - 379 tests pass. Ran `sail artisan migrate` (the two new migrations were rolled back and re-run once while `tracks` was empty, to replace the status column).
+
+## 2026-10-19 (Library step 1b)
+
+### Added
+- **Add to library** on Parse Review and YouTube Results: trait `App\Livewire\Concerns\AddsToLibrary`, partial `imports/partials/add-to-library-modal` (step 1: choose tracks + Mark as wanted; step 2: Same track / New track for possible matches), `<x-in-library-badge>` in rows, "· N in library" in the headers.
+- `LibraryService::addItems()` (counts new / linked, applies Same track choices) and `similarMatches()` (whole list, two queries); `addItem()` keeps an item on its existing track.
+- `tests/Feature/Library/AddToLibraryTest.php` (10), 3 more in `LibraryServiceTest`.
+- DECISIONS "Add to library (step 1b)".
+
+### Changed
+- Docs: UI-FLOW, PRD (glossary + Music library), ARCHITECTURE, TODO, START-TUTAJ.
+
+### Notes
+- 392 tests pass. Ran `sail npm run build`.
+- Headless Chrome on a "ZZ" import: modal preselection, live "Add N tracks" count, step 2 with "Same track as …", notice and In library badges; no JS errors. Test data deleted.

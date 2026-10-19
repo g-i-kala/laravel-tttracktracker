@@ -103,6 +103,16 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - Modal "Export track list" (Alpine only, no request): "Download all N tracks of “name”, with or without YouTube links." + two options: **TXT** (`Artist - Title`, one per line, like a paste) and **CSV** (Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL; opens in Numbers, Excel or Google Sheets) → the file downloads and the modal closes. **Cancel**.
 - Not listed on `/exports`; the file always reflects the current state of the import.
 
+## Add to library (Parse Review, YouTube Results)
+
+> Status: implemented (2026-10-19, Milestone 2 step 1b). Trait `App\Livewire\Concerns\AddsToLibrary`, partial `imports/partials/add-to-library-modal`.
+
+- **Add to library** button: Parse Review header after "Add tracks" (hidden while parsing / failed / searching); YouTube Results header after "Add tracks" (disabled while searching). Disabled when the import has no tracks.
+- Modal step 1 "Add to library": list of all tracks with checkboxes; tracks not in the library are preselected, tracks already there are unticked and show **In library** (ticking one only fills its track's empty fields / marks it wanted). **Select all not in library** / **Select none**. Checkbox **Mark as wanted** ("You want a file of these tracks. Tracks you already have offline (POF) stay as they are."). **Cancel** / **Add N tracks** (count updates live). No selection → "Select at least one track."
+- Step 2 (only when selected tracks look like library tracks: other version or artist order, no exact match): per track the radio choice **New track** (default) or **Same track as {artist - title}** (one option per similar track). **Back** / **Add to library**.
+- After adding: modal closes, notice "Added N tracks to the library: X new, Y linked to tracks already there."; rows show the **In library** badge (`<x-in-library-badge>`) and the header "· N in library".
+- Edits on the import after adding do not change the library track (DECISIONS 2026-10-19).
+
 ## Exports (`/exports`) — `Exports\Index`
 
 > Status: implemented (2026-10-17).
@@ -133,6 +143,7 @@ Open/close without a request via `$wire.showDuplicateModal = true`, or from PHP 
 | Delete export files  | Exports         | Delete (row) / Delete selected   |
 | Missing links modal  | YouTube Results | Generate TXT with tracks without a link |
 | Export version modal | YouTube Results | Export already exists for batch  |
+| Add to library       | Parse Review, YouTube Results | Add to library (two steps: choose tracks + Mark as wanted, then Same track / New track for possible matches) |
 | Export track list    | Parse Review, YouTube Results, Imports | Export track list / Track list (bound with `x-model` to Alpine state, not a Livewire property) |
 
 ## YouTube quota line (`<x-youtube-quota>`)

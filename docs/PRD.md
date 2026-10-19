@@ -23,6 +23,8 @@ Manual track import
 | Import Item       | One track/line inside a batch. Raw line `Adam Beyer - Teach Me (Original Mix)` → artist `Adam Beyer`, title `Teach Me (Original Mix)`. No separate version field in MVP. |
 | YouTube Candidate | A possible YouTube result for an item. API mode stores up to 3.         |
 | Export File       | A generated TXT file. Supersimple export contains only selected URLs.   |
+| Library Track     | One version of a track in the music library (Milestone 2). Import items link to it via Add to library. |
+| POF / PON / Wanted | Playable offline (have a file) / playable online (has a link) / want a file. |
 
 ## User flow
 
@@ -81,6 +83,10 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 - **Export track list** (Parse Review, YouTube Results, imports list): modal to choose **TXT** (`Artist - Title` per line, only the title without an artist, like a paste) or **CSV** (header `Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL`, comma-separated, UTF-8 with BOM).
 - Every track of the import in line order, regardless of Export ticks or links. Generated on request and downloaded right away: no history, not listed on `/exports`.
 - Filename: `{slug}_tracks.txt` / `{slug}_tracks.csv`.
+
+### Music library (Milestone 2, in progress)
+- **Add to library** (Parse Review, YouTube Results): choose tracks in a modal (those not in the library preselected), optional **Mark as wanted**. A track with the same artist + title (same version) links to the library track and fills its empty fields; a possibly matching track (other version, swapped artists) asks **Same track / New track** (default New track). Rows show **In library**. See DECISIONS 2026-10-19.
+- Library track = one version. Availability: **POF** (playable offline, stored), **PON** (playable online, from the link), **Wanted** (want a file; cleared when POF).
 
 ## Acceptance criteria
 

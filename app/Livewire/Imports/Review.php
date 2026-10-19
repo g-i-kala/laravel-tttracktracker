@@ -3,6 +3,7 @@
 namespace App\Livewire\Imports;
 
 use App\Enums\ImportBatchStatus;
+use App\Livewire\Concerns\AddsToLibrary;
 use App\Livewire\Concerns\AddsTracks;
 use App\Livewire\Concerns\ShowsYoutubeQuota;
 use App\Models\ImportBatch;
@@ -25,11 +26,12 @@ use Livewire\Component;
  * rows. Save & close marks the batch
  * as reviewed and returns to the imports list. While AI parsing runs in the
  * background, the page polls until the items are ready. Add tracks appends
- * more pasted tracks at the end.
+ * more pasted tracks at the end; Add to library adds tracks to the music library.
  */
 #[Title('Parse Review')]
 class Review extends Component
 {
+    use AddsToLibrary;
     use AddsTracks;
     use ShowsYoutubeQuota;
 
@@ -124,6 +126,12 @@ class Review extends Component
         $this->notice = $this->addedTracksNotice($added, $skipped);
         $this->refreshRows();
         $this->loadItems();
+    }
+
+    protected function addedToLibrary(string $notice): void
+    {
+        $this->notice = $notice;
+        $this->refreshRows();
     }
 
     private function openDuplicateModalIfNeeded(): void

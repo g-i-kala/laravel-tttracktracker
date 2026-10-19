@@ -5,6 +5,7 @@ namespace Tests\Feature\Library;
 use App\Models\ImportItem;
 use App\Models\Track;
 use App\Services\LibraryService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -175,5 +176,48 @@ class LibraryServiceTest extends TestCase
         $track->delete();
 
         $this->assertNull($item->fresh()->track_id);
+    }
+
+    public function test_an_item_already_in_the_library_stays_on_its_track_after_an_edit(): void
+    {
+        $item = ImportItem::factory()->create(['artist' => 'Bicep', 'title' => 'Glue']);
+        $track = $this->library->addItem($item);
+        $item->update(['title' => 'Glue (Radio Edit)', 'normalized_key' => 'bicep|glue radio edit']);
+
+        $this->assertTrue($this->library->addItem($item->fresh(), markAsWanted: true)->is($track));
+        $this->assertSame(1, Track::count());
+        $this->assertTrue($track->fresh()->wanted);
+    }
+
+    public function test_add_items_counts_new_and_linked_tracks_and_applies_same_track_choices(): void
+    {
+        $existing = Track::factory()->create(['artist' => 'Bicep', 'title' => 'Glue']);
+        $chosen = Track::factory()->create(['artist' => 'Kombi', 'title' => 'Black and White']);
+        $exact = ImportItem::factory()->create(['artist' => 'Bicep', 'title' => 'Glue', 'line_number' => 1]);
+        $sameAsChosen = ImportItem::factory()->create(['artist' => 'Kombi', 'title' => 'Black & White (Remastered)', 'line_number' => 2]);
+        $new = ImportItem::factory()->create(['artist' => 'Maanam', 'title' => 'Cykady na Cykladach', 'line_number' => 3]);
+
+        $result = $this->library->addItems(new Collection([$new, $exact, $sameAsChosen]), sameTrackIds: [$sameAsChosen->id => $chosen->id]);
+
+        $this->assertSame(['created' => 1, 'linked' => 2], $result);
+        $this->assertTrue($exact->fresh()->track->is($existing));
+        $this->assertTrue($sameAsChosen->fresh()->track->is($chosen));
+        $this->assertSame(3, Track::count());
+    }
+
+    public function test_similar_matches_skip_items_in_the_library_or_with_an_exact_match(): void
+    {
+        $glue = Track::factory()->create(['artist' => 'Bicep', 'title' => 'Glue']);
+        $glueExtended = Track::factory()->create(['artist' => 'Bicep', 'title' => 'Glue (Extended Mix)']);
+        $radioEdit = ImportItem::factory()->create(['artist' => 'Bicep', 'title' => 'Glue (Radio Edit)', 'line_number' => 1]);
+        $exact = ImportItem::factory()->create(['artist' => 'Bicep', 'title' => 'Glue', 'line_number' => 2]);
+        $linked = ImportItem::factory()->create(['artist' => 'Bicep', 'title' => 'Glue (Dub)', 'line_number' => 3]);
+        $linked->track()->associate($glue)->save();
+        $unrelated = ImportItem::factory()->create(['artist' => 'Bicep', 'title' => 'Atlas', 'line_number' => 4]);
+
+        $matches = $this->library->similarMatches(new Collection([$radioEdit, $exact, $linked->fresh(), $unrelated]));
+
+        $this->assertSame([$radioEdit->id], array_keys($matches));
+        $this->assertSame([$glue->id, $glueExtended->id], $matches[$radioEdit->id]->modelKeys());
     }
 }

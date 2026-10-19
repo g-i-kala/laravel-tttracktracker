@@ -101,7 +101,8 @@
 - [x] Questions first: data model, playlists, duplicates, order of work (2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"; folder details postponed to step 3)
 - [ ] Step 1: library tracks
   - [x] 1a: `tracks` table + `Track` model/factory, POF/Wanted flags (PON from links), `import_items.track_id` (`nullOnDelete`), `LibraryService` (exact merge fills empty fields, similar match detection, Mark as wanted) (2026-10-19)
-  - [ ] 1b: **Add to library** on Parse Review and YouTube Results (whole import / selected) with a **Mark as wanted** checkbox, "Same track / New track" modal for similar matches, "In library" mark on items
+  - [x] 1b (2026-10-19): **Add to library** on Parse Review and YouTube Results (whole import / selected) with a **Mark as wanted** checkbox, "Same track / New track" modal for similar matches, "In library" mark on items
+  - [ ] Manual test 1b (user): Add to library on Parse Review and YouTube Results, Mark as wanted, Same track / New track, In library badge
   - [ ] 1c: Library screen: list, search, filters (genre, BPM, Camelot, label, year, rating, tags, POF / PON / Wanted), edit a track (incl. POF / Wanted), sources ("in N imports")
   - [ ] 1d: rating 1–5, notes, free tags (`tags` + `tag_track`)
 - [ ] Step 2: playlists

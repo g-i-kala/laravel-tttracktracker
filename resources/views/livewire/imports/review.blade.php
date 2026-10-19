@@ -4,6 +4,7 @@
     $lineNumbers = $this->rows->pluck('line_number', 'id');
     $exactDuplicates = $this->exactDuplicates;
     $similarItems = $this->similarItems;
+    $inLibrary = $this->rows->whereNotNull('track_id')->count();
 @endphp
 
 <div class="flex flex-col gap-6" x-data="{ trackList: null, trackListOpen: false }">
@@ -15,6 +16,9 @@
                 {{ $this->rows->count() }} {{ Str::plural('track', $this->rows->count()) }}
                 @if ($withoutArtist > 0)
                     · <span class="text-amber-600 dark:text-amber-400">{{ $withoutArtist }} without artist</span>
+                @endif
+                @if ($inLibrary > 0)
+                    · {{ $inLibrary }} in library
                 @endif
                 @if ($batch->year || $batch->month)
                     · {{ $batch->month ? now()->startOfYear()->month($batch->month)->format('F') : '' }} {{ $batch->year }}
@@ -48,6 +52,17 @@
                     class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
                 >
                     Add tracks
+                </button>
+            @endunless
+
+            @unless (in_array($batch->status, [\App\Enums\ImportBatchStatus::Parsing, \App\Enums\ImportBatchStatus::Failed, \App\Enums\ImportBatchStatus::Searching], true))
+                <button
+                    type="button"
+                    wire:click="openLibraryModal"
+                    @disabled($this->rows->isEmpty())
+                    class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                    Add to library
                 </button>
             @endunless
 
@@ -168,6 +183,9 @@
                                 {{ $metadata ? implode(' · ', $metadata) : '+ BPM, key, label' }}
                             </button>
                             <p class="mt-1 truncate font-mono text-xs text-zinc-400 dark:text-zinc-500" title="{{ $item->raw_line }}">{{ $item->raw_line }}</p>
+                            @if ($item->track_id)
+                                <p class="mt-1"><x-in-library-badge /></p>
+                            @endif
                             @isset($exactDuplicates[$item->id])
                                 <p class="mt-1"><span class="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">Duplicate of #{{ $lineNumbers[$exactDuplicates[$item->id]] }}</span></p>
                             @endisset
@@ -253,5 +271,6 @@
     </x-modal>
 
     @include('livewire.imports.partials.add-tracks-modal')
+    @include('livewire.imports.partials.add-to-library-modal')
     @include('livewire.imports.partials.track-list-modal')
 </div>

@@ -559,3 +559,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's input (2026-10-19): a track can be on disk without a link and without being wanted, can be played from a streaming playlist and still be wanted, so one status cannot describe it. Flow A chosen over B (manual PON flag, can drift from the links) and C (one offline lifecycle enum `— → Wanted → POF`).
 
 **Consequences:** All combinations are possible (POF only, PON + Wanted, PON only, none). The Wanted filter is the shopping list. Badges `POF` / `PON` / `Wanted` on the library screen (1c). `tracks` also stores `similar_key` (indexed) so possible matches can be queried without loading the whole library.
+
+## 2026-10-19 — Add to library (step 1b)
+
+**Decision:** **Add to library** opens a modal with the import's tracks and checkboxes (tracks not in the library preselected; tracks already there unticked with an **In library** mark), plus **Mark as wanted**. When selected tracks look like library tracks (similar key, no exact match), a second step asks **Same track / New track** per track, default **New track**. Editing an item after adding does not sync to the library track; library tracks are edited in the library (1c).
+
+**Reason:** User's answers (2026-10-19), all as recommended: choosing in the modal keeps the two tables unchanged; most similar matches are other versions (track = version), so "New track" is the safe default; no sync keeps one track from many imports predictable.
+
+**Consequences:** A wrong "New track" leaves two tracks for one version until a merge/edit exists in the library screen. An item that already has a track stays on it when added again, even after its title was edited.

@@ -207,12 +207,16 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - `SupersimpleTxtExportService::deleteExports(ids)` deletes rows (transaction) and files; batches left without any export go back from `exported` to `searched`, and so do their exported items.
 - `ParseImportBatchWithAiJob` has `#[DeleteWhenMissingModels]`: a job queued for a batch deleted in the meantime is dropped silently.
 
-## Music library (Milestone 2, step 1a)
+## Music library (Milestone 2, steps 1a–1b)
 
-`App\Services\LibraryService` (no UI yet; Add to library comes in 1b):
+`App\Services\LibraryService`:
 - `addItem(item, markAsWanted = false)`: the track with the item's `normalized_key` (`exactTrack()`) → `linkToTrack()`; otherwise a new track (artist, title, keys, genre, BPM, key, Camelot, label, `youtube_url` = `selected_youtube_url`, `wanted` = the checkbox). Sets `import_items.track_id`.
 - `linkToTrack(item, track, markAsWanted = false)`: exact match or the user's "Same track" choice. Fills only the track's empty fields (genre, BPM, key, Camelot, label, YouTube link); artist/title/rating/notes are never overwritten. Wanted is only switched on, never off.
 - `similarTracks(item)`: tracks with the same `similar_key` and another `normalized_key` (other version, swapped artists) for the "Same track / New track" modal. Call it when `exactTrack()` is null.
+- `addItem()` keeps an item that already has a track on that track (even after its title was edited), so ticking it again only fills empty fields / marks wanted.
+- `addItems(items, markAsWanted, sameTrackIds)` → `{created, linked}`: line order; `sameTrackIds` (item id → track id) are the "Same track" choices, the rest goes through `addItem()` (`wasRecentlyCreated` counts new tracks).
+- `similarMatches(items)` → `[item id => similar tracks]` for items without a track and without an exact match; two queries for the whole list.
+- UI: trait `App\Livewire\Concerns\AddsToLibrary` (Parse Review, YouTube Results; component hook `addedToLibrary(notice)`): `openLibraryModal()` preselects items without `track_id`; `addToLibrary()` first goes to the "Same track / New track" step when `similarMatches()` is not empty (choices default `new`), then calls `addItems()` with the choices that are really among the item's matches; `backToLibrarySelection()`. Selection ids are limited to the batch's items.
 - `Track`: POF = `playable_offline`, PON = `isPlayableOnline()` (has `youtube_url`), `wanted` cleared in a `saving` hook when POF is set.
 
 ## Dashboard

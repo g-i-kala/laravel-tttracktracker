@@ -5,6 +5,7 @@
     $missingLinks = $this->rows->whereNull('selected_youtube_url');
     $latestExport = $this->latestExport;
     $isSearching = $batch->status === \App\Enums\ImportBatchStatus::Searching;
+    $inLibrary = $this->rows->whereNotNull('track_id')->count();
     $readyCount = $this->rows->count() - count($pendingItemIds);
     $searchNotices = [\App\Services\ImportItemService::SEARCH_FAILED_NOTICE, \App\Services\ImportItemService::QUOTA_EXCEEDED_NOTICE];
     $spinner = '<svg class="size-4 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
@@ -18,6 +19,9 @@
             <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                 {{ $this->rows->count() }} {{ Str::plural('track', $this->rows->count()) }}
                 · {{ $withLink }} with a link · {{ $included }} in export
+                @if ($inLibrary > 0)
+                    · {{ $inLibrary }} in library
+                @endif
                 @if ($batch->year || $batch->month)
                     · {{ $batch->month ? now()->startOfYear()->month($batch->month)->format('F') : '' }} {{ $batch->year }}
                 @endif
@@ -39,6 +43,15 @@
                 class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
             >
                 Add tracks
+            </button>
+            <button
+                type="button"
+                wire:click="openLibraryModal"
+                @disabled($isSearching || $this->rows->isEmpty())
+                title="{{ $isSearching ? 'Wait until the YouTube search is finished' : 'Add tracks with their links to the music library' }}"
+                class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+            >
+                Add to library
             </button>
             <a
                 href="{{ route('imports.review', $batch) }}"
@@ -135,6 +148,9 @@
                                     <span class="font-medium">{{ $item->artist }}</span> -
                                 @endif
                                 {{ $item->title }}
+                                @if ($item->track_id)
+                                    <x-in-library-badge class="ml-1" />
+                                @endif
                             </p>
                             @php
                                 $metadata = array_filter([
@@ -274,5 +290,6 @@
     </x-modal>
 
     @include('livewire.imports.partials.add-tracks-modal')
+    @include('livewire.imports.partials.add-to-library-modal')
     @include('livewire.imports.partials.track-list-modal')
 </div>

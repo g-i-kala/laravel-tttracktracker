@@ -33,13 +33,13 @@ class LibraryService
     public function __construct(private ImportParserService $parser) {}
 
     /**
-     * Link the item to the track with the same normalized key, or create a new
-     * track. "Mark as wanted" marks the track as wanted unless it is already
-     * playable offline.
+     * Link the item to its track (already in the library) or the track with the
+     * same normalized key, or create a new track. "Mark as wanted" marks the
+     * track as wanted unless it is already playable offline.
      */
     public function addItem(ImportItem $item, bool $markAsWanted = false): Track
     {
-        $track = $this->exactTrack($item);
+        $track = $item->track_id !== null ? $item->track : $this->exactTrack($item);
 
         return $track !== null
             ? $this->linkToTrack($item, $track, $markAsWanted)
@@ -67,6 +67,72 @@ class LibraryService
             ->where('normalized_key', '!=', $item->normalized_key)
             ->orderBy('id')
             ->get();
+    }
+
+    /**
+     * Add many items in line order (Add to library). `$sameTrackIds` holds the
+     * user's "Same track" choices for possible matches; other items go through
+     * `addItem()`.
+     *
+     * @param  Collection<int, ImportItem>  $items
+     * @param  array<int, int>  $sameTrackIds  item id => track id
+     * @return array{created: int, linked: int}
+     */
+    public function addItems(Collection $items, bool $markAsWanted = false, array $sameTrackIds = []): array
+    {
+        $created = 0;
+        $chosenTracks = Track::query()->findMany(array_values($sameTrackIds))->keyBy('id');
+
+        foreach ($items->sortBy('line_number') as $item) {
+            $chosenTrack = $chosenTracks->get($sameTrackIds[$item->id] ?? 0);
+
+            $track = $chosenTrack !== null
+                ? $this->linkToTrack($item, $chosenTrack, $markAsWanted)
+                : $this->addItem($item, $markAsWanted);
+
+            $created += $track->wasRecentlyCreated ? 1 : 0;
+        }
+
+        return ['created' => $created, 'linked' => $items->count() - $created];
+    }
+
+    /**
+     * Possible matches for items that are not in the library yet and have no
+     * exact match there, for the "Same track / New track" step. Two queries for
+     * the whole list.
+     *
+     * @param  Collection<int, ImportItem>  $items
+     * @return array<int, Collection<int, Track>> item id => similar tracks
+     */
+    public function similarMatches(Collection $items): array
+    {
+        $items = $items->whereNull('track_id');
+        $exactKeys = Track::query()
+            ->whereIn('normalized_key', $items->pluck('normalized_key')->unique()->values())
+            ->pluck('normalized_key')
+            ->flip();
+        $items = $items->reject(fn (ImportItem $item): bool => $exactKeys->has($item->normalized_key));
+
+        $similarKeys = $items->mapWithKeys(fn (ImportItem $item): array => [
+            $item->id => $this->parser->similarKey($item->artist, $item->title),
+        ]);
+        $tracksBySimilarKey = Track::query()
+            ->whereIn('similar_key', $similarKeys->unique()->values())
+            ->orderBy('id')
+            ->get()
+            ->groupBy('similar_key');
+
+        $matches = [];
+
+        foreach ($items->sortBy('line_number') as $item) {
+            $tracks = $tracksBySimilarKey->get($similarKeys[$item->id]);
+
+            if ($tracks !== null) {
+                $matches[$item->id] = $tracks->values();
+            }
+        }
+
+        return $matches;
     }
 
     /**

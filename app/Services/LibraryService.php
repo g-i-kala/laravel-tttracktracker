@@ -136,6 +136,20 @@ class LibraryService
     }
 
     /**
+     * Mark tracks as playable offline (the user has the files), which also
+     * clears wanted, or unmark them.
+     *
+     * @param  list<int>  $trackIds
+     * @return int number of tracks updated
+     */
+    public function setPlayableOffline(array $trackIds, bool $playableOffline): int
+    {
+        return Track::query()->whereKey($trackIds)->update($playableOffline
+            ? ['playable_offline' => true, 'wanted' => false]
+            : ['playable_offline' => false]);
+    }
+
+    /**
      * Link the item to the given track (an exact match, or the user's choice
      * "Same track"). Empty track fields are filled from the item; fields with a
      * value are kept. Wanted is only ever switched on here, never off.

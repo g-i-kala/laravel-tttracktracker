@@ -745,3 +745,16 @@
 ### Notes
 - 400 tests pass. Ran `sail npm run build`.
 - Headless Chrome with 54 "ZZ" tracks: sidebar link, search "niz" → "Mniej niż zero" (URL `?search=niz`), Wanted chip, genre select, BPM range, BPM sort desc, pagination; no JS errors. Test data deleted.
+
+## 2026-10-19 (Library: POF on the list)
+
+### Added
+- Library screen: **POF** button per row and checkbox selection with **Mark as POF** / **Unmark POF** (user request). `LibraryService::setPlayableOffline()`. 3 tests in `LibraryIndexTest`.
+- DECISIONS "POF on the library list".
+
+### Changed
+- Docs: UI-FLOW, API, ARCHITECTURE, PRD, TODO.
+
+### Notes
+- 36 library tests pass. Ran `sail npm run build`.
+- Headless Chrome on 3 "ZZ" tracks next to the user's 8 real tracks: row button (Wanted cleared), select two + Mark as POF, notice; the real tracks were not touched. Test tracks deleted.

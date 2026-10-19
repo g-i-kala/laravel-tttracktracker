@@ -125,6 +125,62 @@ class LibraryIndexTest extends TestCase
         $this->assertSame(2, $tracks->lastPage());
     }
 
+    public function test_the_pof_button_toggles_playable_offline_and_clears_wanted(): void
+    {
+        $track = Track::factory()->wanted()->create();
+
+        $component = Livewire::test(Index::class)->call('togglePlayableOffline', $track->id);
+
+        $track->refresh();
+        $this->assertTrue($track->playable_offline);
+        $this->assertFalse($track->wanted);
+
+        $component->call('togglePlayableOffline', $track->id);
+
+        $this->assertFalse($track->fresh()->playable_offline);
+    }
+
+    public function test_selected_tracks_can_be_marked_and_unmarked_as_pof(): void
+    {
+        $first = Track::factory()->wanted()->create();
+        $second = Track::factory()->create();
+        $untouched = Track::factory()->create();
+
+        Livewire::test(Index::class)
+            ->set('selected', [(string) $first->id, (string) $second->id])
+            ->assertSee('2 selected')
+            ->call('setSelectedPlayableOffline', true)
+            ->assertSet('selected', [])
+            ->assertSet('notice', 'Marked 2 tracks as playable offline (POF).');
+
+        $this->assertTrue($first->fresh()->playable_offline);
+        $this->assertFalse($first->fresh()->wanted);
+        $this->assertTrue($second->fresh()->playable_offline);
+        $this->assertFalse($untouched->fresh()->playable_offline);
+
+        Livewire::test(Index::class)
+            ->set('selected', [(string) $first->id])
+            ->call('setSelectedPlayableOffline', false)
+            ->assertSet('notice', 'Removed POF from 1 track.');
+
+        $this->assertFalse($first->fresh()->playable_offline);
+        $this->assertTrue($second->fresh()->playable_offline);
+    }
+
+    public function test_select_all_ticks_and_unticks_the_tracks_on_this_page(): void
+    {
+        $tracks = Track::factory()->count(2)->create();
+        $ids = $tracks->pluck('id')->map(fn (int $id): string => (string) $id)->sort()->values()->all();
+
+        $component = Livewire::test(Index::class)->call('toggleAllOnPage');
+
+        $selected = $component->get('selected');
+        sort($selected);
+        $this->assertSame($ids, $selected);
+
+        $component->call('toggleAllOnPage')->assertSet('selected', []);
+    }
+
     /**
      * @param  list<string>  $expectedTitles
      */

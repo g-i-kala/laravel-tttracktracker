@@ -48,6 +48,7 @@ These replace the POST/PATCH routes from the original plan.
 | `Imports\Show`    | `toggleExport($itemId)` **(implemented)** | `POST /items/{item}/toggle-export`          | Flip `include_in_export`; no-op without a selected link             |
 | `Imports\Show`    | `export()` / `exportAnyway()` / `confirmExport($mode)` **(implemented)** | `POST /imports/{batch}/exports/supersimple-txt` | `export()`: no-op without exportable links; tracks without a link → missing links modal (`exportAnyway()` continues); existing export → version modal; `confirmExport('new'|'overwrite')` → `SupersimpleTxtExportService::export()`, dispatches `download-export` |
 | `Imports\Review`, `Imports\Show` | `openLibraryModal()` / `addToLibrary()` / `backToLibrarySelection()` **(implemented, trait `AddsToLibrary`)** | — | Add to library modal: preselect items without a track; possible matches → "Same track / New track" step; `LibraryService::addItems()` |
+| `Library\Index`   | `togglePlayableOffline($trackId)` / `toggleAllOnPage()` / `setSelectedPlayableOffline(bool)` **(implemented)** | — | POF per row and for the ticked tracks (`selected`), `LibraryService::setPlayableOffline()` |
 | `Library\Index`   | `toggleAvailability($value)` / `sortBy($column)` / `clearFilters()` **(implemented)** | — | Filters (`search`, `availability`, `genre`, `camelot`, `bpmFrom`/`bpmTo`, `yearFrom`/`yearTo`) and `sort`/`direction` as `#[Url]` properties; any filter change resets the page |
 
 Item actions always check that the item belongs to the page's batch.

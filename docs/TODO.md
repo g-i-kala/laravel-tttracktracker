@@ -105,6 +105,7 @@
   - [ ] Manual test 1b (user): Add to library on Parse Review and YouTube Results, Mark as wanted, Same track / New track, In library badge
   - [ ] 1c: Library screen (decisions: DECISIONS "Library screen (step 1c)")
     - [x] 1c-i (2026-10-19): `/library` + sidebar link, table, search + filters (POF / PON / Wanted / none, genre, Camelot, BPM from–to, year from–to), 50 per page, sortable columns
+    - [x] POF per row + ticked tracks Mark as POF / Unmark POF (user request, 2026-10-19; selection checkboxes reused by 1c-iii)
     - [ ] Manual test 1c-i (user): sidebar Library, search, filters, chips, sorting, pages
     - [ ] 1c-ii: expanded row: edit fields (autosave), POF / Wanted, YouTube link, sources (imports)
     - [ ] 1c-iii: delete single + selected (modal with summary)

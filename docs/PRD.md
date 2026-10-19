@@ -86,7 +86,7 @@ Details: [UI-FLOW.md](UI-FLOW.md).
 
 ### Music library (Milestone 2, in progress)
 - **Add to library** (Parse Review, YouTube Results): choose tracks in a modal (those not in the library preselected), optional **Mark as wanted**. A track with the same artist + title (same version) links to the library track and fills its empty fields; a possibly matching track (other version, swapped artists) asks **Same track / New track** (default New track). Rows show **In library**. See DECISIONS 2026-10-19.
-- **Library screen** (`/library`): search, filters (POF / PON / Wanted / none, genre, Camelot, BPM and year ranges), 50 per page, sortable columns. Editing, delete and merge follow (1c-ii … 1c-iv).
+- **Library screen** (`/library`): search, filters (POF / PON / Wanted / none, genre, Camelot, BPM and year ranges), 50 per page, sortable columns. **POF** per row (one click) or for ticked tracks (Mark as POF / Unmark POF). Editing, delete and merge follow (1c-ii … 1c-iv).
 - Library track = one version. Availability: **POF** (playable offline, stored), **PON** (playable online, from the link), **Wanted** (want a file; cleared when POF).
 
 ## Acceptance criteria

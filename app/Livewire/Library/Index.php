@@ -3,6 +3,7 @@
 namespace App\Livewire\Library;
 
 use App\Models\Track;
+use App\Services\LibraryService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +17,8 @@ use Livewire\WithPagination;
 /**
  * Library: all library tracks (one per version), 50 per page, with search,
  * filters (availability, genre, Camelot, BPM and year ranges) and sortable
- * columns. Filters and sorting live in the URL.
+ * columns. Filters and sorting live in the URL. POF can be switched per row
+ * or for the ticked tracks.
  */
 #[Title('Library')]
 class Index extends Component
@@ -48,6 +50,15 @@ class Index extends Component
     ];
 
     private const array FILTERS = ['search', 'availability', 'genre', 'camelot', 'bpmFrom', 'bpmTo', 'yearFrom', 'yearTo'];
+
+    /**
+     * Ticked track ids (kept across pages and filters).
+     *
+     * @var list<int|string>
+     */
+    public array $selected = [];
+
+    public ?string $notice = null;
 
     #[Url(except: '')]
     public string $search = '';
@@ -121,6 +132,43 @@ class Index extends Component
         $this->direction = $this->sort === $column && $this->direction === 'asc' ? 'desc' : 'asc';
         $this->sort = $column;
         $this->resetPage();
+    }
+
+    public function togglePlayableOffline(int $trackId, LibraryService $library): void
+    {
+        $track = Track::query()->findOrFail($trackId);
+
+        $library->setPlayableOffline([$track->id], ! $track->playable_offline);
+
+        unset($this->tracks);
+    }
+
+    /**
+     * Mark (or unmark) the ticked tracks as playable offline.
+     */
+    public function setSelectedPlayableOffline(bool $playableOffline, LibraryService $library): void
+    {
+        $updated = $library->setPlayableOffline(array_map('intval', $this->selected), $playableOffline);
+
+        $this->notice = $playableOffline
+            ? "Marked {$updated} ".str('track')->plural($updated).' as playable offline (POF).'
+            : "Removed POF from {$updated} ".str('track')->plural($updated).'.';
+        $this->selected = [];
+
+        unset($this->tracks);
+    }
+
+    /**
+     * Tick every track on this page, or untick them when all are ticked already.
+     */
+    public function toggleAllOnPage(): void
+    {
+        $pageIds = $this->tracks->pluck('id')->map(fn (int $id): string => (string) $id)->all();
+        $selected = array_map('strval', $this->selected);
+
+        $this->selected = array_diff($pageIds, $selected) === []
+            ? array_values(array_diff($selected, $pageIds))
+            : array_values(array_unique([...$selected, ...$pageIds]));
     }
 
     public function clearFilters(): void

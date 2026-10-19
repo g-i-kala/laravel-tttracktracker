@@ -581,3 +581,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-19). Recommended options everywhere except the merge field conflicts, where the user wants to see and choose the differences.
 
 **Consequences:** Playlists (step 2) will have to move `playlist_track` rows on merge too. 1c is split into sub-steps (TODO).
+
+## 2026-10-19 — POF on the library list
+
+**Decision:** POF can be set without opening a track: a **POF** button in every row (one click on/off) and, for many tracks, checkboxes + **Mark as POF** / **Unmark POF** for the ticked tracks (selection kept across pages and filters). Marking clears Wanted. Not added to the Add to library modal.
+
+**Reason:** User request (2026-10-19): many tracks are already downloaded and need POF now, before the expanded row editing (1c-ii). User chose the row button and the bulk action (both recommended).
+
+**Consequences:** The selection checkboxes are in place for "Remove selected" (1c-iii). The expanded row (1c-ii) still gets a POF checkbox.

@@ -8,6 +8,9 @@
         'wanted' => 'You want a file',
         'none' => 'Not offline, not online, not wanted',
     ];
+    $checkboxClasses = 'size-4 rounded border-zinc-300 text-accent-600 focus:ring-accent-500 dark:border-zinc-700';
+    $selectedIds = array_map('intval', $selected);
+    $allOnPageSelected = $tracks->isNotEmpty() && $tracks->pluck('id')->diff($selectedIds)->isEmpty();
     $columns = ['artist' => 'Artist', 'title' => 'Title', 'genre' => 'Genre', 'bpm' => 'BPM', 'camelot' => 'Key', 'year' => 'Year', 'availability' => '', 'added' => 'Added'];
 @endphp
 
@@ -22,6 +25,10 @@
             @endif
         </p>
     </div>
+
+    @if ($notice)
+        <p class="rounded-lg border border-accent-200 bg-accent-50 px-4 py-3 text-sm text-accent-800 dark:border-accent-900 dark:bg-accent-950 dark:text-accent-200">{{ $notice }}</p>
+    @endif
 
     @if ($this->totalTracks === 0)
         <div class="rounded-lg border border-dashed border-zinc-300 bg-white p-10 text-center dark:border-zinc-700 dark:bg-zinc-900">
@@ -94,10 +101,22 @@
             </div>
         </div>
 
+        @if ($selectedIds !== [])
+            <div class="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <span class="font-medium">{{ count($selectedIds) }} selected</span>
+                <button type="button" wire:click="setSelectedPlayableOffline(true)" class="rounded-md bg-emerald-600 px-3 py-1.5 font-semibold text-white hover:bg-emerald-500">Mark as POF</button>
+                <button type="button" wire:click="setSelectedPlayableOffline(false)" class="rounded-md border border-zinc-300 px-3 py-1.5 font-medium hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">Unmark POF</button>
+                <button type="button" wire:click="$set('selected', [])" class="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">Clear selection</button>
+            </div>
+        @endif
+
         <div class="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
             <table class="w-full text-left text-sm">
                 <thead class="border-b border-zinc-200 text-xs font-medium tracking-wide text-zinc-500 uppercase dark:border-zinc-800 dark:text-zinc-400">
                     <tr>
+                        <th class="w-10 px-3 py-2">
+                            <input type="checkbox" wire:click="toggleAllOnPage" @checked($allOnPageSelected) aria-label="Select all tracks on this page" class="{{ $checkboxClasses }}">
+                        </th>
                         @foreach ($columns as $column => $label)
                             <th @class(['px-3 py-2', 'text-right' => in_array($column, ['bpm', 'year'], true)])>
                                 @if (in_array($column, ['artist', 'title', 'bpm', 'camelot', 'year', 'added'], true))
@@ -119,7 +138,10 @@
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse ($tracks as $track)
-                        <tr wire:key="track-{{ $track->id }}" class="align-top">
+                        <tr wire:key="track-{{ $track->id }}" @class(['align-top', 'bg-accent-50/50 dark:bg-accent-950/30' => in_array($track->id, $selectedIds, true)])>
+                            <td class="px-3 py-2">
+                                <input type="checkbox" wire:model.live="selected" value="{{ $track->id }}" aria-label="Select {{ $track->artist ? $track->artist.' - ' : '' }}{{ $track->title }}" class="{{ $checkboxClasses }}">
+                            </td>
                             <td class="px-3 py-2 font-medium">{{ $track->artist ?? '—' }}</td>
                             <td class="px-3 py-2">
                                 {{ $track->title }}
@@ -133,9 +155,17 @@
                             <td class="px-3 py-2 text-right tabular-nums">{{ $track->release_year }}</td>
                             <td class="px-3 py-2 whitespace-nowrap">
                                 <div class="flex gap-1">
-                                    @if ($track->playable_offline)
-                                        <span title="Playable offline" class="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200">POF</span>
-                                    @endif
+                                    <button
+                                        type="button"
+                                        wire:click="togglePlayableOffline({{ $track->id }})"
+                                        aria-pressed="{{ $track->playable_offline ? 'true' : 'false' }}"
+                                        title="{{ $track->playable_offline ? 'Playable offline. Click if you no longer have the file' : 'Click when you have the file (playable offline)' }}"
+                                        @class([
+                                            'rounded px-1.5 py-0.5 text-xs font-medium',
+                                            'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-200' => $track->playable_offline,
+                                            'border border-dashed border-zinc-300 text-zinc-400 hover:border-emerald-400 hover:text-emerald-700 dark:border-zinc-700 dark:text-zinc-500 dark:hover:text-emerald-300' => ! $track->playable_offline,
+                                        ])
+                                    >POF</button>
                                     @if ($track->isPlayableOnline())
                                         <a href="{{ $track->youtube_url }}" target="_blank" rel="noopener" title="Playable online: open on YouTube" class="rounded bg-accent-100 px-1.5 py-0.5 text-xs font-medium text-accent-800 hover:bg-accent-200 dark:bg-accent-900/60 dark:text-accent-200">PON</a>
                                     @endif
@@ -148,7 +178,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ count($columns) }}" class="px-3 py-8 text-center text-zinc-500">
+                            <td colspan="{{ count($columns) + 1 }}" class="px-3 py-8 text-center text-zinc-500">
                                 No tracks match the filters.
                                 <button type="button" wire:click="clearFilters" class="ml-1 font-medium text-accent-600 hover:underline dark:text-accent-400">Clear filters</button>
                             </td>

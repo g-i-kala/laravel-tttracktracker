@@ -219,8 +219,8 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 
 **Następne kroki (po kolei):**
 0. **Test ręczny użytkownika: import playlisty z lat 80** (z AI): import z miksu działa (2026-10-18). Do sprawdzenia przy okazji: artyści/tytuły (też polskie) i Generate TXT. Po teście ewentualne poprawki czyszczenia tytułów/instrukcji agenta.
-1. **Export track list** (następny, użytkownik chce od razu) (decyzje już podjęte, TODO „After MVP”): modal TXT/CSV, Parse Review (u góry), YouTube Results, lista importów; tylko pobranie.
-2. **Porównanie playlist / duplikaty między importami / biblioteka** pod bazę lat 80: zacząć od Q&A (łączyć importy w jeden? biblioteka Milestone 2?).
+1. ~~**Export track list**~~ zrobione 2026-10-18 (`191b862`): modal TXT/CSV na Parse Review, YouTube Results i liście importów, wszystkie tracki, CSV z przecinkiem w UTF-8 z BOM. Test ręczny użytkownika OK („CSV eleganckie”).
+2. **Następna sesja: rozmowa o bibliotece (Milestone 2), bez kodu.** Użytkownik chce zacząć ogólnie od biblioteki, a dopiero potem ustalić, jak w niej zrobić porównanie i duplikaty między źródłami. Ważne rozróżnienie od użytkownika: **import to nie playlista**. Import to sposób dodania tracków, a playlisty (np. „impreza lat 80”) mają być osobnym bytem w bibliotece. Do przemyślenia razem: unikalne tracki w bibliotece vs itemy importów, playlisty (ręczne, z importu, z playlisty YouTube), duplikaty między źródłami, skan folderu z muzyką, co zastępuje arkusze w Numbers. Zacząć od pytań, opcje z rekomendacją.
 
 **Wcześniejsza lista kroków (2026-10-17):**
 1. **Krok 5 trybu API (odłożony, użytkownik: „na dziś działa super”):** przegląd prawdziwego importu zrobiony 2026-10-17, plan poprawek z decyzjami użytkownika w [TODO.md](TODO.md) pod „Step 5” (artyści z opisu kanałów Topic, „NOT official”, lista znaczników mashup/medley/festiwal −30, wersja przed oficjalnym kanałem, bez powtórek kandydatów). Wagi to stałe w `YoutubeScoringService`.

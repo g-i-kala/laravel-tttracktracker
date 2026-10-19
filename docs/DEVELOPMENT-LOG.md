@@ -673,3 +673,8 @@
 ### Notes
 - 367 tests pass. Ran `sail npm run build`.
 - Headless Chrome: modal opens on Parse Review and the imports list with the right name/count/links; CSV download headers and content checked; no JS errors.
+
+## 2026-10-18 (Session handoff)
+
+### Changed
+- START-TUTAJ: Export track list done (`191b862`, manual test OK); next session: talk through the music library (Milestone 2) first. User: an import is not a playlist; playlists should live in the library.

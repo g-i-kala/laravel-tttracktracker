@@ -5,11 +5,13 @@ use App\Http\Controllers\TrackListController;
 use App\Livewire\Dashboard;
 use App\Livewire\Exports;
 use App\Livewire\Imports;
+use App\Livewire\Library;
 use App\Livewire\Settings;
 use App\Services\TrackListExportService;
 use Illuminate\Support\Facades\Route;
 
 Route::livewire('/', Dashboard::class)->name('dashboard');
+Route::livewire('/library', Library\Index::class)->name('library.index');
 Route::livewire('/imports', Imports\Index::class)->name('imports.index');
 Route::livewire('/imports/create', Imports\Create::class)->name('imports.create');
 Route::livewire('/imports/{batch}', Imports\Show::class)->whereNumber('batch')->name('imports.show');

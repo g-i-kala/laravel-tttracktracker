@@ -732,3 +732,16 @@
 
 ### Changed
 - TODO: 1c split into 1c-i … 1c-iv, "Merge as a separate action" added. START-TUTAJ: next is 1c-i.
+
+## 2026-10-19 (Library step 1c-i)
+
+### Added
+- Library screen `/library` (`App\Livewire\Library\Index`, `resources/views/livewire/library/index.blade.php`), sidebar link **Library** under Dashboard: search (accents ignored via `normalized_key`), availability chips POF / PON / Wanted / None, genre and Camelot selects, BPM and year ranges, 50 per page, sortable columns (Camelot in wheel order, empty values last), filters/sort in the URL.
+- `tests/Feature/Library/LibraryIndexTest.php` (8).
+
+### Changed
+- Docs: API (route + Library/Add to library actions, the 1b actions were missing), ARCHITECTURE, UI-FLOW, PRD, TODO, START-TUTAJ.
+
+### Notes
+- 400 tests pass. Ran `sail npm run build`.
+- Headless Chrome with 54 "ZZ" tracks: sidebar link, search "niz" → "Mniej niż zero" (URL `?search=niz`), Wanted chip, genre select, BPM range, BPM sort desc, pagination; no JS errors. Test data deleted.

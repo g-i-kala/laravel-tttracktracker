@@ -21,7 +21,7 @@ app/
   Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache, Track
   Livewire/      Full-page components (class-based), one per screen:
                  Dashboard, Imports/Index, Imports/Create, Imports/Review,
-                 Imports/Show (YouTube results + export), Exports/Index
+                 Imports/Show (YouTube results + export), Exports/Index, Library/Index
   Http/Controllers/
                  ExportController, TrackListController (file downloads only)
   Services/      ImportParserService, AiTrackListParserService, ImportBatchService (create batch + items),
@@ -217,6 +217,7 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - `addItems(items, markAsWanted, sameTrackIds)` → `{created, linked}`: line order; `sameTrackIds` (item id → track id) are the "Same track" choices, the rest goes through `addItem()` (`wasRecentlyCreated` counts new tracks).
 - `similarMatches(items)` → `[item id => similar tracks]` for items without a track and without an exact match; two queries for the whole list.
 - UI: trait `App\Livewire\Concerns\AddsToLibrary` (Parse Review, YouTube Results; component hook `addedToLibrary(notice)`): `openLibraryModal()` preselects items without `track_id`; `addToLibrary()` first goes to the "Same track / New track" step when `similarMatches()` is not empty (choices default `new`), then calls `addItems()` with the choices that are really among the item's matches; `backToLibrarySelection()`. Selection ids are limited to the batch's items.
+- **Library screen** `App\Livewire\Library\Index` (`/library`, step 1c-i): `#[Url]` filters, `tracks` computed paginator (50). Search: `artist`/`title`/`label` `ilike` (LIKE wildcards escaped) or `normalized_key` containing the ASCII-lowercased text (accents ignored: "niz" finds "niż"). Availability filters are ANDed (`pof` = `playable_offline`, `pon` = has `youtube_url`, `wanted`, `none` = none of them; `none` clears the others). Ranges ignore non-numeric input. Sorting by a whitelist of SQL expressions, `nulls last`, then artist, title, id; Camelot sorts by its number (`substring(camelot_key from '^[0-9]+')`, PostgreSQL). Genre and Camelot options come from the library's values.
 - `Track`: POF = `playable_offline`, PON = `isPlayableOnline()` (has `youtube_url`), `wanted` cleared in a `saving` hook when POF is set.
 
 ## Dashboard

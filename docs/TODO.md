@@ -104,7 +104,8 @@
   - [x] 1b (2026-10-19): **Add to library** on Parse Review and YouTube Results (whole import / selected) with a **Mark as wanted** checkbox, "Same track / New track" modal for similar matches, "In library" mark on items
   - [ ] Manual test 1b (user): Add to library on Parse Review and YouTube Results, Mark as wanted, Same track / New track, In library badge
   - [ ] 1c: Library screen (decisions: DECISIONS "Library screen (step 1c)")
-    - [ ] 1c-i: `/library` + sidebar link, table, search + filters (POF / PON / Wanted / none, genre, Camelot, BPM from–to, year from–to), 50 per page, sortable columns
+    - [x] 1c-i (2026-10-19): `/library` + sidebar link, table, search + filters (POF / PON / Wanted / none, genre, Camelot, BPM from–to, year from–to), 50 per page, sortable columns
+    - [ ] Manual test 1c-i (user): sidebar Library, search, filters, chips, sorting, pages
     - [ ] 1c-ii: expanded row: edit fields (autosave), POF / Wanted, YouTube link, sources (imports)
     - [ ] 1c-iii: delete single + selected (modal with summary)
     - [ ] 1c-iv: collision on edit → merge modal with differences (choose per field; POF/Wanted/notes automatic; items moved)

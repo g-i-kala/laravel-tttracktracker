@@ -30,6 +30,7 @@
 
                 <nav class="flex flex-col gap-1">
                     <x-nav-link route="dashboard">Dashboard</x-nav-link>
+                    <x-nav-link route="library.index">Library</x-nav-link>
                     <x-nav-link route="imports.index">Imports</x-nav-link>
                     <x-nav-link route="exports.index">Exports</x-nav-link>
                 </nav>

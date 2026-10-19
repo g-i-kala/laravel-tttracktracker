@@ -6,7 +6,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Layout (implemented)
 
-- Left sidebar: app name, Dashboard / Imports / Exports, **+ New YouTube Export** button, **AI Settings** and **YouTube Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
+- Left sidebar: app name, Dashboard / Library / Imports / Exports, **+ New YouTube Export** button, **AI Settings** and **YouTube Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
 - Theme follows the OS (light/dark). Accent color from `APP_ACCENT`.
 - Flash message area above the page content.
 
@@ -102,6 +102,15 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - **Export track list** button: first in the Parse Review header, after "Back to review" on YouTube Results; **Track list** as a row action on the imports list. Disabled when the import has no tracks.
 - Modal "Export track list" (Alpine only, no request): "Download all N tracks of “name”, with or without YouTube links." + two options: **TXT** (`Artist - Title`, one per line, like a paste) and **CSV** (Artist, Title, Genre, BPM, Key, Camelot, Label, YouTube URL; opens in Numbers, Excel or Google Sheets) → the file downloads and the modal closes. **Cancel**.
 - Not listed on `/exports`; the file always reflects the current state of the import.
+
+## Library (`/library`) — `Library\Index`
+
+> Status: list, filters and sorting implemented (2026-10-19, step 1c-i). Expanded row editing (1c-ii), delete (1c-iii) and merge on an edit collision (1c-iv) follow; decisions in DECISIONS "Library screen (step 1c)".
+
+- Header "Library" + "N tracks. Add more from an import with Add to library." (with filters: "X of N tracks match the filters.").
+- Filter panel: **Search** (artist, title or label; accents ignored), **Genre** and **Key** (Camelot) selects with the library's values, **BPM** from–to, **Year** from–to; **Availability** chips **POF** / **PON** / **Wanted** / **None** (combined: a track must match all chosen; None = none of the three). **Clear filters** when any is set. Filters and sorting are kept in the URL.
+- Table, 50 per page: Artist, Title (label below), Genre, BPM, Key (Camelot; full key on hover), Year, badges **POF** (green) / **PON** (link to the YouTube video) / **Wanted** (amber), Added. Sortable headers: Artist (default, A–Z), Title, BPM, Key (wheel order), Year, Added; clicking the active header flips the direction (↑/↓). Empty values last.
+- Empty library: "No tracks in the library yet" + hint to use Add to library + link to imports. No match: "No tracks match the filters." + Clear filters.
 
 ## Add to library (Parse Review, YouTube Results)
 

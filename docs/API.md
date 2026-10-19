@@ -9,6 +9,7 @@ The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTU
 | Method | URI                            | Target (planned)                          | Name (planned)     |
 | ------ | ------------------------------ | ----------------------------------------- | ------------------ |
 | GET    | `/`                            | `App\Livewire\Dashboard`                  | `dashboard`        |
+| GET    | `/library`                     | `App\Livewire\Library\Index` (filters/sort in the query string) | `library.index` |
 | GET    | `/imports`                     | `App\Livewire\Imports\Index`              | `imports.index`    |
 | GET    | `/imports/create`              | `App\Livewire\Imports\Create`             | `imports.create`   |
 | GET    | `/imports/{batch}/review`      | `App\Livewire\Imports\Review`             | `imports.review`   |
@@ -46,6 +47,8 @@ These replace the POST/PATCH routes from the original plan.
 | `Imports\Show`    | `updatedLinks()` hook **(implemented)** | `POST /items/{item}/youtube/custom`           | Autosave the pasted link (`wire:model.live.blur="links.{id}"`, blur on paste): empty → `ImportItemService::clearYoutubeLink()` (excluded); invalid → error, nothing saved; valid → `YoutubeUrlNormalizer` + `selectCustomYoutubeLink()` (included); dispatches `item-saved` |
 | `Imports\Show`    | `toggleExport($itemId)` **(implemented)** | `POST /items/{item}/toggle-export`          | Flip `include_in_export`; no-op without a selected link             |
 | `Imports\Show`    | `export()` / `exportAnyway()` / `confirmExport($mode)` **(implemented)** | `POST /imports/{batch}/exports/supersimple-txt` | `export()`: no-op without exportable links; tracks without a link → missing links modal (`exportAnyway()` continues); existing export → version modal; `confirmExport('new'|'overwrite')` → `SupersimpleTxtExportService::export()`, dispatches `download-export` |
+| `Imports\Review`, `Imports\Show` | `openLibraryModal()` / `addToLibrary()` / `backToLibrarySelection()` **(implemented, trait `AddsToLibrary`)** | — | Add to library modal: preselect items without a track; possible matches → "Same track / New track" step; `LibraryService::addItems()` |
+| `Library\Index`   | `toggleAvailability($value)` / `sortBy($column)` / `clearFilters()` **(implemented)** | — | Filters (`search`, `availability`, `genre`, `camelot`, `bpmFrom`/`bpmTo`, `yearFrom`/`yearTo`) and `sort`/`direction` as `#[Url]` properties; any filter change resets the page |
 
 Item actions always check that the item belongs to the page's batch.
 

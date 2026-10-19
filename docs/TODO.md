@@ -118,7 +118,8 @@
     - [ ] Manual test 1c-iv (user): edit a title to match another track → merge modal, choose values, Merge / Cancel / Escape
 - [ ] Merge as a separate action ("Merge into…", e.g. swapped artists), later when needed (user, 2026-10-19)
 - [ ] Step 2: playlists (decisions: DECISIONS "Playlists (step 2)")
-  - [ ] 2a: `playlists` + `playlist_track` (position, unique pair), sidebar **Playlists**, list `/playlists` (create, rename, delete), playlist screen `/playlists/{playlist}`: drag and drop order (`wire:sort`), sort view by column + **Apply this order**, remove a track; `mergeTracks()` moves playlist rows
+  - [x] 2a (2026-10-19): `playlists` + `playlist_track` (position, unique pair), sidebar **Playlists**, list `/playlists` (create, rename, delete), playlist screen `/playlists/{playlist}`: drag and drop order (`wire:sort`), sort view by column + **Apply this order**, remove a track; `mergeTracks()` moves playlist rows
+  - [ ] Manual test 2a (user): after 2b (no UI to add tracks yet): create/edit/delete playlist, drag order, sort + Apply this order, remove
   - [ ] 2b: add from the library (selection bar "Add to playlist" / "New playlist…", expanded row: the track's playlists + add), playlist screen search with "+", library filter "On playlist" / "Not on any playlist"; skip tracks already on the playlist with a notice
   - [ ] 2c: Add to library modal: "Also add to playlist: … / New playlist"
   - [ ] 2d: export TXT / CSV (playlist order, all fields incl. POF/PON/Wanted, rating, tags) + readiness summary (N tracks · X POF · Y only online · Z missing) on the list and the playlist screen, "Show missing" filter

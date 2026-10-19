@@ -191,6 +191,14 @@ A tag without tracks is deleted (`TagService::deleteUnused()`).
 
 `tag_id` FK → tags (**cascadeOnDelete**), `track_id` FK → tracks (**cascadeOnDelete**, indexed), primary key `(tag_id, track_id)`.
 
+### `playlists` — `Playlist`
+
+Step 2a (2026-10-19). id, `name` (string), `notes` (text, nullable), timestamps.
+
+### `playlist_track`
+
+`playlist_id` FK → playlists (**cascadeOnDelete**), `track_id` FK → tracks (**cascadeOnDelete**, indexed), `position` (unsigned int, 1..n, manual order), timestamps. Primary key `(playlist_id, track_id)` = a track once per playlist; index `(playlist_id, position)`.
+
 ### Framework tables
 
 - `jobs`, `failed_jobs`, `job_batches`: database queue + `Bus::batch()` (all in the default `0001_01_01_000002_create_jobs_table` migration).
@@ -204,8 +212,9 @@ A tag without tracks is deleted (`TagService::deleteUnused()`).
 | ---------------- | ---------------------------------------------- |
 | ImportBatch      | `items()` hasMany ImportItem, `exportFiles()` hasMany ExportFile |
 | ImportItem       | `importBatch()` belongsTo, `youtubeCandidates()` hasMany YoutubeCandidate, `track()` belongsTo Track (nullable) |
-| Track            | `importItems()` hasMany ImportItem, `tags()` belongsToMany Tag (ordered by name) |
+| Track            | `importItems()` hasMany ImportItem, `tags()` belongsToMany Tag (ordered by name), `playlists()` belongsToMany Playlist |
 | Tag              | `tracks()` belongsToMany Track                 |
+| Playlist         | `tracks()` belongsToMany Track (pivot `position`, ordered by it) |
 | YoutubeCandidate | `importItem()` belongsTo                       |
 | ExportFile       | `importBatch()` belongsTo                      |
 | AiUsageLog       | `importBatch()` belongsTo (nullable)           |
@@ -263,6 +272,7 @@ Derived (not stored):
 | `AiUsageLogFactory`         | `failed()`                                                  |
 | `YoutubeApiCallFactory`     | `quotaExceeded()` (0 units)                                 |
 | `TagFactory`                | —                                                           |
+| `PlaylistFactory`           | —                                                           |
 | `TrackFactory`              | `withMetadata()`, `withYoutubeLink()` (PON), `playableOffline()`, `wanted()` |
 
 No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look at.
@@ -270,15 +280,11 @@ No demo seeder yet (`DatabaseSeeder` is empty). Add one when there is UI to look
 ## Migration notes
 
 - Use `./vendor/bin/sail artisan migrate`; never `migrate:fresh` / `db:wipe` without explicit permission.
-- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`, `2026_10_19_092356_create_tracks_table`, `2026_10_19_092357_add_track_id_to_import_items_table`, `2026_10_19_122126_create_tags_table`, `2026_10_19_122127_create_tag_track_table`.
+- App migrations: `2026_10_13_082212` … `082216` (batches → items → candidates → export files → search cache). Later: `2026_10_17_205533_create_youtube_api_calls_table`, `2026_10_19_092356_create_tracks_table`, `2026_10_19_092357_add_track_id_to_import_items_table`, `2026_10_19_122126_create_tags_table`, `2026_10_19_122127_create_tag_track_table`, `2026_10_19_164049_create_playlists_table`, `2026_10_19_164050_create_playlist_track_table`.
 
 ## Planned: music library (Milestone 2)
 
-> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). `tracks`, `import_items.track_id` (step 1a), `tags` and `tag_track` (step 1d) are implemented, see above. Exact types and indexes of the rest are settled when each step is built.
-
-### `playlists` + `playlist_track` (step 2)
-
-`playlists`: id, name, notes (nullable), timestamps. `playlist_track`: `playlist_id` (cascade), `track_id` (cascade), `position` (manual order), unique `(playlist_id, track_id)` (a track once per playlist). Agreed 2026-10-19 (DECISIONS "Playlists (step 2)").
+> Status: **draft, not migrated** (agreed 2026-10-19, DECISIONS "Music library (Milestone 2): model and scope"). `tracks`, `import_items.track_id` (step 1a), `tags` and `tag_track` (step 1d), `playlists` and `playlist_track` (step 2a) are implemented, see above. Exact types and indexes of the rest are settled when each step is built.
 
 ### Later (step 3, folder scan)
 

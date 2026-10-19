@@ -15,7 +15,7 @@ Brak pobierania audio. Brak logowania (aplikacja jednoosobowa, lokalna). UI po a
 
 ## Aktualny status
 
-Stan na 2026-10-18:
+Stan na 2026-10-19:
 
 - Laravel 13, PHP 8.4, Sail (`compose.yaml`): app, PostgreSQL 16 (`tttracktracker`, port 5433 na hoście), worker kolejki jako serwis `queue`. Aplikacja: http://localhost:8000.
 - Frontend: Blade + **Livewire 4.4** (full-page, class-based, jeden komponent na ekran), Tailwind 4, własny `<x-modal>`. Sidebar, motyw jasny/ciemny wg systemu, akcent z `APP_ACCENT`.
@@ -32,7 +32,9 @@ Stan na 2026-10-18:
 - **Tryb YouTube API (działa, klucz ustawiony):** Search YouTube z kluczem szuka w tle (kolejka), wybiera najlepszy link wg punktów (≥80 + eksport, 60–79 tylko link). Pasek postępu i podsumowanie na YouTube Results działają; lista 3 kandydatów z punktami i wybór innego też. **Licznik limitu** (linia na Dashboard, Parse Review, YouTube Results + ekran **YouTube Settings** `/settings/youtube`). Strojenie wag (krok 5) odłożone.
 - Zużycie AI zapisywane w `ai_usage_logs` (tokeny, szacowany koszt). Ekran **AI Settings** (`/settings/ai`): statystyki miesiąca, klucz API w bazie (szyfrowany, ma pierwszeństwo przed `.env`), model, miesięczny budżet (po przekroczeniu parser linii).
 - **Export track list** (Parse Review, YouTube Results, lista importów): modal TXT (`Artist - Title`) albo CSV (wszystkie pola + link YouTube), wszystkie tracki, tylko pobranie.
-- Testy: 367, wszystkie przechodzą.
+- **Biblioteka (Milestone 2, krok 1 gotowy):** **Add to library** na Parse Review / YouTube Results (modal z wyborem, Mark as wanted, Same track / New track), ekran **Library** (`/library`): szukanie, filtry (POF / PON / Wanted / None, gatunek, Camelot, BPM, rok, ocena, tagi „all of”), sortowanie, 50 na stronę; POF jednym klikiem i dla zaznaczonych; rozwijany wiersz z edycją (autosave), źródłami (importy), oceną i tagami; usuwanie (wiersz / zaznaczone); merge przy kolizji tytułu (porównanie różnic). Track = wersja; dostępność: POF (mam plik), PON (z linku), Wanted.
+- **Playlisty (krok 2a):** `/playlists` (nowa, usuń) i ekran playlisty (przeciąganie ⋮⋮, sortowanie widoku + Apply this order, usuń z playlisty, edycja nazwy/notatek). **Brak jeszcze UI do dodawania tracków** (to 2b).
+- Testy: 443, wszystkie przechodzą (pełny przebieg ~22 s; `sail artisan test` może przekroczyć 120 s limitu narzędzia, wtedy w tle).
 
 Szczegóły: [TODO.md](TODO.md), [DEVELOPMENT-LOG.md](DEVELOPMENT-LOG.md).
 
@@ -199,6 +201,32 @@ Instrukcja środowiska: [DOCKER.md](DOCKER.md).
 **Do zrobienia przez użytkownika:**
 - **Test ręczny importu z playlisty** (patrz sesja 2026-10-18).
 - ~~Sprawdzić ceny `gpt-4.1-mini`~~ potwierdzone 2026-10-18 ($0.40 in / $0.10 cached / $1.60 out za 1M tokenów, `config/services.php` → `ai_pricing`), zgodne z configiem.
+
+### Sesja 2026-10-19: biblioteka (krok 1) i playlisty (2a)
+
+**Zrobione (commity po kolei):** Q&A biblioteki (`3e1a2b2`), 1a tracki + POF/Wanted (`cf06f22`), 1b Add to library (`87d16e9`), Q&A ekranu (`836391b`), 1c-i ekran `/library` (`8bd70cd`), POF na liście (`2737e55`), 1c-ii edycja w wierszu (`75c5061`), 1c-iii usuwanie (`4144ddc`), 1c-iv merge (`450825f`), 1d ocena + tagi (`0dc9469`), Q&A playlist (`aa97f2d`), 2a playlisty (`feat(playlists): add playlists with manual order`, testy 443 OK, sprawdzone w headless Chrome).
+
+**Kluczowe decyzje** (szczegóły w DECISIONS 2026-10-19):
+- Track w bibliotece = **wersja**; import ≠ playlista. Do biblioteki ręcznie (Add to library), dokładne duplikaty łączą się same, podobne → Same track / New track (domyślnie New).
+- Dostępność (flow A): **POF** (`playable_offline`, ręcznie, później skan), **PON** wyliczany z `youtube_url`, **Wanted** (chcę plik; znika przy POF). Zamiast statusu posiadania.
+- Ekran biblioteki: rozwijany wiersz, filtry w URL, usuwanie z modalem, merge przy kolizji z porównaniem różnic (istniejący track zostaje).
+- Ocena 1–5 gwiazdkami, tagi bez rozróżniania wielkości liter, nieużywane znikają.
+- Playlisty: nazwa + notatki, track raz, ręczna kolejność, sort widoku + Apply this order, dodawanie z 4 miejsc, gotowość POF/online/missing, filtr w bibliotece, eksport TXT/CSV. Podkroki 2a–2d.
+
+**Stan danych lokalnych:** 8 tracków w bibliotece (dodane przez użytkownika z importu), 0 tagów, 0 playlist. Dane testowe zawsze jako „ZZ…/ZZQ…” i usuwane po teście.
+
+**Lekcje:**
+- Headless Chrome łapie to, czego testy Livewire nie widzą: Escape w modalu z `wire:model` (odroczonym) nie informuje serwera → dla modali z logiką przy zamknięciu `wire:model.live`.
+- W PHP `fn` kopiuje zmienne: `++$x` w funkcji strzałkowej nie zmienia zewnętrznego licznika.
+- Przy kolizji klucza w testach: dwa tracki nie mogą mieć tego samego `normalized_key` (unikalny), kolizję tworzyć przez zmianę tytułu.
+- Użytkownik woli pytania wielokrotnego wyboru (AskUserQuestion) zamiast otwartych.
+
+**Do zrobienia przez użytkownika (testy ręczne, lista w TODO):** 1b, 1c-i … 1c-iv, 1d (POF na liście: OK), 2a po 2b.
+
+**Następne kroki:**
+1. **2b:** dodawanie z biblioteki (pasek zaznaczenia „Add to playlist” / „New playlist…”, rozwinięty wiersz: playlisty tracku + dodaj), wyszukiwarka z „+” na ekranie playlisty, filtr biblioteki „On playlist” / „Not on any playlist”; pomijanie duplikatów z komunikatem (`PlaylistService::addTracks()` już jest).
+2. 2c: opcja „Also add to playlist” w Add to library. 3. 2d: eksport TXT/CSV + podsumowanie gotowości + „Show missing”.
+4. Potem krok 3 (skan folderu, najpierw Q&A), odłożone: strojenie scoringu YouTube (krok 5), „Merge into…” jako osobna akcja.
 
 ### Sesja 2026-10-18: import z playlisty YouTube
 

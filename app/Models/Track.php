@@ -36,6 +36,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class Track extends Model
 {
+    /**
+     * Sortable list columns => SQL used for ordering (nulls always last).
+     *
+     * @var array<string, string>
+     */
+    public const array SORTS = [
+        'artist' => 'lower(tracks.artist)',
+        'title' => 'lower(tracks.title)',
+        'bpm' => 'tracks.bpm',
+        'camelot' => "cast(substring(tracks.camelot_key from '^[0-9]+') as integer)",
+        'year' => 'tracks.release_year',
+        'rating' => 'tracks.rating',
+        'added' => 'tracks.created_at',
+    ];
+
     /** @use HasFactory<TrackFactory> */
     use HasFactory;
 
@@ -94,5 +109,13 @@ class Track extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class)->orderByRaw('lower(tags.name)');
+    }
+
+    /**
+     * @return BelongsToMany<Playlist, $this>
+     */
+    public function playlists(): BelongsToMany
+    {
+        return $this->belongsToMany(Playlist::class)->withPivot('position')->withTimestamps();
     }
 }

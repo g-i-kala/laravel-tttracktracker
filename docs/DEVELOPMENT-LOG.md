@@ -819,3 +819,25 @@
 
 ### Changed
 - TODO step 2 split into 2a–2d; ROADMAP step 1 done, step 2 described; DATABASE playlist draft (cascade, unique pair). START-TUTAJ: next is 2a.
+
+## 2026-10-19 (Playlists step 2a)
+
+### Added
+- Tables `playlists` / `playlist_track` (position, primary `(playlist_id, track_id)`), `Playlist` model + factory, `Track::playlists()`, `PlaylistService` (add, move, apply order, remove, merge move).
+- `/playlists` (`Playlists\Index`: create modal, delete modal) and `/playlists/{playlist}` (`Playlists\Show`: `wire:sort` drag handle, view sort + Apply this order, remove, edit name/notes modal); sidebar **Playlists**.
+- `Track::SORTS` shared by the library and playlist screens. `LibraryService::mergeTracks()` moves playlist places.
+- Tests: `tests/Feature/Playlists/PlaylistServiceTest.php` (6), `PlaylistScreensTest.php` (7).
+- DECISIONS "Playlists step 2a: details".
+
+### Changed
+- Docs: DATABASE, UI-FLOW, API, ARCHITECTURE, PRD, TODO, START-TUTAJ.
+
+### Notes
+- 443 tests pass (full run ~22 s now). Ran `sail artisan migrate`, `sail npm run build`.
+- Tests caught a bug before the browser check: `addTracks()` gave every new track the same position (`++$position` inside an arrow function changes a copy); fixed by numbering by index.
+- Headless Chrome on a "ZZQ" playlist: sidebar → list → playlist, real mouse drag of the 3rd row to the top (saved, survives reload), BPM sort hides the handles, Apply this order saved; no JS errors. Test data deleted.
+
+## 2026-10-19 (Session handoff)
+
+### Changed
+- START-TUTAJ: status for 2026-10-19 (library step 1, playlists 2a), session notes with commits, decisions, lessons and next steps (next: 2b).

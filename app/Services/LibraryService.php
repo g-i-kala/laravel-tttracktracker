@@ -47,7 +47,7 @@ class LibraryService
         'youtube_url' => 'YouTube link',
     ];
 
-    public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys, private TagService $tags) {}
+    public function __construct(private ImportParserService $parser, private MusicalKeyService $musicalKeys, private TagService $tags, private PlaylistService $playlists) {}
 
     /**
      * Link the item to its track (already in the library) or the track with the
@@ -233,7 +233,7 @@ class LibraryService
      * fields take the chosen side (`current` or `existing`, default existing),
      * empty fields are filled from the other track, POF and Wanted are kept if
      * either track has them (Wanted stays off when POF), notes are joined and
-     * the import items and tags move to the existing track. The current track is deleted.
+     * the import items, tags and playlist places move to the existing track. The current track is deleted.
      *
      * @param  array<string, mixed>  $currentOverrides
      * @param  array<string, string>  $choices  field => `current` | `existing`
@@ -259,6 +259,7 @@ class LibraryService
 
             ImportItem::query()->where('track_id', $current->id)->update(['track_id' => $existing->id]);
             $existing->tags()->syncWithoutDetaching($current->tags()->pluck('tags.id')->all());
+            $this->playlists->moveToTrack($current, $existing);
             $current->delete();
             $existing->save();
         });

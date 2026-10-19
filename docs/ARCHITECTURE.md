@@ -18,10 +18,11 @@
 ```text
 app/
   Enums/         ImportBatchStatus, ImportItemStatus
-  Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache, Track, Tag
+  Models/        ImportBatch, ImportItem, YoutubeCandidate, ExportFile, YoutubeSearchCache, Track, Tag, Playlist
   Livewire/      Full-page components (class-based), one per screen:
                  Dashboard, Imports/Index, Imports/Create, Imports/Review,
-                 Imports/Show (YouTube results + export), Exports/Index, Library/Index
+                 Imports/Show (YouTube results + export), Exports/Index, Library/Index,
+                 Playlists/Index, Playlists/Show
   Http/Controllers/
                  ExportController, TrackListController (file downloads only)
   Services/      ImportParserService, AiTrackListParserService, ImportBatchService (create batch + items),
@@ -29,7 +30,7 @@ app/
                  DuplicateDetectionService, YoutubeSearchService,
                  YoutubeSearchUrlService, YoutubeScoringService, YoutubeUrlNormalizer,
                  SupersimpleTxtExportService, ExportFilenameService,
-                 LibraryService (music library: add import items as tracks), TagService
+                 LibraryService (music library: add import items as tracks), TagService, PlaylistService
   Ai/Agents/     TrackListParser, PlaylistTitleParser (Laravel AI SDK agents, structured output)
   Jobs/          ParseImportBatchWithAiJob, ParsePlaylistTitlesWithAiJob, SearchYoutubeForImportItemJob (dispatched via Bus::batch())
 
@@ -224,6 +225,10 @@ When the configured AI provider has an API key, New Import parses **any** pasted
 - **Removing tracks** (1c-iii): `LibraryService::deletionSummary(ids)` → `{tracks, linkedItems}` for the modal; `deleteTracks(ids)` deletes the rows, `import_items.track_id` is set to null by the FK (`nullOnDelete`). Playlists (step 2) will need their pivot rows removed too (FK cascade).
 - `LibraryService::setPlayableOffline(ids, bool)`: one `update` query; marking also sets `wanted = false` (same rule as the model `saving` hook, which a mass update skips). Used by the POF button and Mark as POF / Unmark POF on the library screen.
 - `Track`: POF = `playable_offline`, PON = `isPlayableOnline()` (has `youtube_url`), `wanted` cleared in a `saving` hook when POF is set.
+
+## Playlists (Milestone 2, step 2a)
+
+`App\Services\PlaylistService` keeps positions 1..n (`playlist_track.position`), each track once: `addTracks(playlist, ids)` → `{added, skipped}` (appends in the given order, skips tracks already there or unknown), `moveTrack(playlist, trackId, zeroBasedPosition)` (`wire:sort` handler), `applyOrder(playlist, ids)` (missing ones keep their relative order at the end), `removeTrack()` (renumbers), `moveToTrack(current, kept)` (merge: the kept track takes the current one's place, or the current row is dropped when the kept track is already there). All writes go through `saveOrder()` (`sync` with positions) and touch the playlist. `LibraryService::mergeTracks()` calls `moveToTrack()`; deleting tracks/playlists cascades in the DB. `Track::SORTS` (shared with the library screen) sorts the playlist view (`reorder()` + position as tie-breaker).
 
 ## Dashboard
 

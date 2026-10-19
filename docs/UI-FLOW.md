@@ -6,7 +6,7 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 
 ## Layout (implemented)
 
-- Left sidebar: app name, Dashboard / Library / Imports / Exports, **+ New YouTube Export** button, **AI Settings** and **YouTube Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
+- Left sidebar: app name, Dashboard / Library / Playlists / Imports / Exports, **+ New YouTube Export** button, **AI Settings** and **YouTube Settings** at the bottom. Screens not built yet are shown disabled ("Coming soon"). On mobile the sidebar collapses behind a **Menu** button.
 - Theme follows the OS (light/dark). Accent color from `APP_ACCENT`.
 - Flash message area above the page content.
 
@@ -116,6 +116,21 @@ Each screen below is one class-based Livewire component (`app/Livewire/...`). Ro
 - **Remove** (1c-iii): **Remove from library** in the expanded row, **Remove selected** (red) in the selection bar. Modal "Remove from library": "Remove “Artist - Title” from the library?" / "Remove N tracks from the library?", then "N tracks in your imports will lose the “In library” mark; the imports stay and you can add them again." (or "Not linked to any import.") + "Their POF, Wanted, notes and other details are lost." → **Cancel** / red **Remove** → notice "Removed N tracks from the library."; the open row closes if it was removed, removed ids leave the selection, an emptied last page goes back a page.
 - **Merge modal** "Already in the library" (1c-iv): "This artist and title make it the same track as “…”. Merge them into one track?" Table Field / **This track (edited)** / **Already in the library** for Artist, Title, Genre, BPM, Key, Label, Year, YouTube link; rows where both differ are highlighted with radio buttons (default: Artist/Title = edited, others = existing); other rows show both values (empty = —) and the merged track takes the one that is there. Notes: "POF and Wanted are kept if either track has them (Wanted stays off when POF); notes are joined." and how many import tracks move. **Cancel** (also Escape / backdrop; `wire:model.live`) restores the artist/title in the panel, nothing saved. **Merge** → the edited track is removed, the existing one opens in the panel, notice "Merged into “…”. N import tracks moved to it."
 - Empty library: "No tracks in the library yet" + hint to use Add to library + link to imports. No match: "No tracks match the filters." + Clear filters.
+
+## Playlists (`/playlists`) — `Playlists\Index`
+
+> Status: implemented (2026-10-19, step 2a). Adding tracks comes in 2b/2c, export and readiness summary in 2d.
+
+- Header "Playlists" + **+ New playlist** → modal "New playlist": Name (required, Enter = Create), Notes (optional) → **Create** opens the new playlist.
+- Table, newest change first, 25 per page: Name (link; notes shortened below), Tracks, Updated, **Open** / **Delete**. Delete modal: "Delete “name” (N tracks)? The tracks stay in the library; only the playlist and its order are removed." → notice.
+- Empty state "No playlists yet".
+
+## Playlist (`/playlists/{playlist}`) — `Playlists\Show`
+
+- Breadcrumb "Playlists", name, "N tracks", notes; **Edit name & notes** → modal (Name required, Notes) → Save.
+- Table in the manual order: drag handle **⋮⋮** (`wire:sort`, `wire:sort:handle`), # (position), Artist, Title (tags below), BPM, Key, Year, Rating (stars, read-only), availability badges (POF / PON link / Wanted), **Remove** (`wire:confirm`, track stays in the library).
+- Clicking a column (Artist, Title, BPM, Key, Year, Rating) sorts only the view: dragging is off and an amber bar says so with **Apply this order** (saves it as the manual order, notice "Saved this order as the playlist order.") and **Back to playlist order** (also the "#" header).
+- Empty: "No tracks on this playlist yet" + "Go to library".
 
 ## Add to library (Parse Review, YouTube Results)
 

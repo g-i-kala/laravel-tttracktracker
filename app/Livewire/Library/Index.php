@@ -44,21 +44,6 @@ class Index extends Component
      */
     public const array AVAILABILITY = ['pof', 'pon', 'wanted', 'none'];
 
-    /**
-     * Sortable columns => SQL used for ordering (nulls always last).
-     *
-     * @var array<string, string>
-     */
-    private const array SORTS = [
-        'artist' => 'lower(artist)',
-        'title' => 'lower(title)',
-        'bpm' => 'bpm',
-        'camelot' => "cast(substring(camelot_key from '^[0-9]+') as integer)",
-        'year' => 'release_year',
-        'rating' => 'rating',
-        'added' => 'created_at',
-    ];
-
     private const array FILTERS = ['search', 'availability', 'genre', 'camelot', 'bpmFrom', 'bpmTo', 'yearFrom', 'yearTo', 'minRating', 'tagFilter'];
 
     /**
@@ -188,7 +173,7 @@ class Index extends Component
      */
     public function sortBy(string $column): void
     {
-        if (! array_key_exists($column, self::SORTS)) {
+        if (! array_key_exists($column, Track::SORTS)) {
             return;
         }
 
@@ -641,11 +626,11 @@ class Index extends Component
             $query->whereHas('tags', fn (Builder $query) => $query->whereKey($tagId));
         }
 
-        $sort = array_key_exists($this->sort, self::SORTS) ? $this->sort : 'artist';
+        $sort = array_key_exists($this->sort, Track::SORTS) ? $this->sort : 'artist';
         $direction = $this->direction === 'desc' ? 'desc' : 'asc';
 
         return $query
-            ->orderByRaw(self::SORTS[$sort]." {$direction} nulls last")
+            ->orderByRaw(Track::SORTS[$sort]." {$direction} nulls last")
             ->orderByRaw('lower(artist) asc nulls last')
             ->orderByRaw('lower(title) asc')
             ->orderBy('id')

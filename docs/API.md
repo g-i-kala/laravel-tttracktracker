@@ -10,6 +10,8 @@ The app uses **full-page Livewire components** (see [ARCHITECTURE.md](ARCHITECTU
 | ------ | ------------------------------ | ----------------------------------------- | ------------------ |
 | GET    | `/`                            | `App\Livewire\Dashboard`                  | `dashboard`        |
 | GET    | `/library`                     | `App\Livewire\Library\Index` (filters/sort in the query string) | `library.index` |
+| GET    | `/playlists`                   | `App\Livewire\Playlists\Index`            | `playlists.index`  |
+| GET    | `/playlists/{playlist}`        | `App\Livewire\Playlists\Show`             | `playlists.show`   |
 | GET    | `/imports`                     | `App\Livewire\Imports\Index`              | `imports.index`    |
 | GET    | `/imports/create`              | `App\Livewire\Imports\Create`             | `imports.create`   |
 | GET    | `/imports/{batch}/review`      | `App\Livewire\Imports\Review`             | `imports.review`   |
@@ -50,6 +52,8 @@ These replace the POST/PATCH routes from the original plan.
 | `Imports\Review`, `Imports\Show` | `openLibraryModal()` / `addToLibrary()` / `backToLibrarySelection()` **(implemented, trait `AddsToLibrary`)** | — | Add to library modal: preselect items without a track; possible matches → "Same track / New track" step; `LibraryService::addItems()` |
 | `Library\Index`   | `togglePlayableOffline($trackId)` / `toggleAllOnPage()` / `setSelectedPlayableOffline(bool)` **(implemented)** | — | POF per row and for the ticked tracks (`selected`), `LibraryService::setPlayableOffline()` |
 | `Library\Index`   | `toggleTrack($trackId)` / `updatedEdit()` hook **(implemented)** | — | Expand/collapse a row; autosave one field of the expanded track (`edit.*`, validated), artist/title collision check, `LibraryService::updateTrackDetails()`, dispatches `track-saved` |
+| `Playlists\Index` | `create()` / `confirmDelete($playlistId)` / `delete()` **(implemented)** | — | New playlist modal (redirects to it), delete with confirmation (tracks stay) |
+| `Playlists\Show`  | `moveTrack($trackId, $position)` (`wire:sort`) / `sortBy($column)` / `manualOrder()` / `applyOrder()` / `removeTrack($trackId)` / `openEditModal()` / `saveDetails()` **(implemented)** | — | Manual order, view sort + Apply this order, remove from playlist, edit name/notes (`PlaylistService`) |
 | `Library\Index`   | `rate($trackId, $stars)` / `addTag()` / `removeTag($tagId)` / `tagSelected()` / `untagSelected()` / `addTagFilter($tagId)` / `removeTagFilter($tagId)` **(implemented)** | — | Rating (same stars clears), tags in the panel and for the ticked tracks (`TagService`), tag filter (`tagFilter`, URL `tags`) and `minRating` |
 | `Library\Index`   | `confirmMerge()` / `cancelMerge()` / `updatedShowMergeModal()` **(implemented)** | — | Merge modal after an artist/title collision: `LibraryService::mergeTracks()` with `mergeChoices`; cancel restores the fields |
 | `Library\Index`   | `confirmDelete(?$trackId)` / `delete()` **(implemented)** | — | Remove modal for one track or the ticked ones, `LibraryService::deleteTracks()` |

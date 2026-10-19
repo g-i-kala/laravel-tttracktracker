@@ -632,3 +632,11 @@ Frontend is Blade + Livewire (with Alpine.js for small client-side interactions)
 **Reason:** User's answers (2026-10-19): all recommended options, plus adding from the playlist screen and the row panel; export only as a track list.
 
 **Consequences:** `mergeTracks()` must move `playlist_track` rows (keeping one row per playlist); `deleteTracks()` removes them through the FK cascade. Sidebar gets **Playlists**.
+
+## 2026-10-19 — Playlists step 2a: details
+
+**Decision:** `playlist_track` uses `(playlist_id, track_id)` as primary key and positions 1..n, rewritten on every change (`sync`). A new playlist is created in a modal and opens right away; name and notes are edited in a modal on the playlist screen; deleting a playlist is on the list screen. Merging tracks keeps one row per playlist at the earlier of the two places when both tracks were on it (the edited track's row is dropped, the kept track keeps its place).
+
+**Reason:** Implementation choices within DECISIONS "Playlists (step 2)". Playlists are short (tens to a few hundred tracks), so rewriting positions is cheap and keeps them gap-free.
+
+**Consequences:** 2a has no UI to add tracks yet (`PlaylistService::addTracks()` exists for 2b/2c), so the user's manual test waits for 2b.
